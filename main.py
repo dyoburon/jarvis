@@ -8,7 +8,7 @@ from rich.console import Console
 from rich.panel import Panel
 
 import config
-from skills.router import SkillRouter
+from skills.router import SkillRouter, _skills
 from voice.audio import AudioPlayer, MicCapture
 from voice.realtime_client import RealtimeClient
 
@@ -57,6 +57,15 @@ class MetalBridge:
     def send_hud_clear(self):
         self.send({"type": "hud_clear"})
 
+    def send_chat_start(self, skill_name: str):
+        self.send({"type": "chat_start", "skill": skill_name})
+
+    def send_chat_message(self, speaker: str, text: str):
+        self.send({"type": "chat_message", "speaker": speaker, "text": text})
+
+    def send_chat_end(self):
+        self.send({"type": "chat_end"})
+
     def quit(self):
         self.send({"type": "quit"})
         if self.proc:
@@ -104,6 +113,81 @@ async def main():
             console.print(f"[bold cyan]Jarvis:[/] {text}")
             metal.send_hud(f"JARVIS: {text}")
 
+    skill_task: asyncio.Task | None = None
+
+    def _is_close_command(text: str) -> bool:
+        normalized = text.lower().strip().rstrip(".")
+        close_phrases = [
+            "close window", "close the window", "close chat",
+            "close the chat", "exit chat", "exit window",
+            "close this", "that's all", "done with this",
+            "go back", "never mind", "nevermind",
+        ]
+        return any(phrase in normalized for phrase in close_phrases)
+
+    async def on_skill_input(event_type: str, tool_name: str, arguments: str, user_text: str):
+        nonlocal skill_task
+
+        if event_type == "__skill_start__":
+            player.clear()
+
+            # Resolve skill display name
+            skill = _skills.get(tool_name)
+            skill_name = skill.name if skill else "System Overview" if tool_name == "get_system_overview" else tool_name
+
+            metal.send_chat_start(skill_name)
+            console.print(f"\n[bold cyan]Chat window opened:[/] {skill_name}")
+
+            def on_chunk(text: str):
+                metal.send_chat_message("gemini", text)
+
+            async def run_initial():
+                try:
+                    await router.start_skill_session(tool_name, arguments, user_text, on_chunk=on_chunk)
+                except Exception as e:
+                    console.print(f"[red]Skill error:[/] {e}")
+                    metal.send_chat_message("gemini", f"\nError: {e}")
+
+            skill_task = asyncio.create_task(run_initial())
+
+        elif event_type == "__skill_chat__":
+            if _is_close_command(user_text):
+                console.print("[bold cyan]Closing chat window...[/]")
+
+                if skill_task and not skill_task.done():
+                    skill_task.cancel()
+                    try:
+                        await skill_task
+                    except asyncio.CancelledError:
+                        pass
+
+                summary = router.close_session()
+                metal.send_chat_end()
+                await client.exit_skill_mode(summary)
+                metal.send_state("listening")
+                console.print("[green]Jarvis resumed.[/]")
+                return
+
+            # Show user message in chat window
+            metal.send_chat_message("user", user_text)
+            console.print(f"[white]Chat>[/] {user_text}")
+
+            # Wait for any in-flight response to finish
+            if skill_task and not skill_task.done():
+                await skill_task
+
+            def on_chunk(text: str):
+                metal.send_chat_message("gemini", text)
+
+            async def run_followup():
+                try:
+                    await router.send_followup(user_text, on_chunk=on_chunk)
+                except Exception as e:
+                    console.print(f"[red]Followup error:[/] {e}")
+                    metal.send_chat_message("gemini", f"\nError: {e}")
+
+            skill_task = asyncio.create_task(run_followup())
+
     async def watchdog():
         """Monitors timeout and Metal process health."""
         while True:
@@ -142,7 +226,7 @@ async def main():
 
         await asyncio.gather(
             send_audio_loop(),
-            client.receive_events(on_audio_delta, on_transcript, on_interrupt),
+            client.receive_events(on_audio_delta, on_transcript, on_interrupt, on_skill_input),
             watchdog(),
         )
 

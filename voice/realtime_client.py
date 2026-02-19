@@ -19,6 +19,10 @@ class RealtimeClient:
         self.ws = None
         self._current_transcript = ""
         self._function_call_args = {}  # call_id -> accumulated args
+        # Skill chat mode
+        self.skill_active = False
+        self.pending_call_id: str | None = None
+        self.pending_tool_name: str | None = None
 
     async def connect(self):
         headers = {
@@ -63,7 +67,7 @@ class RealtimeClient:
                 "audio": b64_audio,
             })
 
-    async def receive_events(self, on_audio_delta, on_transcript, on_interrupt=None):
+    async def receive_events(self, on_audio_delta, on_transcript, on_interrupt=None, on_skill_input=None):
         """Main event loop — processes all events from the API."""
         async for raw in self.ws:
             event = json.loads(raw)
@@ -76,9 +80,12 @@ class RealtimeClient:
                 console.print("[dim]Session configured[/]")
 
             elif event_type == "response.audio.delta":
-                if self.metal:
-                    self.metal.send_state("speaking")
-                on_audio_delta(event["delta"])
+                if self.skill_active:
+                    pass  # mute during skill chat
+                else:
+                    if self.metal:
+                        self.metal.send_state("speaking")
+                    on_audio_delta(event["delta"])
 
             elif event_type == "response.audio_transcript.delta":
                 pass  # streaming transcript of Jarvis speaking
@@ -92,7 +99,10 @@ class RealtimeClient:
                 user_text = event.get("transcript", "")
                 if user_text:
                     self._current_transcript = user_text
-                    on_transcript("user", user_text)
+                    if self.skill_active and on_skill_input:
+                        await on_skill_input("__skill_chat__", self.pending_tool_name, "", user_text)
+                    else:
+                        on_transcript("user", user_text)
 
             elif event_type == "response.function_call_arguments.delta":
                 call_id = event.get("call_id", "")
@@ -106,25 +116,15 @@ class RealtimeClient:
 
                 console.print(f"\n[bold yellow]⚡ Skill triggered:[/] {tool_name}")
 
-                # Execute skill
-                result = await self.router.handle_tool_call(
-                    tool_name, arguments, self._current_transcript
-                )
-
-                # Send result back to OpenAI
-                await self._send({
-                    "type": "conversation.item.create",
-                    "item": {
-                        "type": "function_call_output",
-                        "call_id": call_id,
-                        "output": result,
-                    },
-                })
-                # Ask OpenAI to respond with the result
-                await self._send({"type": "response.create"})
-
-                # Clean up
+                # Enter skill chat mode — withhold function_call_output
+                # OpenAI is blocked from responding, but VAD + Whisper still work
+                self.skill_active = True
+                self.pending_call_id = call_id
+                self.pending_tool_name = tool_name
                 self._function_call_args.pop(call_id, None)
+
+                if on_skill_input:
+                    await on_skill_input("__skill_start__", tool_name, arguments, self._current_transcript)
 
             elif event_type == "response.done":
                 if self.metal:
@@ -140,6 +140,25 @@ class RealtimeClient:
 
             elif event_type == "input_audio_buffer.speech_stopped":
                 pass  # user stopped speaking
+
+    async def exit_skill_mode(self, summary: str):
+        """Send the withheld function_call_output and resume normal Jarvis mode."""
+        if not self.skill_active or not self.pending_call_id:
+            return
+
+        await self._send({
+            "type": "conversation.item.create",
+            "item": {
+                "type": "function_call_output",
+                "call_id": self.pending_call_id,
+                "output": f"[Skill chat completed. {summary}]",
+            },
+        })
+        await self._send({"type": "response.create"})
+
+        self.skill_active = False
+        self.pending_call_id = None
+        self.pending_tool_name = None
 
     async def _send(self, data: dict):
         if self.ws:

@@ -78,6 +78,9 @@ class SkillRouter:
     def __init__(self, metal_bridge=None):
         self.gemini = genai.Client(api_key=config.GOOGLE_API_KEY)
         self.metal = metal_bridge
+        # Streaming chat session for skill mode
+        self.active_chat = None
+        self.active_skill_name: str | None = None
 
     def _metal_hud(self, text: str):
         if self.metal:
@@ -86,6 +89,79 @@ class SkillRouter:
     def _metal_state(self, state: str, name: str = None):
         if self.metal:
             self.metal.send_state(state, name)
+
+    async def start_skill_session(self, tool_name: str, arguments: str, user_transcript: str, on_chunk=None) -> str:
+        """Start a streaming skill chat session. Returns the full initial response."""
+        params = json.loads(arguments) if arguments else {}
+
+        if tool_name == "get_system_overview":
+            all_data = {}
+            for name, skill in _skills.items():
+                try:
+                    all_data[skill.name] = await skill.fetch_data()
+                except Exception as e:
+                    all_data[skill.name] = {"error": str(e)}
+            skill_name = "System Overview"
+            prompt = (
+                "You are Jarvis, reporting on all connected systems.\n"
+                f"User asked: \"{user_transcript}\"\n\n"
+                f"Data:\n{json.dumps(all_data, indent=2, default=str)}\n\n"
+                "Provide a detailed analysis. Use bullet points. Be specific with numbers."
+            )
+        else:
+            skill = _skills.get(tool_name)
+            if not skill:
+                return f"Unknown skill: {tool_name}"
+            skill_name = skill.name
+            data = await skill.fetch_data(**params)
+            if "error" in data:
+                return data["error"]
+            prompt = skill.format_prompt(data, user_transcript or tool_name)
+
+        self.active_skill_name = skill_name
+        console.print(f"  [dim]Starting Gemini chat for {skill_name}...[/]")
+
+        self.active_chat = self.gemini.aio.chats.create(
+            model=config.GEMINI_MODEL,
+            config={"system_instruction": (
+                "You are Jarvis, a personal AI assistant. You are in a text chat window "
+                "displayed on screen. The user can see your responses as text. "
+                "Be detailed but well-formatted. Use bullet points and short paragraphs. "
+                "The user may ask follow-up questions about the data."
+            )},
+        )
+
+        full_response = ""
+        async for chunk in await self.active_chat.send_message_stream(prompt):
+            text = chunk.text
+            if text:
+                full_response += text
+                if on_chunk:
+                    on_chunk(text)
+
+        return full_response
+
+    async def send_followup(self, user_text: str, on_chunk=None) -> str:
+        """Send a follow-up message in the active chat session."""
+        if not self.active_chat:
+            return "No active chat session"
+
+        full_response = ""
+        async for chunk in await self.active_chat.send_message_stream(user_text):
+            text = chunk.text
+            if text:
+                full_response += text
+                if on_chunk:
+                    on_chunk(text)
+
+        return full_response
+
+    def close_session(self) -> str:
+        """Close the active chat session."""
+        name = self.active_skill_name or "Skill"
+        self.active_chat = None
+        self.active_skill_name = None
+        return f"{name} session closed."
 
     async def handle_tool_call(self, tool_name: str, arguments: str, user_transcript: str = "") -> str:
         """Execute a skill and return Gemini's summary."""
