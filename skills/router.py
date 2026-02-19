@@ -1,12 +1,17 @@
+import asyncio
+import inspect
 import json
 
 from google import genai
+from google.genai import types
 from rich.console import Console
 from rich.live import Live
 from rich.markdown import Markdown
 from rich.panel import Panel
 
 import config
+from skills.code_assistant import CODE_SYSTEM_PROMPT, CODE_TOOLS
+from skills.code_tools import TOOL_DISPATCH
 from skills.domains import DomainSkill
 from skills.firewall import FirewallSkill
 from skills.papers import PaperSkill
@@ -63,6 +68,19 @@ TOOLS = [
         "description": "Get a full overview across all connected systems",
         "parameters": {"type": "object", "properties": {}},
     },
+    {
+        "type": "function",
+        "name": "code_assistant",
+        "description": "Help with coding tasks: read/write/edit files, run commands, search code. Use when the user asks about code, wants to make changes to projects, run scripts, debug issues, or explore codebases.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "task": {"type": "string", "description": "What the user wants to do"},
+                "project": {"type": "string", "description": "Project name or directory if specified"},
+            },
+            "required": ["task"],
+        },
+    },
 ]
 
 # Skill instances
@@ -81,6 +99,7 @@ class SkillRouter:
         # Streaming chat session for skill mode
         self.active_chat = None
         self.active_skill_name: str | None = None
+        self.active_chat_is_code: bool = False
 
     def _metal_hud(self, text: str):
         if self.metal:
@@ -90,8 +109,11 @@ class SkillRouter:
         if self.metal:
             self.metal.send_state(state, name)
 
-    async def start_skill_session(self, tool_name: str, arguments: str, user_transcript: str, on_chunk=None) -> str:
+    async def start_skill_session(self, tool_name: str, arguments: str, user_transcript: str, on_chunk=None, on_tool_activity=None) -> str:
         """Start a streaming skill chat session. Returns the full initial response."""
+        if tool_name == "code_assistant":
+            return await self._start_code_session(arguments, user_transcript, on_chunk, on_tool_activity)
+
         params = json.loads(arguments) if arguments else {}
 
         if tool_name == "get_system_overview":
@@ -148,10 +170,29 @@ class SkillRouter:
 
         return full_response
 
-    async def send_followup(self, user_text: str, on_chunk=None) -> str:
+    async def send_followup(self, user_text: str, on_chunk=None, on_tool_activity=None) -> str:
         """Send a follow-up message in the active chat session."""
         if not self.active_chat:
             return "No active chat session"
+
+        if self.active_chat_is_code:
+            # If previous turn ended mid-tool-loop (chat expects function_response
+            # but we're sending user text), reset the chat to avoid 400 errors.
+            try:
+                return await self._run_code_turn(user_text, on_chunk, on_tool_activity)
+            except Exception as e:
+                if "function response turn" in str(e).lower():
+                    console.print("  [yellow]Resetting code session after interrupted tool loop[/]")
+                    # Recreate the chat session (preserves nothing but avoids the error)
+                    self.active_chat = self.gemini.aio.chats.create(
+                        model=config.GEMINI_MODEL,
+                        config=types.GenerateContentConfig(
+                            system_instruction=CODE_SYSTEM_PROMPT,
+                            tools=CODE_TOOLS,
+                        ),
+                    )
+                    return await self._run_code_turn(user_text, on_chunk, on_tool_activity)
+                raise
 
         full_response = ""
         async for chunk in await self.active_chat.send_message_stream(user_text):
@@ -168,7 +209,114 @@ class SkillRouter:
         name = self.active_skill_name or "Skill"
         self.active_chat = None
         self.active_skill_name = None
+        self.active_chat_is_code = False
         return f"{name} session closed."
+
+    async def _start_code_session(self, arguments: str, user_transcript: str, on_chunk=None, on_tool_activity=None) -> str:
+        """Start a coding agent chat session with function-calling tools."""
+        params = json.loads(arguments) if arguments else {}
+        task = params.get("task", user_transcript)
+        project = params.get("project", "")
+
+        self.active_skill_name = "Code Assistant"
+        self.active_chat_is_code = True
+        console.print(f"  [dim]Starting Gemini code session...[/]")
+
+        self.active_chat = self.gemini.aio.chats.create(
+            model=config.GEMINI_MODEL,
+            config=types.GenerateContentConfig(
+                system_instruction=CODE_SYSTEM_PROMPT,
+                tools=CODE_TOOLS,
+            ),
+        )
+
+        prompt = f"User request: {task}"
+        if project:
+            prompt += f"\nProject: {project}"
+        prompt += f'\n\nOriginal voice transcript: "{user_transcript}"'
+
+        return await self._run_code_turn(prompt, on_chunk, on_tool_activity)
+
+    async def _run_code_turn(self, message, on_chunk=None, on_tool_activity=None) -> str:
+        """Execute the agentic tool-calling loop.
+
+        Streams text to on_chunk. When function calls are detected, executes
+        them, notifies on_tool_activity, sends results back to Gemini, and
+        repeats until Gemini returns a text-only response.
+
+        Hard limit: 8 total tool calls per turn to prevent runaway exploration.
+        """
+        full_response = ""
+        total_tool_calls = 0
+        max_tool_calls = 8
+        max_iterations = 5
+
+        for _ in range(max_iterations):
+            turn_text = ""
+            pending_function_calls = []
+
+            async for chunk in await self.active_chat.send_message_stream(message):
+                # Extract text parts
+                if chunk.text:
+                    turn_text += chunk.text
+                    if on_chunk:
+                        on_chunk(chunk.text)
+                # Collect function calls from response parts
+                if chunk.candidates:
+                    for candidate in chunk.candidates:
+                        if candidate.content and candidate.content.parts:
+                            for part in candidate.content.parts:
+                                if part.function_call:
+                                    pending_function_calls.append(part.function_call)
+
+            full_response += turn_text
+
+            if not pending_function_calls:
+                break
+
+            # Enforce hard cap on total tool calls
+            remaining = max_tool_calls - total_tool_calls
+            if remaining <= 0:
+                if on_chunk:
+                    on_chunk("\n\n*(Tool limit reached — ask me to continue if needed.)*")
+                break
+            # Trim to what we can still execute
+            pending_function_calls = pending_function_calls[:remaining]
+
+            # Execute each function call
+            function_response_parts = []
+            for fc in pending_function_calls:
+                tool_name = fc.name
+                tool_args = dict(fc.args) if fc.args else {}
+                total_tool_calls += 1
+
+                if on_tool_activity:
+                    on_tool_activity("start", tool_name, tool_args)
+
+                executor = TOOL_DISPATCH.get(tool_name)
+                if executor:
+                    try:
+                        if asyncio.iscoroutinefunction(executor):
+                            result = await executor(**tool_args)
+                        else:
+                            result = executor(**tool_args)
+                    except Exception as e:
+                        result = {"error": str(e)}
+                else:
+                    result = {"error": f"Unknown tool: {tool_name}"}
+
+                if on_tool_activity:
+                    on_tool_activity("result", tool_name, result)
+
+                console.print(f"  [dim]Tool {tool_name} ({total_tool_calls}/{max_tool_calls})[/]")
+                function_response_parts.append(
+                    types.Part.from_function_response(name=tool_name, response=result)
+                )
+
+            # Send function results back as the next message
+            message = function_response_parts
+
+        return full_response
 
     async def handle_tool_call(self, tool_name: str, arguments: str, user_transcript: str = "") -> str:
         """Execute a skill and return Gemini's summary."""

@@ -66,6 +66,9 @@ class MetalBridge:
     def send_chat_split(self, title: str):
         self.send({"type": "chat_split", "title": title})
 
+    def send_chat_close_panel(self):
+        self.send({"type": "chat_close_panel"})
+
     def send_chat_end(self):
         self.send({"type": "chat_end"})
 
@@ -117,6 +120,7 @@ async def main():
             metal.send_hud(f"JARVIS: {text}")
 
     skill_task: asyncio.Task | None = None
+    panel_count: int = 0
 
     def _is_close_command(text: str) -> bool:
         normalized = text.lower().strip().rstrip(".")
@@ -136,15 +140,72 @@ async def main():
         ]
         return any(phrase in normalized for phrase in split_phrases)
 
+    def _summarize_tool_args(tool_name: str, args: dict) -> str:
+        if tool_name == "run_command":
+            return args.get("command", "")
+        elif tool_name == "read_file":
+            return args.get("path", "")
+        elif tool_name == "write_file":
+            return f"{args.get('path', '')} ({len(args.get('content', ''))} chars)"
+        elif tool_name == "edit_file":
+            return args.get("path", "")
+        elif tool_name == "list_files":
+            return f"{args.get('path', '.')} ({args.get('pattern', '*')})"
+        elif tool_name == "search_files":
+            return f"/{args.get('pattern', '')}/ in {args.get('path', '.')}"
+        return str(args)[:100]
+
+    def _summarize_tool_result(tool_name: str, data: dict) -> str:
+        if "error" in data:
+            return f"Error: {data['error']}"
+        if tool_name == "run_command":
+            code = data.get("exit_code", -1)
+            out = data.get("stdout", "").strip()
+            lines = out.split("\n") if out else []
+            if len(lines) > 8:
+                preview = "\n".join(lines[:4] + ["..."] + lines[-3:])
+            else:
+                preview = out
+            return f"exit {code}\n{preview}" if preview else f"exit {code}"
+        if tool_name == "read_file":
+            return f"{data.get('lines', 0)} lines"
+        if tool_name == "write_file":
+            return f"wrote {data.get('bytes_written', 0)} bytes"
+        if tool_name == "edit_file":
+            return f"replaced {data.get('replacements', 0)} occurrence(s)"
+        if tool_name == "list_files":
+            return f"{data.get('count', 0)} files"
+        if tool_name == "search_files":
+            results = data.get("results", "")
+            count = len(results.strip().split("\n")) if results.strip() else 0
+            return f"{count} matches"
+        return str(data)[:200]
+
+    def on_tool_activity(event: str, tool_name: str, data: dict):
+        """Display tool execution activity in the chat window."""
+        if event == "start":
+            summary = _summarize_tool_args(tool_name, data)
+            metal.send_chat_message("tool_start", f"{tool_name}: {summary}")
+            console.print(f"  [yellow]Tool>[/] {tool_name}: {summary}")
+        elif event == "result":
+            summary = _summarize_tool_result(tool_name, data)
+            metal.send_chat_message("tool_result", summary)
+
     async def on_skill_input(event_type: str, tool_name: str, arguments: str, user_text: str):
-        nonlocal skill_task
+        nonlocal skill_task, panel_count
 
         if event_type == "__skill_start__":
             player.clear()
+            panel_count = 1
 
             # Resolve skill display name
-            skill = _skills.get(tool_name)
-            skill_name = skill.name if skill else "System Overview" if tool_name == "get_system_overview" else tool_name
+            if tool_name == "code_assistant":
+                skill_name = "Code Assistant"
+            elif tool_name == "get_system_overview":
+                skill_name = "System Overview"
+            else:
+                skill = _skills.get(tool_name)
+                skill_name = skill.name if skill else tool_name
 
             metal.send_chat_start(skill_name)
             console.print(f"\n[bold cyan]Chat window opened:[/] {skill_name}")
@@ -154,7 +215,10 @@ async def main():
 
             async def run_initial():
                 try:
-                    await router.start_skill_session(tool_name, arguments, user_text, on_chunk=on_chunk)
+                    await router.start_skill_session(
+                        tool_name, arguments, user_text,
+                        on_chunk=on_chunk, on_tool_activity=on_tool_activity,
+                    )
                 except Exception as e:
                     console.print(f"[red]Skill error:[/] {e}")
                     metal.send_chat_message("gemini", f"\nError: {e}")
@@ -163,11 +227,23 @@ async def main():
 
         elif event_type == "__skill_chat__":
             if _is_split_command(user_text):
-                metal.send_chat_split("Panel 2")
-                console.print("[bold cyan]Split window spawned[/]")
+                if panel_count < 6:
+                    panel_count += 1
+                    metal.send_chat_split(f"Panel {panel_count}")
+                    console.print(f"[bold cyan]Window spawned ({panel_count}/6)[/]")
+                else:
+                    console.print("[yellow]Max 6 windows reached[/]")
                 return
 
             if _is_close_command(user_text):
+                # Multiple panels: close the last one only
+                if panel_count > 1:
+                    panel_count -= 1
+                    metal.send_chat_close_panel()
+                    console.print(f"[bold cyan]Closed panel ({panel_count} remaining)[/]")
+                    return
+
+                # Last panel: close the whole session
                 console.print("[bold cyan]Closing chat window...[/]")
 
                 if skill_task and not skill_task.done():
@@ -177,6 +253,7 @@ async def main():
                     except asyncio.CancelledError:
                         pass
 
+                panel_count = 0
                 summary = router.close_session()
                 metal.send_chat_end()
                 await client.exit_skill_mode(summary)
@@ -197,7 +274,9 @@ async def main():
 
             async def run_followup():
                 try:
-                    await router.send_followup(user_text, on_chunk=on_chunk)
+                    await router.send_followup(
+                        user_text, on_chunk=on_chunk, on_tool_activity=on_tool_activity,
+                    )
                 except Exception as e:
                     console.print(f"[red]Followup error:[/] {e}")
                     metal.send_chat_message("gemini", f"\nError: {e}")

@@ -13,7 +13,7 @@ REALTIME_MODEL = "gpt-realtime"
 REALTIME_URL = f"wss://api.openai.com/v1/realtime?model={REALTIME_MODEL}"
 
 # Gemini
-GEMINI_MODEL = "gemini-3-flash-preview"
+GEMINI_MODEL = "gemini-3.1-pro-preview"
 
 # Audio
 SAMPLE_RATE = 24000
