@@ -63,6 +63,9 @@ class MetalBridge:
     def send_chat_message(self, speaker: str, text: str):
         self.send({"type": "chat_message", "speaker": speaker, "text": text})
 
+    def send_chat_split(self, title: str):
+        self.send({"type": "chat_split", "title": title})
+
     def send_chat_end(self):
         self.send({"type": "chat_end"})
 
@@ -125,6 +128,14 @@ async def main():
         ]
         return any(phrase in normalized for phrase in close_phrases)
 
+    def _is_split_command(text: str) -> bool:
+        normalized = text.lower().strip().rstrip(".")
+        split_phrases = [
+            "new window", "spawn window", "split window",
+            "open new window", "spawn new window",
+        ]
+        return any(phrase in normalized for phrase in split_phrases)
+
     async def on_skill_input(event_type: str, tool_name: str, arguments: str, user_text: str):
         nonlocal skill_task
 
@@ -151,6 +162,11 @@ async def main():
             skill_task = asyncio.create_task(run_initial())
 
         elif event_type == "__skill_chat__":
+            if _is_split_command(user_text):
+                metal.send_chat_split("Panel 2")
+                console.print("[bold cyan]Split window spawned[/]")
+                return
+
             if _is_close_command(user_text):
                 console.print("[bold cyan]Closing chat window...[/]")
 
