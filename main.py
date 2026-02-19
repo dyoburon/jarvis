@@ -30,7 +30,7 @@ class MetalBridge:
         self.proc = subprocess.Popen(
             [METAL_APP, "--jarvis", "--base", BASE_PATH],
             stdin=subprocess.PIPE,
-            stdout=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL,
         )
 
@@ -224,10 +224,27 @@ async def main():
         def on_interrupt():
             player.clear()
 
+        async def read_metal_stdout():
+            """Read typed input from Metal WebView via stdout."""
+            loop = asyncio.get_event_loop()
+            while metal.proc and metal.proc.poll() is None:
+                line = await loop.run_in_executor(None, metal.proc.stdout.readline)
+                if not line:
+                    break
+                try:
+                    msg = json.loads(line.decode().strip())
+                    if msg.get("type") == "chat_input" and client.skill_active:
+                        text = msg.get("text", "")
+                        if text:
+                            await on_skill_input("__skill_chat__", client.pending_tool_name, "", text)
+                except (json.JSONDecodeError, UnicodeDecodeError):
+                    pass
+
         await asyncio.gather(
             send_audio_loop(),
             client.receive_events(on_audio_delta, on_transcript, on_interrupt, on_skill_input),
             watchdog(),
+            read_metal_stdout(),
         )
 
     except KeyboardInterrupt:

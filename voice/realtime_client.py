@@ -127,7 +127,7 @@ class RealtimeClient:
                     await on_skill_input("__skill_start__", tool_name, arguments, self._current_transcript)
 
             elif event_type == "response.done":
-                if self.metal:
+                if not self.skill_active and self.metal:
                     self.metal.send_state("listening")
 
             elif event_type == "error":
@@ -146,6 +146,11 @@ class RealtimeClient:
         if not self.skill_active or not self.pending_call_id:
             return
 
+        # Cancel any in-flight response (user may have spoken during skill mode)
+        await self._send({"type": "response.cancel"})
+
+        self.skill_active = False
+
         await self._send({
             "type": "conversation.item.create",
             "item": {
@@ -156,7 +161,6 @@ class RealtimeClient:
         })
         await self._send({"type": "response.create"})
 
-        self.skill_active = False
         self.pending_call_id = None
         self.pending_tool_name = None
 
