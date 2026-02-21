@@ -29,8 +29,27 @@ def _truncate(text: str) -> str:
 # --- Tool executors ---
 
 
+_BLOCKED_PATTERNS = [
+    "http.server", "SimpleHTTPServer",  # no spawning servers
+    "sudo ", "rm -rf", "rm -r /",       # no destructive/root commands
+    "mkfs", "dd if=",                   # no disk operations
+    "curl | sh", "curl | bash",         # no pipe-to-shell
+    "wget | sh", "wget | bash",
+    "> /dev/sd", "shutdown", "reboot",
+]
+
+
 async def run_command(command: str, cwd: str | None = None) -> dict:
     """Execute a shell command."""
+    # Block background processes (& at end)
+    stripped = command.rstrip()
+    if stripped.endswith("&"):
+        return {"error": "Background processes (&) are not allowed."}
+    # Block dangerous patterns
+    cmd_lower = command.lower()
+    for pattern in _BLOCKED_PATTERNS:
+        if pattern in cmd_lower:
+            return {"error": f"Blocked command pattern: {pattern}"}
     work_dir = _resolve_path(cwd) if cwd else PROJECTS_DIR
     proc = await asyncio.create_subprocess_shell(
         command,

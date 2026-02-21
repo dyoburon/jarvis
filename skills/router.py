@@ -92,6 +92,30 @@ _skills = {
 }
 
 
+# Register data skill executors so Gemini can call them as tools
+def _make_data_executor(skill):
+    async def executor(**params):
+        return await skill.fetch_data(**params)
+    return executor
+
+
+for _name, _skill in _skills.items():
+    TOOL_DISPATCH[_name] = _make_data_executor(_skill)
+
+
+async def _system_overview_executor(**params):
+    all_data = {}
+    for name, skill in _skills.items():
+        try:
+            all_data[skill.name] = await skill.fetch_data()
+        except Exception as e:
+            all_data[skill.name] = {"error": str(e)}
+    return all_data
+
+
+TOOL_DISPATCH["get_system_overview"] = _system_overview_executor
+
+
 class SkillRouter:
     def __init__(self, metal_bridge=None):
         self.gemini = genai.Client(api_key=config.GOOGLE_API_KEY)
@@ -100,6 +124,7 @@ class SkillRouter:
         self.active_chat = None
         self.active_skill_name: str | None = None
         self.active_chat_is_code: bool = False
+        self.cancelled = False  # set True to abort _run_code_turn
 
     def _metal_hud(self, text: str):
         if self.metal:
@@ -161,12 +186,21 @@ class SkillRouter:
         )
 
         full_response = ""
-        async for chunk in await self.active_chat.send_message_stream(prompt):
-            text = chunk.text
-            if text:
-                full_response += text
-                if on_chunk:
-                    on_chunk(text)
+        try:
+            stream = await asyncio.wait_for(
+                self.active_chat.send_message_stream(prompt),
+                timeout=60.0,
+            )
+            async for chunk in stream:
+                text = chunk.text
+                if text:
+                    full_response += text
+                    if on_chunk:
+                        on_chunk(text)
+        except asyncio.TimeoutError:
+            console.print("[yellow]Gemini request timed out (60s)[/]")
+            if on_chunk:
+                on_chunk("\n\n*(Request timed out.)*")
 
         return full_response
 
@@ -195,12 +229,21 @@ class SkillRouter:
                 raise
 
         full_response = ""
-        async for chunk in await self.active_chat.send_message_stream(user_text):
-            text = chunk.text
-            if text:
-                full_response += text
-                if on_chunk:
-                    on_chunk(text)
+        try:
+            stream = await asyncio.wait_for(
+                self.active_chat.send_message_stream(user_text),
+                timeout=60.0,
+            )
+            async for chunk in stream:
+                text = chunk.text
+                if text:
+                    full_response += text
+                    if on_chunk:
+                        on_chunk(text)
+        except asyncio.TimeoutError:
+            console.print("[yellow]Gemini followup timed out (60s)[/]")
+            if on_chunk:
+                on_chunk("\n\n*(Request timed out.)*")
 
         return full_response
 
@@ -211,6 +254,25 @@ class SkillRouter:
         self.active_skill_name = None
         self.active_chat_is_code = False
         return f"{name} session closed."
+
+    async def start_code_session_idle(self, arguments: str, user_transcript: str):
+        """Initialize a code session without sending any message yet."""
+        self.active_skill_name = "Code Assistant"
+        self.active_chat_is_code = True
+        console.print(f"  [dim]Starting Gemini code session...[/]")
+
+        self.active_chat = self.gemini.aio.chats.create(
+            model=config.GEMINI_MODEL,
+            config=types.GenerateContentConfig(
+                system_instruction=CODE_SYSTEM_PROMPT,
+                tools=CODE_TOOLS,
+            ),
+        )
+
+    async def send_code_initial(self, user_text: str, on_chunk=None, on_tool_activity=None) -> str:
+        """Send the first message to an already-initialized code session."""
+        prompt = f"User request: {user_text}"
+        return await self._run_code_turn(prompt, on_chunk, on_tool_activity)
 
     async def _start_code_session(self, arguments: str, user_transcript: str, on_chunk=None, on_tool_activity=None) -> str:
         """Start a coding agent chat session with function-calling tools."""
@@ -246,28 +308,53 @@ class SkillRouter:
 
         Hard limit: 8 total tool calls per turn to prevent runaway exploration.
         """
+        self.cancelled = False
         full_response = ""
         total_tool_calls = 0
-        max_tool_calls = 8
-        max_iterations = 5
+        max_tool_calls = 3
+        max_iterations = 3
 
         for _ in range(max_iterations):
+            if self.cancelled:
+                break
+
             turn_text = ""
             pending_function_calls = []
 
-            async for chunk in await self.active_chat.send_message_stream(message):
-                # Extract text parts
-                if chunk.text:
-                    turn_text += chunk.text
-                    if on_chunk:
-                        on_chunk(chunk.text)
-                # Collect function calls from response parts
-                if chunk.candidates:
-                    for candidate in chunk.candidates:
-                        if candidate.content and candidate.content.parts:
-                            for part in candidate.content.parts:
-                                if part.function_call:
-                                    pending_function_calls.append(part.function_call)
+            try:
+                if not self.active_chat:
+                    break
+                stream = await asyncio.wait_for(
+                    self.active_chat.send_message_stream(message),
+                    timeout=60.0,
+                )
+                async for chunk in stream:
+                    if self.cancelled:
+                        break
+                    # Extract text parts
+                    if chunk.text:
+                        turn_text += chunk.text
+                        if on_chunk:
+                            on_chunk(chunk.text)
+                    # Collect function calls from response parts
+                    if chunk.candidates:
+                        for candidate in chunk.candidates:
+                            if candidate.content and candidate.content.parts:
+                                for part in candidate.content.parts:
+                                    if part.function_call:
+                                        pending_function_calls.append(part.function_call)
+            except asyncio.TimeoutError:
+                console.print("[yellow]Gemini request timed out (60s)[/]")
+                if on_chunk:
+                    on_chunk("\n\n*(Request timed out.)*")
+                break
+            except Exception:
+                if self.cancelled:
+                    break
+                raise
+
+            if self.cancelled:
+                break
 
             full_response += turn_text
 
@@ -286,6 +373,9 @@ class SkillRouter:
             # Execute each function call
             function_response_parts = []
             for fc in pending_function_calls:
+                if self.cancelled:
+                    break
+
                 tool_name = fc.name
                 tool_args = dict(fc.args) if fc.args else {}
                 total_tool_calls += 1
@@ -312,6 +402,9 @@ class SkillRouter:
                 function_response_parts.append(
                     types.Part.from_function_response(name=tool_name, response=result)
                 )
+
+            if self.cancelled or not function_response_parts:
+                break
 
             # Send function results back as the next message
             message = function_response_parts

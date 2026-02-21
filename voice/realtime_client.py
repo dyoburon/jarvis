@@ -23,6 +23,9 @@ class RealtimeClient:
         self.skill_active = False
         self.pending_call_id: str | None = None
         self.pending_tool_name: str | None = None
+        self._skill_trigger_transcript: str | None = None
+        # Disconnect/reconnect state
+        self._disconnected = False
 
     async def connect(self):
         headers = {
@@ -59,9 +62,37 @@ class RealtimeClient:
             },
         })
 
+    async def disconnect(self):
+        """Disconnect WebSocket to stop billing during skill mode."""
+        self._disconnected = True
+        if self.ws:
+            # Force-abort instead of graceful close — the concurrent
+            # receive_events loop deadlocks the close handshake.
+            ws = self.ws
+            self.ws = None
+            ws.close_timeout = 0
+            try:
+                await ws.close()
+            except Exception:
+                pass
+        console.print("[yellow]OpenAI Realtime disconnected (skill mode)[/]")
+
+    async def reconnect(self):
+        """Reconnect to OpenAI Realtime after skill mode ends (fresh session)."""
+        self._disconnected = False
+        await self.connect()
+        console.print("[green]OpenAI Realtime reconnected[/]")
+
+    def reset_skill_state(self):
+        """Reset skill mode state without sending any WebSocket messages."""
+        self.skill_active = False
+        self.pending_call_id = None
+        self.pending_tool_name = None
+        self._skill_trigger_transcript = None
+
     async def send_audio(self, b64_audio: str):
         """Send a base64 PCM16 audio chunk to the API."""
-        if self.ws:
+        if self.ws and not self._disconnected and not self.skill_active:
             await self._send({
                 "type": "input_audio_buffer.append",
                 "audio": b64_audio,
@@ -69,6 +100,22 @@ class RealtimeClient:
 
     async def receive_events(self, on_audio_delta, on_transcript, on_interrupt=None, on_skill_input=None):
         """Main event loop — processes all events from the API."""
+        while True:
+            # Wait for a valid connection
+            while not self.ws:
+                await asyncio.sleep(0.1)
+            try:
+                await self._event_loop(on_audio_delta, on_transcript, on_interrupt, on_skill_input)
+            except websockets.exceptions.ConnectionClosed:
+                if self._disconnected:
+                    console.print("[dim]Event loop paused (disconnected)[/]")
+                    while self._disconnected:
+                        await asyncio.sleep(0.1)
+                    continue
+                raise
+
+    async def _event_loop(self, on_audio_delta, on_transcript, on_interrupt, on_skill_input):
+        """Inner event processing loop."""
         async for raw in self.ws:
             event = json.loads(raw)
             event_type = event.get("type", "")
@@ -91,13 +138,21 @@ class RealtimeClient:
                 pass  # streaming transcript of Jarvis speaking
 
             elif event_type == "response.audio_transcript.done":
-                transcript = event.get("transcript", "")
-                if transcript:
-                    on_transcript("jarvis", transcript)
+                if self.skill_active:
+                    pass  # suppress Jarvis speech transcripts during skill mode
+                else:
+                    transcript = event.get("transcript", "")
+                    if transcript:
+                        on_transcript("jarvis", transcript)
 
             elif event_type == "conversation.item.input_audio_transcription.completed":
                 user_text = event.get("transcript", "")
                 if user_text:
+                    # Skip echo of the transcript that triggered the current skill
+                    if self.skill_active and self._skill_trigger_transcript:
+                        if user_text.strip().lower() == self._skill_trigger_transcript.strip().lower():
+                            self._skill_trigger_transcript = None
+                            continue
                     self._current_transcript = user_text
                     if self.skill_active and on_skill_input:
                         await on_skill_input("__skill_chat__", self.pending_tool_name, "", user_text)
@@ -113,6 +168,23 @@ class RealtimeClient:
                 call_id = event.get("call_id", "")
                 tool_name = event.get("name", "")
                 arguments = event.get("arguments", "{}")
+                self._function_call_args.pop(call_id, None)
+
+                # If already in skill mode, dismiss — Gemini handles everything
+                if self.skill_active:
+                    console.print(f"  [dim]Ignoring duplicate skill trigger: {tool_name}[/]")
+                    # Dismiss the OpenAI function call and suppress any response
+                    await self._send({
+                        "type": "conversation.item.create",
+                        "item": {
+                            "type": "function_call_output",
+                            "call_id": call_id,
+                            "output": "[Handled.]",
+                        },
+                    })
+                    # Cancel the response OpenAI would generate from this output
+                    await self._send({"type": "response.cancel"})
+                    continue
 
                 console.print(f"\n[bold yellow]⚡ Skill triggered:[/] {tool_name}")
 
@@ -121,7 +193,7 @@ class RealtimeClient:
                 self.skill_active = True
                 self.pending_call_id = call_id
                 self.pending_tool_name = tool_name
-                self._function_call_args.pop(call_id, None)
+                self._skill_trigger_transcript = self._current_transcript  # for echo detection
 
                 if on_skill_input:
                     await on_skill_input("__skill_start__", tool_name, arguments, self._current_transcript)
@@ -150,6 +222,7 @@ class RealtimeClient:
         await self._send({"type": "response.cancel"})
 
         self.skill_active = False
+        self._skill_trigger_transcript = None
 
         await self._send({
             "type": "conversation.item.create",

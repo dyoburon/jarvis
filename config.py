@@ -36,6 +36,8 @@ FIREWALL_API = "http://localhost:3457"
 
 # VibeToText
 VIBETOTEXT_DB = Path.home() / ".vibetotext/history.db"
+VIBETOTEXT_SOCKET = "/tmp/vibetotext.sock"
+WHISPER_SAMPLE_RATE = 16000
 
 SYSTEM_PROMPT = """You are Jarvis. Ultra-brief. 1-2 short sentences max. No filler.
 Dry wit when appropriate. Use tools when asked about systems. Never ramble."""

@@ -9,15 +9,61 @@ import sounddevice as sd
 import config
 
 
+class SkillMicCapture:
+    """Push-to-talk audio capture for skill mode (local Whisper).
+
+    Taps into the existing MicCapture stream and collects raw float32
+    audio, then resamples from 24kHz to 16kHz for Whisper on stop.
+    """
+
+    def __init__(self, source_rate: int = 24000, target_rate: int = 16000):
+        self.source_rate = source_rate
+        self.target_rate = target_rate
+        self._recording = False
+        self._chunks: list[np.ndarray] = []
+
+    def start_recording(self):
+        self._chunks = []
+        self._recording = True
+
+    def feed_audio(self, float32_mono: np.ndarray):
+        """Called from MicCapture callback with raw float32 data."""
+        if self._recording:
+            self._chunks.append(float32_mono.copy())
+
+    def stop_recording(self) -> np.ndarray:
+        """Stop and return captured audio at 16kHz float32."""
+        self._recording = False
+        if not self._chunks:
+            return np.array([], dtype=np.float32)
+
+        audio = np.concatenate(self._chunks)
+        self._chunks = []
+
+        # Resample 24kHz -> 16kHz
+        if self.source_rate != self.target_rate:
+            ratio = self.target_rate / self.source_rate
+            new_length = int(len(audio) * ratio)
+            indices = np.linspace(0, len(audio) - 1, new_length)
+            audio = np.interp(indices, np.arange(len(audio)), audio).astype(np.float32)
+
+        return audio
+
+
 class MicCapture:
     """Captures audio from the microphone at 24kHz mono PCM16."""
 
     def __init__(self):
         self.audio_queue: queue.Queue[bytes] = queue.Queue()
         self._stream = None
+        self._skill_capture: SkillMicCapture | None = None
 
     def _callback(self, indata, frames, time_info, status):
-        pcm16 = (indata[:, 0] * 32767).astype(np.int16)
+        mono = indata[:, 0]
+        # Feed skill capture if active (raw float32)
+        if self._skill_capture:
+            self._skill_capture.feed_audio(mono)
+        pcm16 = (mono * 32767).astype(np.int16)
         self.audio_queue.put(pcm16.tobytes())
 
     def start(self):

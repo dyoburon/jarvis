@@ -9,8 +9,9 @@ from rich.panel import Panel
 
 import config
 from skills.router import SkillRouter, _skills
-from voice.audio import AudioPlayer, MicCapture
+from voice.audio import AudioPlayer, MicCapture, SkillMicCapture
 from voice.realtime_client import RealtimeClient
+from voice.whisper_client import WhisperClient
 
 console = Console()
 
@@ -39,8 +40,8 @@ class MetalBridge:
             try:
                 self.proc.stdin.write((json.dumps(data) + "\n").encode())
                 self.proc.stdin.flush()
-            except BrokenPipeError:
-                pass
+            except (BrokenPipeError, OSError) as e:
+                console.print(f"[dim]Metal bridge write error: {e}[/]")
 
     def send_audio_level(self, level: float):
         self.send({"type": "audio", "level": level})
@@ -106,6 +107,8 @@ async def main():
     mic = MicCapture()
     player = AudioPlayer()
     client = RealtimeClient(router, metal_bridge=metal)
+    skill_mic = SkillMicCapture(source_rate=config.SAMPLE_RATE, target_rate=config.WHISPER_SAMPLE_RATE)
+    whisper_client = WhisperClient()
 
     def on_audio_delta(b64_data: str):
         player.add_audio(b64_data)
@@ -121,6 +124,9 @@ async def main():
 
     skill_task: asyncio.Task | None = None
     panel_count: int = 0
+    active_panel: int = 0  # 0-indexed, which panel gets input
+    pending_code_message: str | None = None  # held until user confirms
+    code_confirmation_pending: bool = False  # gate flag (independent of message content)
 
     def _is_close_command(text: str) -> bool:
         normalized = text.lower().strip().rstrip(".")
@@ -192,11 +198,21 @@ async def main():
             metal.send_chat_message("tool_result", summary)
 
     async def on_skill_input(event_type: str, tool_name: str, arguments: str, user_text: str):
-        nonlocal skill_task, panel_count
+        nonlocal skill_task, panel_count, active_panel, pending_code_message, code_confirmation_pending
 
         if event_type == "__skill_start__":
+            # If already in a skill session, treat as a split instead of new session
+            if panel_count > 0 and panel_count < 6:
+                panel_count += 1
+                metal.send_chat_split(f"Panel {panel_count}")
+                console.print(f"[bold cyan]Window spawned ({panel_count}/6)[/]")
+                return
+
             player.clear()
             panel_count = 1
+
+            # Disconnect OpenAI to stop billing during skill mode
+            await client.disconnect()
 
             # Resolve skill display name
             if tool_name == "code_assistant":
@@ -213,24 +229,78 @@ async def main():
             def on_chunk(text: str):
                 metal.send_chat_message("gemini", text)
 
-            async def run_initial():
-                try:
-                    await router.start_skill_session(
-                        tool_name, arguments, user_text,
-                        on_chunk=on_chunk, on_tool_activity=on_tool_activity,
-                    )
-                except Exception as e:
-                    console.print(f"[red]Skill error:[/] {e}")
-                    metal.send_chat_message("gemini", f"\nError: {e}")
+            # Don't auto-send to Gemini — show the transcript and wait for confirmation
+            if tool_name == "code_assistant":
+                await router.start_code_session_idle(arguments, user_text)
+                if user_text == "__hotkey__":
+                    # Hotkey-triggered: skip confirmation gate, ready for direct input
+                    code_confirmation_pending = False
+                    pending_code_message = None
+                    metal.send_chat_message("gemini", "**Code Assistant ready.** Type or speak your request.")
+                    console.print(f"  [dim]Code session ready (hotkey)[/]")
+                else:
+                    code_confirmation_pending = True
+                    # user_text may be empty if transcript hasn't arrived yet (race condition)
+                    pending_code_message = user_text if user_text else None
+                    if pending_code_message:
+                        metal.send_chat_message("gemini", f"**Ready.** Your request:\n\n> {user_text}\n\nSay **yes** to send.")
+                    console.print(f"  [dim]Code session ready, awaiting confirmation[/]")
+            else:
+                async def run_initial():
+                    try:
+                        await router.start_skill_session(
+                            tool_name, arguments, user_text,
+                            on_chunk=on_chunk, on_tool_activity=on_tool_activity,
+                        )
+                    except Exception as e:
+                        console.print(f"[red]Skill error:[/] {e}")
+                        metal.send_chat_message("gemini", f"\nError: {e}")
 
-            skill_task = asyncio.create_task(run_initial())
+                skill_task = asyncio.create_task(run_initial())
 
         elif event_type == "__skill_chat__":
+            # Escape key: cancel stream + close focused panel
+            if user_text == "__escape__":
+                # Kill the Gemini session immediately (breaks any in-flight stream)
+                router.cancelled = True
+                router.active_chat = None
+                # Cancel the asyncio task
+                if skill_task and not skill_task.done():
+                    skill_task.cancel()
+                    try:
+                        await asyncio.wait_for(skill_task, timeout=1.0)
+                    except (asyncio.CancelledError, asyncio.TimeoutError, Exception):
+                        pass
+                    skill_task = None
+                    console.print("[yellow]Stream cancelled[/]")
+
+                # Close focused panel (or end session if last)
+                if panel_count > 1:
+                    panel_count -= 1
+                    metal.send_chat_close_panel()
+                    if active_panel >= panel_count:
+                        active_panel = panel_count - 1
+                    metal.send({"type": "chat_focus", "panel": active_panel})
+                    console.print(f"[bold cyan]Closed panel ({panel_count} remaining)[/]")
+                else:
+                    panel_count = 0
+                    code_confirmation_pending = False
+                    pending_code_message = None
+                    router.close_session()
+                    metal.send_chat_end()
+                    client.reset_skill_state()
+                    await client.reconnect()
+                    metal.send_state("listening")
+                    console.print("[green]Jarvis resumed (fresh session).[/]")
+                return
+
             if _is_split_command(user_text):
                 if panel_count < 6:
                     panel_count += 1
+                    active_panel = panel_count - 1
                     metal.send_chat_split(f"Panel {panel_count}")
-                    console.print(f"[bold cyan]Window spawned ({panel_count}/6)[/]")
+                    metal.send({"type": "chat_focus", "panel": active_panel})
+                    console.print(f"[bold cyan]Window spawned ({panel_count}/6), focus → {panel_count}[/]")
                 else:
                     console.print("[yellow]Max 6 windows reached[/]")
                 return
@@ -240,6 +310,9 @@ async def main():
                 if panel_count > 1:
                     panel_count -= 1
                     metal.send_chat_close_panel()
+                    if active_panel >= panel_count:
+                        active_panel = panel_count - 1
+                    metal.send({"type": "chat_focus", "panel": active_panel})
                     console.print(f"[bold cyan]Closed panel ({panel_count} remaining)[/]")
                     return
 
@@ -254,11 +327,56 @@ async def main():
                         pass
 
                 panel_count = 0
-                summary = router.close_session()
+                code_confirmation_pending = False
+                pending_code_message = None
+                router.close_session()
                 metal.send_chat_end()
-                await client.exit_skill_mode(summary)
+                client.reset_skill_state()
+                await client.reconnect()
                 metal.send_state("listening")
-                console.print("[green]Jarvis resumed.[/]")
+                console.print("[green]Jarvis resumed (fresh session).[/]")
+                return
+
+            # ── Gate: code confirmation pending — NOTHING passes through to Gemini ──
+            if code_confirmation_pending:
+                normalized = user_text.lower().strip().rstrip(".")
+
+                # "Yes" variants → send the pending (or current) message
+                if normalized in ("yes", "yeah", "yep", "sure", "go", "go ahead", "send it", "do it"):
+                    msg_to_send = pending_code_message or user_text
+                    code_confirmation_pending = False
+                    pending_code_message = None
+                    metal.send_chat_message("user", msg_to_send)
+                    console.print(f"[white]Chat>[/] {msg_to_send}")
+
+                    def on_chunk(text: str):
+                        metal.send_chat_message("gemini", text)
+
+                    async def run_confirmed():
+                        try:
+                            await router.send_code_initial(msg_to_send, on_chunk=on_chunk, on_tool_activity=on_tool_activity)
+                        except Exception as e:
+                            console.print(f"[red]Skill error:[/] {e}")
+                            metal.send_chat_message("gemini", f"\nError: {e}")
+
+                    skill_task = asyncio.create_task(run_confirmed())
+                    return
+
+                # First transcript arriving (pending was empty from race condition)
+                if not pending_code_message:
+                    pending_code_message = user_text
+                    metal.send_chat_message("gemini", f"**Ready.** Your request:\n\n> {user_text}\n\nSay **yes** to send.")
+                    console.print(f"  [dim]Code session ready: {user_text}[/]")
+                    return
+
+                # Echo of the same transcript — ignore silently
+                if user_text.strip().lower() == pending_code_message.strip().lower():
+                    return
+
+                # Different text — update pending request
+                pending_code_message = user_text
+                metal.send_chat_message("gemini", f"**Updated request:**\n\n> {user_text}\n\nSay **yes** to send.")
+                console.print(f"  [dim]Pending request updated: {user_text}[/]")
                 return
 
             # Show user message in chat window
@@ -312,15 +430,53 @@ async def main():
         async def send_audio_loop():
             while True:
                 chunk = mic.get_chunk_b64()
-                if chunk:
+                if chunk and not client._disconnected and not client.skill_active:
                     await client.send_audio(chunk)
                 await asyncio.sleep(config.CHUNK_MS / 1000)
 
         def on_interrupt():
             player.clear()
 
+        ptt_active = False
+
+        async def handle_fn_key(pressed: bool):
+            nonlocal ptt_active
+
+            if not client.skill_active:
+                return  # fn key only matters during skill mode
+
+            if pressed and not ptt_active:
+                if not whisper_client.is_available():
+                    console.print("[red]vibetotext socket not available — start vibetotext first[/]")
+                    metal.send_chat_message("gemini", "Local transcription unavailable. Start vibetotext.")
+                    return
+                ptt_active = True
+                mic._skill_capture = skill_mic
+                skill_mic.start_recording()
+                metal.send_state("recording")
+                console.print("[yellow]PTT recording...[/]")
+
+            elif not pressed and ptt_active:
+                ptt_active = False
+                audio = skill_mic.stop_recording()
+                mic._skill_capture = None
+                metal.send_state("chat")
+
+                if len(audio) == 0:
+                    return
+
+                console.print(f"[dim]PTT: {len(audio)} samples, transcribing...[/]")
+                text = await whisper_client.transcribe(audio, sample_rate=config.WHISPER_SAMPLE_RATE)
+
+                if not text:
+                    console.print("[dim]PTT: empty transcription[/]")
+                    return
+
+                console.print(f"[white]PTT>[/] {text}")
+                await on_skill_input("__skill_chat__", client.pending_tool_name, "", text)
+
         async def read_metal_stdout():
-            """Read typed input from Metal WebView via stdout."""
+            """Read typed input and fn key events from Metal WebView via stdout."""
             loop = asyncio.get_event_loop()
             while metal.proc and metal.proc.poll() is None:
                 line = await loop.run_in_executor(None, metal.proc.stdout.readline)
@@ -332,6 +488,25 @@ async def main():
                         text = msg.get("text", "")
                         if text:
                             await on_skill_input("__skill_chat__", client.pending_tool_name, "", text)
+                    elif msg.get("type") == "fn_key":
+                        await handle_fn_key(msg.get("pressed", False))
+                    elif msg.get("type") == "hotkey":
+                        if msg.get("action") == "split" and client.skill_active:
+                            # Cmd+T — spawn new panel
+                            await on_skill_input("__skill_start__", client.pending_tool_name, "{}", "__hotkey__")
+                        elif msg.get("skill") and not client.skill_active:
+                            skill = msg["skill"]
+                            console.print(f"\n[bold yellow]Hotkey:[/] {skill}")
+                            client.skill_active = True
+                            client.pending_tool_name = skill
+                            try:
+                                await on_skill_input("__skill_start__", skill, "{}", "__hotkey__")
+                            except Exception as e:
+                                console.print(f"[red]Hotkey skill error:[/] {e}")
+                                import traceback
+                                traceback.print_exc()
+                                client.skill_active = False
+                                client.pending_tool_name = None
                 except (json.JSONDecodeError, UnicodeDecodeError):
                     pass
 
