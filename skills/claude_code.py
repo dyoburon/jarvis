@@ -1,0 +1,287 @@
+"""Claude Code Agent SDK integration for Jarvis code assistant sessions."""
+
+import asyncio
+import logging
+import os
+
+from claude_agent_sdk import (
+    ClaudeSDKClient,
+    ClaudeAgentOptions,
+    AssistantMessage,
+    UserMessage,
+    SystemMessage,
+    ResultMessage,
+    TextBlock,
+    ToolUseBlock,
+    ToolResultBlock,
+)
+from claude_agent_sdk.types import StreamEvent
+
+import config
+
+_log = logging.getLogger("jarvis.claude_code")
+_log.setLevel(logging.DEBUG)
+_fh = logging.FileHandler("/tmp/jarvis_claude_code.log")
+_fh.setFormatter(logging.Formatter("[%(asctime)s] %(message)s", datefmt="%H:%M:%S"))
+_log.addHandler(_fh)
+
+# Claude Code tool → Jarvis activity category
+_TOOL_CATEGORIES = {
+    "Read": "read", "Edit": "edit", "Write": "write",
+    "Bash": "run", "Grep": "search", "Glob": "list",
+    "WebSearch": "search", "WebFetch": "data",
+    "Task": "tool", "NotebookEdit": "edit",
+}
+
+JARVIS_SYSTEM_PROMPT = (
+    "You are Jarvis, Dylan's personal AI coding assistant. "
+    "The user interacts via a chat window where tool calls are shown as a "
+    "color-coded activity feed. Before making tool calls, briefly explain "
+    "what you're about to do and why (1 line). "
+    "The projects directory is ~/Desktop/projects/. Be concise and direct. "
+    "Do not add preamble or postamble. Keep responses short — this is a chat window."
+)
+
+
+def _format_tool_start(tool_name: str, tool_input: dict) -> tuple[str, str]:
+    """Return (category, human_description) for a Claude Code tool call."""
+    category = _TOOL_CATEGORIES.get(tool_name, "tool")
+    prefix = "/Users/dylan/Desktop/projects/"
+
+    def short(path: str) -> str:
+        return path[len(prefix):] if path.startswith(prefix) else path
+
+    if tool_name == "Read":
+        return category, f"Read {short(tool_input.get('file_path', ''))}"
+    elif tool_name == "Edit":
+        path = short(tool_input.get("file_path", ""))
+        old = tool_input.get("old_string", "")
+        preview = (old[:50].replace("\n", " ") + "...") if len(old) > 50 else old.replace("\n", " ")
+        return category, f"Edit {path}\n  find: {preview}"
+    elif tool_name == "Write":
+        path = short(tool_input.get("file_path", ""))
+        size = len(tool_input.get("content", ""))
+        return category, f"Write {path} ({size} chars)"
+    elif tool_name == "Bash":
+        return category, f"$ {tool_input.get('command', '')}"
+    elif tool_name == "Grep":
+        pattern = tool_input.get("pattern", "")
+        path = short(tool_input.get("path", "."))
+        return category, f"Search /{pattern}/ in {path}"
+    elif tool_name == "Glob":
+        return category, f"Glob {tool_input.get('pattern', '*')}"
+    elif tool_name == "WebSearch":
+        return category, f"Search: {tool_input.get('query', '')}"
+    elif tool_name == "WebFetch":
+        return category, f"Fetch: {tool_input.get('url', '')}"
+    elif tool_name == "Task":
+        desc = tool_input.get("description", tool_input.get("prompt", "")[:60])
+        return category, f"Subagent: {desc}"
+    return category, tool_name
+
+
+def _format_tool_result(tool_name: str, content) -> str:
+    """Format a tool result for display."""
+    if content is None:
+        return "(no output)"
+    if isinstance(content, list):
+        # content blocks from API
+        texts = [b.get("text", "") for b in content if isinstance(b, dict) and b.get("type") == "text"]
+        content = "\n".join(texts) if texts else str(content)
+    text = str(content)
+    lines = text.split("\n")
+    if len(lines) > 12:
+        return "\n".join(lines[:8] + ["  ..."] + lines[-3:])
+    if len(text) > 500:
+        return text[:500] + "..."
+    return text
+
+
+class ClaudeCodeSession:
+    """Manages a Claude Code Agent SDK session for a single Jarvis panel."""
+
+    def __init__(self, model: str | None = None, cwd: str | None = None):
+        self.model = model or config.CLAUDE_CODE_MODEL
+        self.cwd = cwd or str(config.PROJECTS_DIR)
+        self._client: ClaudeSDKClient | None = None
+        self._connected = False
+        self.session_id: str | None = None
+        self.total_cost: float = 0.0
+        self.total_turns: int = 0
+        self.cancelled = False
+        self._has_pending_result = False
+
+    async def connect(self):
+        """Initialize the SDK client."""
+        # Strip nesting protection vars and API key so OAuth token is used
+        env = {
+            "CLAUDECODE": "",
+            "CLAUDE_CODE_ENTRYPOINT": "",
+            "ANTHROPIC_API_KEY": "",  # Clear so OAuth token takes precedence
+        }
+        # Pass through OAuth token
+        oauth = os.environ.get("CLAUDE_CODE_OAUTH_TOKEN")
+        if oauth:
+            env["CLAUDE_CODE_OAUTH_TOKEN"] = oauth
+
+        options = ClaudeAgentOptions(
+            model=self.model,
+            system_prompt={"type": "preset", "preset": "claude_code", "append": JARVIS_SYSTEM_PROMPT},
+            allowed_tools=["Read", "Write", "Edit", "Bash", "Glob", "Grep",
+                           "WebSearch", "WebFetch", "NotebookEdit", "Task"],
+            permission_mode="acceptEdits",
+            cwd=self.cwd,
+            max_turns=30,
+            env=env,
+            include_partial_messages=True,
+        )
+
+        self._client = ClaudeSDKClient(options=options)
+        await self._client.connect()
+        self._connected = True
+        _log.debug("Claude Code session connected (model=%s, cwd=%s)", self.model, self.cwd)
+
+    async def run(self, prompt: str, on_chunk=None, on_tool_activity=None) -> str:
+        """Send a prompt and stream results back via callbacks.
+
+        on_chunk(text) — called with text fragments as they arrive
+        on_tool_activity(event, tool_name, data) — called for tool start/result
+        """
+        if not self._connected:
+            await self.connect()
+
+        self.cancelled = False
+        full_text = ""
+
+        # Drain any stale ResultMessage from a previous turn before sending
+        if self._has_pending_result:
+            _log.debug("Draining stale ResultMessage from previous turn")
+            try:
+                drain_iter = self._client.receive_response().__aiter__()
+                while True:
+                    msg = await asyncio.wait_for(drain_iter.__anext__(), timeout=2.0)
+                    _log.debug("Drained: %s", type(msg).__name__)
+                    if isinstance(msg, ResultMessage):
+                        self.session_id = msg.session_id
+                        if msg.total_cost_usd:
+                            self.total_cost += msg.total_cost_usd
+                        self.total_turns += msg.num_turns
+                        break
+            except (StopAsyncIteration, asyncio.TimeoutError, Exception) as e:
+                _log.debug("Drain finished: %s", e)
+            self._has_pending_result = False
+
+        _log.debug("Sending prompt: %s", prompt[:200])
+        await self._client.query(prompt)
+
+        got_result = False
+        response_iter = self._client.receive_response().__aiter__()
+        while True:
+            try:
+                message = await response_iter.__anext__()
+            except StopAsyncIteration:
+                break
+            except asyncio.CancelledError:
+                _log.debug("Task cancelled")
+                break
+            except Exception as e:
+                err_str = str(e)
+                if "unknown message type" in err_str.lower():
+                    _log.debug("Skipping unknown message type: %s", err_str)
+                    continue
+                # Fatal error — log and surface to user
+                _log.error("Error in receive loop: %s", e, exc_info=True)
+                if "rate_limit" in err_str.lower():
+                    if on_chunk:
+                        on_chunk("\n\n*Rate limited — wait a moment and try again.*")
+                else:
+                    if on_chunk:
+                        on_chunk(f"\n\n*(Error: {e})*")
+                break
+
+            # Log every message type for debugging
+            _log.debug("MSG type=%s repr=%s", type(message).__name__, repr(message)[:300])
+
+            if self.cancelled:
+                _log.debug("Cancelled — breaking out of receive loop")
+                break
+
+            if isinstance(message, SystemMessage):
+                if message.subtype == "init" and hasattr(message, "data"):
+                    sid = message.data.get("session_id")
+                    if sid:
+                        self.session_id = sid
+                        _log.debug("Session ID: %s", sid)
+
+            elif isinstance(message, AssistantMessage):
+                # Text already streamed via StreamEvent text_deltas — only handle tool use here
+                for block in message.content:
+                    if isinstance(block, ToolUseBlock):
+                        if on_tool_activity:
+                            category, desc = _format_tool_start(block.name, block.input)
+                            on_tool_activity("start", block.name, block.input)
+                        _log.debug("Tool use: %s %s", block.name, str(block.input)[:200])
+
+            elif isinstance(message, UserMessage):
+                # Tool results
+                if hasattr(message, "content"):
+                    content = message.content if isinstance(message.content, list) else [message.content]
+                    for block in content:
+                        if isinstance(block, ToolResultBlock):
+                            if on_tool_activity:
+                                result_text = _format_tool_result("", block.content)
+                                on_tool_activity("result", "", {"summary": result_text, "is_error": block.is_error})
+                            _log.debug("Tool result (error=%s): %s", block.is_error, str(block.content)[:200])
+
+            elif isinstance(message, StreamEvent):
+                # Real-time text streaming
+                event = message.event
+                if isinstance(event, dict):
+                    delta = event.get("delta", {})
+                    if delta.get("type") == "text_delta":
+                        text = delta.get("text", "")
+                        if text:
+                            full_text += text
+                            if on_chunk:
+                                on_chunk(text)
+
+            elif isinstance(message, ResultMessage):
+                self.session_id = message.session_id
+                if message.total_cost_usd:
+                    self.total_cost += message.total_cost_usd
+                self.total_turns += message.num_turns
+                got_result = True
+                _log.debug("Result: turns=%d, cost=$%.4f, error=%s",
+                           message.num_turns, message.total_cost_usd or 0, message.is_error)
+
+        # Track if ResultMessage was missed — will drain it before next query
+        if not got_result:
+            _log.debug("No ResultMessage received — will drain before next query")
+            self._has_pending_result = True
+
+        return full_text
+
+    async def cancel(self):
+        """Cancel the current operation."""
+        self.cancelled = True
+        if self._client:
+            try:
+                await self._client.interrupt()
+            except Exception as e:
+                _log.debug("Interrupt error (ok): %s", e)
+
+    async def close(self):
+        """Disconnect the client."""
+        if self._client:
+            try:
+                await self._client.disconnect()
+            except Exception as e:
+                _log.debug("Disconnect error (ok): %s", e)
+            self._client = None
+            self._connected = False
+
+    def get_status(self) -> str:
+        """Format status string for the chat window."""
+        model = f"claude-{self.model}"
+        cost = f"${self.total_cost:.4f}" if self.total_cost < 1.0 else f"${self.total_cost:.2f}"
+        return f"{model} | {self.total_turns} turns | {cost}"

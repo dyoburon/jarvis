@@ -38,17 +38,39 @@ class PaperSkill(BaseSkill):
         if not self.db.exists:
             return {"error": "Paper Feeder database not found and API not running"}
 
-        papers = self.db.query(
+        if query_date == date.today().isoformat():
+            has_data = self.db.query_one("SELECT 1 FROM paper_matches WHERE match_date = ?", (query_date,))
+            if not has_data:
+                latest = self.db.query_one("SELECT MAX(match_date) as md FROM paper_matches")
+                if latest and latest["md"]:
+                    query_date = latest["md"]
+
+        query = (
             "SELECT p.title, p.primary_category, pm.score, i.name as interest "
             "FROM paper_matches pm "
             "JOIN papers p ON p.id = pm.paper_id "
             "JOIN interests i ON i.id = pm.interest_id "
             "WHERE pm.match_date = ? "
-            "ORDER BY pm.score DESC LIMIT 20",
-            (query_date,),
         )
+        params_list = [query_date]
+
+        if interest_filter:
+            query += "AND i.name LIKE ? "
+            params_list.append(f"%{interest_filter}%")
+        query += "ORDER BY pm.score DESC"
+
+        papers = self.db.query(query, tuple(params_list))
+
+        papers_by_interest = {}
+        for p in papers:
+            interest = p["interest"]
+            if interest not in papers_by_interest:
+                papers_by_interest[interest] = []
+            if len(papers_by_interest[interest]) < 5:
+                papers_by_interest[interest].append(p)
+
         return {
             "source": "sqlite",
-            "papers": papers,
+            "papers_by_interest": papers_by_interest,
             "date": query_date,
         }

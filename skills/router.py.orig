@@ -1,9 +1,7 @@
 import asyncio
-import datetime
 import inspect
 import json
 import logging
-import subprocess
 
 from google import genai
 from google.genai import types
@@ -20,8 +18,6 @@ _fh = logging.FileHandler("/tmp/jarvis_router.log")
 _fh.setFormatter(logging.Formatter("[%(asctime)s] %(message)s", datefmt="%H:%M:%S"))
 _log.addHandler(_fh)
 from connectors.token_tracker import TokenTracker
-from connectors.claude_proxy import ClaudeProxyClient
-from skills.claude_code import ClaudeCodeSession
 from skills.code_assistant import CODE_SYSTEM_PROMPT, CODE_TOOLS
 from skills.code_tools import TOOL_DISPATCH
 from skills.domains import DomainSkill
@@ -134,63 +130,22 @@ TOOL_DISPATCH["get_system_overview"] = _system_overview_executor
 class SkillRouter:
     def __init__(self, metal_bridge=None):
         self.gemini = genai.Client(api_key=config.GOOGLE_API_KEY)
-        self.claude_proxy = ClaudeProxyClient()
         self.metal = metal_bridge
         self.token_tracker = TokenTracker(config.TOKEN_USAGE_DB)
         # Default conversation session (Gemini Flash)
         self.default_chat = None
-        # Per-panel sessions: panel_id → session state
-        self._panels: dict[int, dict] = {}
-        # Session-level token/cost accumulators (shared across panels)
+        # Streaming chat session for skill mode
+        self.active_chat = None
+        self.active_skill_name: str | None = None
+        self.active_chat_is_code: bool = False
+        self.cancelled = False  # set True to abort _run_code_turn
+        self._pending_approval: asyncio.Future | None = None
+        self._pending_command: str | None = None
+        # Session-level token/cost accumulators
         self._session_prompt_tokens: int = 0
         self._session_completion_tokens: int = 0
         self._session_cost: float = 0.0
         self._session_model: str = ""
-
-    def _get_panel(self, panel: int) -> dict:
-        """Get or create panel session state."""
-        if panel not in self._panels:
-            self._panels[panel] = {
-                "chat": None,          # Gemini chat (for non-code skills)
-                "session": None,       # ClaudeCodeSession (for code assistant)
-                "is_code": False,
-                "skill_name": None,
-                "cancelled": False,
-                "pending_approval": None,
-                "pending_command": None,
-            }
-        return self._panels[panel]
-
-    def _build_env_context(self, project: str = "") -> str:
-        """Build dynamic environment context injected into the first message."""
-        lines = [
-            f"Date: {datetime.date.today()}",
-            f"Platform: macOS (Darwin)",
-            f"Shell: zsh",
-            f"Projects directory: {config.PROJECTS_DIR}",
-        ]
-        # Git status for the target project or jarvis by default
-        git_dir = config.PROJECTS_DIR / (project if project else "jarvis")
-        if git_dir.is_dir():
-            try:
-                result = subprocess.run(
-                    ["git", "status", "--short", "--branch"],
-                    cwd=str(git_dir), capture_output=True, text=True, timeout=5,
-                )
-                if result.returncode == 0:
-                    lines.append(f"Git ({git_dir.name}): {result.stdout.strip()}")
-            except Exception:
-                pass
-            try:
-                result = subprocess.run(
-                    ["git", "log", "--oneline", "-5"],
-                    cwd=str(git_dir), capture_output=True, text=True, timeout=5,
-                )
-                if result.returncode == 0:
-                    lines.append(f"Recent commits:\n{result.stdout.strip()}")
-            except Exception:
-                pass
-        return "\n".join(lines)
 
     def _metal_hud(self, text: str):
         if self.metal:
@@ -330,10 +285,10 @@ class SkillRouter:
 
     # ── Skill sessions ──
 
-    async def start_skill_session(self, tool_name: str, arguments: str, user_transcript: str, panel: int = 0, on_chunk=None, on_tool_activity=None) -> str:
+    async def start_skill_session(self, tool_name: str, arguments: str, user_transcript: str, on_chunk=None, on_tool_activity=None) -> str:
         """Start a streaming skill chat session. Returns the full initial response."""
         if tool_name == "code_assistant":
-            return await self._start_code_session(arguments, user_transcript, panel=panel, on_chunk=on_chunk, on_tool_activity=on_tool_activity)
+            return await self._start_code_session(arguments, user_transcript, on_chunk, on_tool_activity)
 
         params = json.loads(arguments) if arguments else {}
 
@@ -361,11 +316,10 @@ class SkillRouter:
                 return data["error"]
             prompt = skill.format_prompt(data, user_transcript or tool_name)
 
-        ps = self._get_panel(panel)
-        ps["skill_name"] = skill_name
-        console.print(f"  [dim]Starting Gemini chat for {skill_name} (panel {panel})...[/]")
+        self.active_skill_name = skill_name
+        console.print(f"  [dim]Starting Gemini chat for {skill_name}...[/]")
 
-        ps["chat"] = self.gemini.aio.chats.create(
+        self.active_chat = self.gemini.aio.chats.create(
             model=config.GEMINI_MODEL_DEFAULT,
             config={"system_instruction": (
                 "You are Jarvis, a personal AI assistant. You are in a text chat window "
@@ -385,7 +339,7 @@ class SkillRouter:
         full_response = ""
         try:
             stream = await asyncio.wait_for(
-                ps["chat"].send_message_stream(prompt),
+                self.active_chat.send_message_stream(prompt),
                 timeout=60.0,
             )
             last_chunk = None
@@ -404,25 +358,31 @@ class SkillRouter:
 
         return full_response
 
-    async def send_followup(self, user_text: str, panel: int = 0, on_chunk=None, on_tool_activity=None) -> str:
-        """Send a follow-up message to a specific panel's chat session."""
-        ps = self._get_panel(panel)
-
-        # Claude Code sessions
-        if ps["is_code"]:
-            session: ClaudeCodeSession = ps.get("session")
-            if not session:
-                return "No active Claude Code session"
-            return await session.run(user_text, on_chunk=on_chunk, on_tool_activity=on_tool_activity)
-
-        # Gemini skill sessions
-        if not ps["chat"]:
+    async def send_followup(self, user_text: str, on_chunk=None, on_tool_activity=None) -> str:
+        """Send a follow-up message in the active chat session."""
+        if not self.active_chat:
             return "No active chat session"
+
+        if self.active_chat_is_code:
+            try:
+                return await self._run_code_turn(user_text, on_chunk, on_tool_activity)
+            except Exception as e:
+                if "function response turn" in str(e).lower():
+                    console.print("  [yellow]Resetting code session after interrupted tool loop[/]")
+                    self.active_chat = self.gemini.aio.chats.create(
+                        model=config.GEMINI_MODEL_CODE,
+                        config=types.GenerateContentConfig(
+                            system_instruction=CODE_SYSTEM_PROMPT,
+                            tools=CODE_TOOLS,
+                        ),
+                    )
+                    return await self._run_code_turn(user_text, on_chunk, on_tool_activity)
+                raise
 
         full_response = ""
         try:
             stream = await asyncio.wait_for(
-                ps["chat"].send_message_stream(user_text),
+                self.active_chat.send_message_stream(user_text),
                 timeout=60.0,
             )
             last_chunk = None
@@ -441,73 +401,27 @@ class SkillRouter:
 
         return full_response
 
-    def approve_command(self, approved: bool, panel: int = 0):
-        """Resolve a pending run_command approval for a specific panel."""
-        ps = self._get_panel(panel)
-        if ps["pending_approval"] and not ps["pending_approval"].done():
-            ps["pending_approval"].set_result(approved)
-
-    def has_pending_approval(self, panel: int = 0) -> bool:
-        """Check if a panel has a pending command approval."""
-        ps = self._panels.get(panel, {})
-        approval = ps.get("pending_approval")
-        return approval is not None and not approval.done()
-
-    def get_pending_command(self, panel: int = 0) -> str:
-        """Get the pending command string for a panel."""
-        return self._panels.get(panel, {}).get("pending_command", "")
-
-    def cancel_panel(self, panel: int):
-        """Cancel a specific panel's running operation."""
-        ps = self._panels.get(panel)
-        if ps:
-            ps["cancelled"] = True
-            ps["chat"] = None
-            # Cancel Claude Code session if active
-            session = ps.get("session")
-            if session:
-                asyncio.ensure_future(session.cancel())
-            if ps.get("pending_approval") and not ps["pending_approval"].done():
-                ps["pending_approval"].cancel()
-
-    def close_panel(self, panel: int) -> str:
-        """Close a specific panel's session and renumber remaining panels."""
-        ps = self._panels.pop(panel, {})
-        name = ps.get("skill_name", "Skill")
-        # Close Claude Code session
-        session = ps.get("session")
-        if session:
-            asyncio.ensure_future(session.close())
-        # Renumber: shift panels above the closed one down by 1
-        new_panels: dict[int, dict] = {}
-        for pid, state in self._panels.items():
-            new_panels[pid - 1 if pid > panel else pid] = state
-        self._panels = new_panels
-        return f"{name} session closed."
+    def approve_command(self, approved: bool):
+        """Resolve a pending run_command approval."""
+        if self._pending_approval and not self._pending_approval.done():
+            self._pending_approval.set_result(approved)
 
     def close_session(self) -> str:
-        """Close all panel sessions."""
-        for ps in self._panels.values():
-            session = ps.get("session")
-            if session:
-                asyncio.ensure_future(session.close())
-        self._panels.clear()
+        """Close the active chat session."""
+        name = self.active_skill_name or "Skill"
+        self.active_chat = None
+        self.active_skill_name = None
+        self.active_chat_is_code = False
         self._session_prompt_tokens = 0
         self._session_completion_tokens = 0
         self._session_cost = 0.0
         self._session_model = ""
-        return "All sessions closed."
+        return f"{name} session closed."
 
     def get_session_status(self) -> str:
         """Format status line for the chat window."""
-        # Check if any panel has a Claude Code session
-        for ps in self._panels.values():
-            session = ps.get("session")
-            if session and isinstance(session, ClaudeCodeSession):
-                return session.get_status()
-
-        # Fallback to Gemini stats
         model = self._session_model or config.GEMINI_MODEL_DEFAULT
+        # Session tokens (current session only)
         session_total = self._session_prompt_tokens + self._session_completion_tokens
         if session_total >= 1_000_000:
             tokens_str = f"{session_total / 1_000_000:.1f}M"
@@ -515,6 +429,10 @@ class SkillRouter:
             tokens_str = f"{session_total / 1_000:.1f}K"
         else:
             tokens_str = str(session_total)
+        # Cumulative cost from DB (persists across restarts)
+        db_totals = self.token_tracker.get_totals()
+        total_prompt = db_totals["total_prompt"]
+        total_completion = db_totals["total_completion"]
         cumulative_cost = 0.0
         for row in self.token_tracker.get_by_model():
             pricing = config.GEMINI_PRICING.get(row["model"], {"input": 0, "output": 0})
@@ -525,40 +443,13 @@ class SkillRouter:
             cost_str = f"${cumulative_cost:.4f}"
         return f"{model} | {tokens_str} tokens | {cost_str}"
 
-    async def start_code_session_idle(self, arguments: str, user_transcript: str, panel: int = 0):
-        """Initialize a Claude Code session without sending any message yet."""
-        ps = self._get_panel(panel)
-        ps["skill_name"] = "Code Assistant"
-        ps["is_code"] = True
-        ps["cancelled"] = False
-        console.print(f"  [dim]Starting Claude Code session (panel {panel})...[/]")
+    async def start_code_session_idle(self, arguments: str, user_transcript: str):
+        """Initialize a code session without sending any message yet."""
+        self.active_skill_name = "Code Assistant"
+        self.active_chat_is_code = True
+        console.print(f"  [dim]Starting Gemini code session...[/]")
 
-        session = ClaudeCodeSession(model=config.CLAUDE_CODE_MODEL, cwd=str(config.PROJECTS_DIR))
-        await session.connect()
-        ps["session"] = session
-        console.print(f"  [dim]Claude Code session ready (panel {panel})[/]")
-
-    async def send_code_initial(self, user_text: str, panel: int = 0, on_chunk=None, on_tool_activity=None) -> str:
-        """Send the first message to a Claude Code session."""
-        ps = self._get_panel(panel)
-        session: ClaudeCodeSession = ps.get("session")
-        if not session:
-            return "No active Claude Code session"
-        return await session.run(user_text, on_chunk=on_chunk, on_tool_activity=on_tool_activity)
-
-    async def _start_code_session(self, arguments: str, user_transcript: str, panel: int = 0, on_chunk=None, on_tool_activity=None) -> str:
-        """Start a coding agent chat session with function-calling tools."""
-        params = json.loads(arguments) if arguments else {}
-        task = params.get("task", user_transcript)
-        project = params.get("project", "")
-
-        ps = self._get_panel(panel)
-        ps["skill_name"] = "Code Assistant"
-        ps["is_code"] = True
-        ps["cancelled"] = False
-        console.print(f"  [dim]Starting Gemini code session (panel {panel})...[/]")
-
-        ps["chat"] = self.gemini.aio.chats.create(
+        self.active_chat = self.gemini.aio.chats.create(
             model=config.GEMINI_MODEL_CODE,
             config=types.GenerateContentConfig(
                 system_instruction=CODE_SYSTEM_PROMPT,
@@ -566,50 +457,72 @@ class SkillRouter:
             ),
         )
 
-        env = self._build_env_context(project)
-        prompt = f"[Environment]\n{env}\n\nUser request: {task}"
+    async def send_code_initial(self, user_text: str, on_chunk=None, on_tool_activity=None) -> str:
+        """Send the first message to an already-initialized code session."""
+        prompt = f"User request: {user_text}"
+        return await self._run_code_turn(prompt, on_chunk, on_tool_activity)
+
+    async def _start_code_session(self, arguments: str, user_transcript: str, on_chunk=None, on_tool_activity=None) -> str:
+        """Start a coding agent chat session with function-calling tools."""
+        params = json.loads(arguments) if arguments else {}
+        task = params.get("task", user_transcript)
+        project = params.get("project", "")
+
+        self.active_skill_name = "Code Assistant"
+        self.active_chat_is_code = True
+        console.print(f"  [dim]Starting Gemini code session...[/]")
+
+        self.active_chat = self.gemini.aio.chats.create(
+            model=config.GEMINI_MODEL_CODE,
+            config=types.GenerateContentConfig(
+                system_instruction=CODE_SYSTEM_PROMPT,
+                tools=CODE_TOOLS,
+            ),
+        )
+
+        prompt = f"User request: {task}"
         if project:
             prompt += f"\nProject: {project}"
+        prompt += f'\n\nOriginal voice transcript: "{user_transcript}"'
 
-        return await self._run_code_turn(prompt, panel, on_chunk, on_tool_activity)
+        return await self._run_code_turn(prompt, on_chunk, on_tool_activity)
 
-    async def _run_code_turn(self, message, panel: int = 0, on_chunk=None, on_tool_activity=None) -> str:
-        """Execute the agentic tool-calling loop for a specific panel.
+    async def _run_code_turn(self, message, on_chunk=None, on_tool_activity=None) -> str:
+        """Execute the agentic tool-calling loop.
 
         Streams text to on_chunk. When function calls are detected, executes
         them, notifies on_tool_activity, sends results back to Gemini, and
         repeats until Gemini returns a text-only response.
         """
-        ps = self._get_panel(panel)
-        ps["cancelled"] = False
+        self.cancelled = False
         full_response = ""
         total_tool_calls = 0
-        max_tool_calls = 50
-        max_iterations = 30
+        max_tool_calls = 30
+        max_iterations = 15
 
         for iteration in range(max_iterations):
-            if ps["cancelled"]:
-                _log.debug("panel %d turn %d: cancelled before start", panel, iteration + 1)
+            if self.cancelled:
+                _log.debug("turn %d: cancelled before start", iteration + 1)
                 break
 
             turn_text = ""
             pending_function_calls = []
 
             try:
-                if not ps["chat"]:
-                    _log.warning("panel %d turn %d: no active chat", panel, iteration + 1)
-                    console.print(f"[yellow]No active chat (panel {panel}) — loop exiting[/]")
+                if not self.active_chat:
+                    _log.warning("turn %d: no active chat", iteration + 1)
+                    console.print("[yellow]No active chat — loop exiting[/]")
                     break
 
                 stream_timeout = 300.0  # 5 min total time for this turn
                 turn_start = asyncio.get_event_loop().time()
-                _log.debug("panel %d turn %d: sending to Gemini...", panel, iteration + 1)
+                _log.debug("turn %d: sending to Gemini...", iteration + 1)
 
                 stream = await asyncio.wait_for(
-                    ps["chat"].send_message_stream(message),
+                    self.active_chat.send_message_stream(message),
                     timeout=30.0,
                 )
-                _log.debug("panel %d turn %d: stream opened, reading chunks...", panel, iteration + 1)
+                _log.debug("turn %d: stream opened, reading chunks...", iteration + 1)
                 last_chunk = None
                 chunk_count = 0
                 async for chunk in stream:
@@ -617,15 +530,15 @@ class SkillRouter:
                     # Check total turn timeout
                     elapsed = asyncio.get_event_loop().time() - turn_start
                     if elapsed > stream_timeout:
-                        _log.warning("panel %d turn %d: stream exceeded %.0fs after %d chunks", panel, iteration + 1, stream_timeout, chunk_count)
-                        console.print(f"[yellow]Stream exceeded {stream_timeout}s (panel {panel}) — stopping[/]")
+                        _log.warning("turn %d: stream exceeded %.0fs after %d chunks", iteration + 1, stream_timeout, chunk_count)
+                        console.print(f"[yellow]Stream exceeded {stream_timeout}s — stopping[/]")
                         if on_chunk:
                             on_chunk("\n\n*(Stream timed out.)*")
                         break
 
                     last_chunk = chunk
-                    if ps["cancelled"]:
-                        _log.debug("panel %d turn %d: cancelled mid-stream at chunk %d", panel, iteration + 1, chunk_count)
+                    if self.cancelled:
+                        _log.debug("turn %d: cancelled mid-stream at chunk %d", iteration + 1, chunk_count)
                         break
                     if chunk.text:
                         turn_text += chunk.text
@@ -639,32 +552,32 @@ class SkillRouter:
                                         pending_function_calls.append(part.function_call)
 
                 elapsed = asyncio.get_event_loop().time() - turn_start
-                _log.debug("panel %d turn %d: stream done — %d chunks, %d func calls, %.1fs, text=%d chars",
-                           panel, iteration + 1, chunk_count, len(pending_function_calls), elapsed, len(turn_text))
+                _log.debug("turn %d: stream done — %d chunks, %d func calls, %.1fs, text=%d chars",
+                           iteration + 1, chunk_count, len(pending_function_calls), elapsed, len(turn_text))
                 self._record_usage(last_chunk, config.GEMINI_MODEL_CODE, "code")
             except asyncio.TimeoutError:
-                _log.warning("panel %d turn %d: TIMEOUT waiting for Gemini", panel, iteration + 1)
-                console.print(f"[yellow]Gemini request timed out (panel {panel}, turn {iteration + 1})[/]")
+                _log.warning("turn %d: TIMEOUT waiting for Gemini", iteration + 1)
+                console.print(f"[yellow]Gemini request timed out (turn {iteration + 1})[/]")
                 if on_chunk:
                     on_chunk("\n\n*(Request timed out.)*")
                 break
             except Exception as e:
-                if ps["cancelled"]:
-                    _log.debug("panel %d turn %d: exception after cancel: %s", panel, iteration + 1, e)
+                if self.cancelled:
+                    _log.debug("turn %d: exception after cancel: %s", iteration + 1, e)
                     break
-                _log.error("panel %d turn %d: stream error: %s", panel, iteration + 1, e, exc_info=True)
-                console.print(f"[red]Stream error (panel {panel}, turn {iteration + 1}):[/] {e}")
+                _log.error("turn %d: stream error: %s", iteration + 1, e, exc_info=True)
+                console.print(f"[red]Stream error (turn {iteration + 1}):[/] {e}")
                 if on_chunk:
                     on_chunk(f"\n\n*(Error: {e})*")
                 break
 
-            if ps["cancelled"]:
+            if self.cancelled:
                 break
 
             full_response += turn_text
 
             if not pending_function_calls:
-                _log.debug("panel %d turn %d: no function calls — done", panel, iteration + 1)
+                _log.debug("turn %d: no function calls — done", iteration + 1)
                 break
 
             remaining = max_tool_calls - total_tool_calls
@@ -676,7 +589,7 @@ class SkillRouter:
 
             function_response_parts = []
             for fc in pending_function_calls:
-                if ps["cancelled"]:
+                if self.cancelled:
                     break
 
                 tool_name = fc.name
@@ -688,29 +601,29 @@ class SkillRouter:
 
                 # Gate: require user approval for run_command
                 if tool_name == "run_command":
-                    ps["pending_command"] = tool_args.get("command", "")
-                    ps["pending_approval"] = asyncio.get_event_loop().create_future()
+                    self._pending_command = tool_args.get("command", "")
+                    self._pending_approval = asyncio.get_event_loop().create_future()
                     if on_tool_activity:
                         on_tool_activity("approval_request", tool_name, tool_args)
                     try:
-                        approved = await ps["pending_approval"]
+                        approved = await self._pending_approval
                     except (asyncio.CancelledError, Exception):
-                        ps["pending_approval"] = None
-                        ps["pending_command"] = None
+                        self._pending_approval = None
+                        self._pending_command = None
                         break
-                    ps["pending_approval"] = None
-                    ps["pending_command"] = None
+                    self._pending_approval = None
+                    self._pending_command = None
                     if not approved:
                         result = {"error": "Command denied by user."}
                         if on_tool_activity:
                             on_tool_activity("result", tool_name, result)
-                        console.print(f"  [red]Command denied (panel {panel})[/]")
+                        console.print(f"  [red]Command denied[/]")
                         function_response_parts.append(
                             types.Part.from_function_response(name=tool_name, response=result)
                         )
                         continue
 
-                _log.debug("panel %d tool %d/%d: executing %s", panel, total_tool_calls, max_tool_calls, tool_name)
+                _log.debug("tool %d/%d: executing %s", total_tool_calls, max_tool_calls, tool_name)
                 executor = TOOL_DISPATCH.get(tool_name)
                 if executor:
                     try:
@@ -719,43 +632,32 @@ class SkillRouter:
                         else:
                             result = executor(**tool_args)
                     except asyncio.TimeoutError:
-                        _log.warning("panel %d tool %s timed out (45s)", panel, tool_name)
+                        _log.warning("tool %s timed out (45s)", tool_name)
                         result = {"error": f"Tool {tool_name} timed out (45s)"}
                     except Exception as e:
-                        _log.error("panel %d tool %s error: %s", panel, tool_name, e)
+                        _log.error("tool %s error: %s", tool_name, e)
                         result = {"error": str(e)}
                 else:
                     result = {"error": f"Unknown tool: {tool_name}"}
 
                 has_error = "error" in result if isinstance(result, dict) else False
-                _log.debug("panel %d tool %s done — error=%s", panel, tool_name, has_error)
+                _log.debug("tool %s done — error=%s", tool_name, has_error)
 
                 if on_tool_activity:
                     on_tool_activity("result", tool_name, result)
 
-                console.print(f"  [dim]Tool {tool_name} ({total_tool_calls}/{max_tool_calls}) [panel {panel}][/]")
+                console.print(f"  [dim]Tool {tool_name} ({total_tool_calls}/{max_tool_calls})[/]")
                 function_response_parts.append(
                     types.Part.from_function_response(name=tool_name, response=result)
                 )
 
-            if ps["cancelled"] or not function_response_parts:
-                _log.debug("panel %d turn %d: loop ending — cancelled=%s, parts=%d",
-                           panel, iteration + 1, ps["cancelled"], len(function_response_parts))
+            if self.cancelled or not function_response_parts:
+                _log.debug("turn %d: loop ending — cancelled=%s, parts=%d",
+                           iteration + 1, self.cancelled, len(function_response_parts))
                 break
-
-            # Approaching limits — tell Gemini to wrap up
-            if iteration >= max_iterations - 2 or total_tool_calls >= max_tool_calls - 2:
-                function_response_parts.append(
-                    types.Part.from_text(
-                        "[SYSTEM: You are approaching the tool call limit. "
-                        "Summarize your findings and respond to the user NOW with text.]"
-                    )
-                )
-                _log.debug("panel %d turn %d: injected wrap-up nudge (iter=%d, tools=%d)",
-                           panel, iteration + 1, iteration, total_tool_calls)
 
             message = function_response_parts
 
-        _log.debug("panel %d _run_code_turn done — %d turns, %d tool calls, response=%d chars",
-                    panel, iteration + 1, total_tool_calls, len(full_response))
+        _log.debug("_run_code_turn done — %d turns, %d tool calls, response=%d chars",
+                    iteration + 1, total_tool_calls, len(full_response))
         return full_response

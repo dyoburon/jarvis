@@ -71,7 +71,7 @@ class MicCapture:
             samplerate=config.SAMPLE_RATE,
             channels=config.CHANNELS,
             dtype="float32",
-            blocksize=int(config.SAMPLE_RATE * config.CHUNK_MS / 1000),
+            blocksize=int(config.SAMPLE_RATE * 0.1),  # 100ms blocks
             callback=self._callback,
         )
         self._stream.start()
