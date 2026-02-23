@@ -17,7 +17,7 @@ class SkillMicCapture:
     """
 
     SMOOTHING = 0.7  # 70% previous, 30% new (matches vibetotext)
-    SILENCE_THRESHOLD = 0.08
+    SILENCE_THRESHOLD = 0.03
 
     def __init__(self, source_rate: int = 24000, target_rate: int = 16000):
         self.source_rate = source_rate

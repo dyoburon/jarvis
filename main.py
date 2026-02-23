@@ -260,6 +260,14 @@ async def main():
         ]
         return any(phrase == normalized or normalized.startswith(phrase) for phrase in doodlejump_phrases)
 
+    def _is_asteroids_command(text: str) -> bool:
+        normalized = text.lower().strip().rstrip(".")
+        asteroids_phrases = [
+            "asteroids", "asteroid", "play asteroids", "play asteroid",
+            "launch asteroids", "open asteroids", "start asteroids",
+        ]
+        return any(phrase == normalized or normalized.startswith(phrase) for phrase in asteroids_phrases)
+
     def _is_subway_command(text: str) -> bool:
         normalized = text.lower().strip().rstrip(".")
         subway_phrases = [
@@ -620,6 +628,11 @@ async def main():
                 console.print("[bold cyan]Launched Doodle Jump[/]")
                 return
 
+            if _is_asteroids_command(user_text):
+                metal.send_chat_iframe_fullscreen(f"file://{ASTEROIDS_PATH}", panel=active_panel)
+                console.print("[bold cyan]Launched Asteroids[/]")
+                return
+
             if _is_subway_video_command(user_text):
                 clip = _pick_random_clip()
                 if clip:
@@ -864,6 +877,12 @@ async def main():
                         metal.send_chat_iframe_fullscreen(f"file://{DOODLEJUMP_PATH}", panel=active_panel)
                         metal.send_state("listening")
                         console.print("[bold cyan]Launched Doodle Jump[/]")
+                        return
+
+                    if _is_asteroids_command(text):
+                        metal.send_chat_iframe_fullscreen(f"file://{ASTEROIDS_PATH}", panel=active_panel)
+                        metal.send_state("listening")
+                        console.print("[bold cyan]Launched Asteroids[/]")
                         return
 
                     if _is_subway_video_command(text):

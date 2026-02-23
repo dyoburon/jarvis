@@ -632,7 +632,7 @@ function draw() {
 
   // Draw ship
   const s = ship;
-  if (!s.dead) {
+  if (s && !s.dead) {
     // Blink when invincible
     if (s.invincible > 0 && Math.floor(s.invincible / 4) % 2 === 0) {
       // Skip draw frame — blink effect
