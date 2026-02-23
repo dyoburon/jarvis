@@ -142,6 +142,9 @@ async def main():
     skill_mic = SkillMicCapture(source_rate=config.SAMPLE_RATE, target_rate=config.WHISPER_SAMPLE_RATE)
     whisper_client = WhisperClient()
 
+    # Send mic audio levels to Metal sphere during PTT
+    skill_mic.on_level = lambda level: metal.send_audio_level(level)
+
     # Start default Gemini Flash conversation session
     router.start_default_session()
 
@@ -155,6 +158,24 @@ async def main():
 
     def _panel_name(idx: int) -> str:
         return f"AI Bench {idx + 1}"
+
+    _URL_RE = re.compile(r'^(https?://\S+|localhost:\d+\S*)$', re.IGNORECASE)
+
+    def _parse_open_url(text: str) -> str | None:
+        """Detect 'open <url>' or bare localhost/http URLs. Returns URL or None."""
+        normalized = text.strip()
+        # "open http://..." or "open localhost:3000"
+        if normalized.lower().startswith("open "):
+            url_part = normalized[5:].strip()
+        else:
+            url_part = normalized
+        m = _URL_RE.match(url_part)
+        if not m:
+            return None
+        url = m.group(1)
+        if url.startswith("localhost"):
+            url = "http://" + url
+        return url
 
     _IMAGE_PATH_RE = re.compile(r'(/\S+\.(?:png|jpg|jpeg|gif|webp|bmp|tiff|heic))', re.IGNORECASE)
 
@@ -192,6 +213,11 @@ async def main():
     MINESWEEPER_PATH = os.path.join(os.path.dirname(__file__), "minesweeper.html")
     TETRIS_PATH = os.path.join(os.path.dirname(__file__), "tetris.html")
     DRAW_PATH = os.path.join(os.path.dirname(__file__), "draw.html")
+    SUBWAY_PATH = os.path.join(os.path.dirname(__file__), "subway.html")
+    DOODLEJUMP_PATH = os.path.join(os.path.dirname(__file__), "doodlejump.html")
+    ASTEROIDS_PATH = os.path.join(os.path.dirname(__file__), "asteroids.html")
+    VIDEOPLAYER_PATH = os.path.join(os.path.dirname(__file__), "videoplayer.html")
+    SUBWAY_CLIPS_DIR = os.path.join(os.path.dirname(__file__), "data", "subway_clips")
 
     def _is_pinball_command(text: str) -> bool:
         normalized = text.lower().strip().rstrip(".")
@@ -225,6 +251,40 @@ async def main():
             "excalidraw", "sketch", "open sketch",
         ]
         return any(phrase == normalized or normalized.startswith(phrase) for phrase in draw_phrases)
+
+    def _is_doodlejump_command(text: str) -> bool:
+        normalized = text.lower().strip().rstrip(".")
+        doodlejump_phrases = [
+            "doodle jump", "doodlejump", "play doodle jump", "play doodlejump",
+            "launch doodle jump", "open doodle jump", "start doodle jump",
+        ]
+        return any(phrase == normalized or normalized.startswith(phrase) for phrase in doodlejump_phrases)
+
+    def _is_subway_command(text: str) -> bool:
+        normalized = text.lower().strip().rstrip(".")
+        subway_phrases = [
+            "subway", "subway surfers", "play subway surfers",
+            "launch subway surfers", "open subway surfers",
+            "start subway surfers", "play subway", "subway surf",
+        ]
+        return any(phrase == normalized or normalized.startswith(phrase) for phrase in subway_phrases)
+
+    def _is_subway_video_command(text: str) -> bool:
+        normalized = text.lower().strip().rstrip(".")
+        phrases = [
+            "subway video", "subway surfers video", "play subway video",
+            "subway clip", "subway surfers clip", "gameplay video",
+            "play gameplay", "background gameplay",
+        ]
+        return any(phrase == normalized or normalized.startswith(phrase) for phrase in phrases)
+
+    def _pick_random_clip() -> str | None:
+        """Pick a random gameplay clip from data/subway_clips/. Returns path or None."""
+        if not os.path.isdir(SUBWAY_CLIPS_DIR):
+            return None
+        files = glob.glob(os.path.join(SUBWAY_CLIPS_DIR, "*"))
+        videos = [f for f in files if f.lower().endswith((".mp4", ".webm", ".mkv", ".mov"))]
+        return random.choice(videos) if videos else None
 
     MEMES_DIR = os.path.join(os.path.dirname(__file__), "data", "memes")
 
@@ -529,6 +589,12 @@ async def main():
                     console.print("[yellow]Max 5 windows reached[/]")
                 return
 
+            open_url = _parse_open_url(user_text)
+            if open_url:
+                metal.send_chat_iframe(open_url, panel=active_panel, height=720)
+                console.print(f"[bold cyan]Opened URL in panel:[/] {open_url}")
+                return
+
             if _is_pinball_command(user_text):
                 metal.send_chat_iframe_fullscreen(f"file://{PINBALL_PATH}", panel=active_panel)
                 console.print("[bold cyan]Launched Pinball[/]")
@@ -547,6 +613,26 @@ async def main():
             if _is_draw_command(user_text):
                 metal.send_chat_iframe(f"file://{DRAW_PATH}", panel=active_panel, height=720)
                 console.print("[bold cyan]Launched Draw[/]")
+                return
+
+            if _is_doodlejump_command(user_text):
+                metal.send_chat_iframe_fullscreen(f"file://{DOODLEJUMP_PATH}", panel=active_panel)
+                console.print("[bold cyan]Launched Doodle Jump[/]")
+                return
+
+            if _is_subway_video_command(user_text):
+                clip = _pick_random_clip()
+                if clip:
+                    url = f"file://{VIDEOPLAYER_PATH}?src=file://{clip}"
+                    metal.send_chat_iframe_fullscreen(url, panel=active_panel)
+                    console.print(f"[bold cyan]Playing clip:[/] {os.path.basename(clip)}")
+                else:
+                    metal.send_chat_message("gemini", "No gameplay clips found. Add videos to `data/subway_clips/`.", panel=active_panel)
+                return
+
+            if _is_subway_command(user_text):
+                metal.send_chat_iframe_fullscreen(f"file://{SUBWAY_PATH}", panel=active_panel)
+                console.print("[bold cyan]Launched Subway Surfers[/]")
                 return
 
             if _is_meme_command(user_text):
@@ -721,6 +807,7 @@ async def main():
                 ptt_active = False
                 audio = skill_mic.stop_recording()
                 mic._skill_capture = None
+                metal.send_audio_level(0.0)  # Reset sphere to idle
 
                 if skill_active:
                     metal.send_state("chat")
@@ -771,6 +858,29 @@ async def main():
                         metal.send_chat_iframe(f"file://{DRAW_PATH}", panel=active_panel, height=720)
                         metal.send_state("listening")
                         console.print("[bold cyan]Launched Draw[/]")
+                        return
+
+                    if _is_doodlejump_command(text):
+                        metal.send_chat_iframe_fullscreen(f"file://{DOODLEJUMP_PATH}", panel=active_panel)
+                        metal.send_state("listening")
+                        console.print("[bold cyan]Launched Doodle Jump[/]")
+                        return
+
+                    if _is_subway_video_command(text):
+                        clip = _pick_random_clip()
+                        if clip:
+                            url = f"file://{VIDEOPLAYER_PATH}?src=file://{clip}"
+                            metal.send_chat_iframe_fullscreen(url, panel=active_panel)
+                            console.print(f"[bold cyan]Playing clip:[/] {os.path.basename(clip)}")
+                        else:
+                            metal.send_hud("No gameplay clips found")
+                        metal.send_state("listening")
+                        return
+
+                    if _is_subway_command(text):
+                        metal.send_chat_iframe_fullscreen(f"file://{SUBWAY_PATH}", panel=active_panel)
+                        metal.send_state("listening")
+                        console.print("[bold cyan]Launched Subway Surfers[/]")
                         return
 
                     # Default mode: send to Gemini Flash

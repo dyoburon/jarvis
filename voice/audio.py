@@ -16,20 +16,40 @@ class SkillMicCapture:
     audio, then resamples from 24kHz to 16kHz for Whisper on stop.
     """
 
+    SMOOTHING = 0.7  # 70% previous, 30% new (matches vibetotext)
+    SILENCE_THRESHOLD = 0.08
+
     def __init__(self, source_rate: int = 24000, target_rate: int = 16000):
         self.source_rate = source_rate
         self.target_rate = target_rate
         self._recording = False
         self._chunks: list[np.ndarray] = []
+        self.on_level: callable = None  # callback(float) — RMS audio level 0-1
+        self._prev_level: float = 0.0  # For temporal smoothing
 
     def start_recording(self):
         self._chunks = []
+        self._prev_level = 0.0
         self._recording = True
 
     def feed_audio(self, float32_mono: np.ndarray):
         """Called from MicCapture callback with raw float32 data."""
         if self._recording:
             self._chunks.append(float32_mono.copy())
+            if self.on_level:
+                rms = float(np.sqrt(np.mean(float32_mono ** 2)))
+                level = min(rms * 4.0, 1.0)
+
+                # Silence gate — smooth decay when below threshold
+                if level < self.SILENCE_THRESHOLD:
+                    self._prev_level *= self.SMOOTHING
+                    self.on_level(self._prev_level)
+                    return
+
+                # Temporal smoothing (70% previous, 30% new)
+                level = self._prev_level * self.SMOOTHING + level * (1 - self.SMOOTHING)
+                self._prev_level = level
+                self.on_level(level)
 
     def stop_recording(self) -> np.ndarray:
         """Stop and return captured audio at 16kHz float32."""

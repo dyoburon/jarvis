@@ -433,9 +433,10 @@ function drawNext() {
 
 let lastTime = 0;
 
-function gameLoop(time) {
-  const dt = time - lastTime;
-  lastTime = time;
+function gameLoop() {
+  const now = performance.now();
+  const dt = now - lastTime;
+  lastTime = now;
 
   // Flash timer
   if (flashTimer > 0) flashTimer--;
@@ -450,8 +451,8 @@ function gameLoop(time) {
   });
 
   if (gameStarted && !gameOver) {
-    if (time - lastDrop > dropInterval) {
-      lastDrop = time;
+    if (now - lastDrop > dropInterval) {
+      lastDrop = now;
       if (fits(current.cells, currentX, currentY + 1)) {
         currentY++;
         lockDelay = 0;

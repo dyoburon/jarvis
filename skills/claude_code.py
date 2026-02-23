@@ -164,26 +164,22 @@ class ClaudeCodeSession:
         self._task_tool_ids.clear()
         full_text = ""
 
-        # Drain any stale ResultMessage from a previous turn before sending.
-        # Subagent (Task) tool runs can take minutes, so use a generous timeout.
+        # Drain any stale parent ResultMessage from a previous turn.
         if self._has_pending_result:
             _log.debug("Draining stale ResultMessage from previous turn")
             try:
-                drain_iter = self._client.receive_response().__aiter__()
-                while True:
-                    msg = await asyncio.wait_for(drain_iter.__anext__(), timeout=120.0)
+                async for msg in self._client.receive_messages():
                     _log.debug("Drained: %s", type(msg).__name__)
                     if isinstance(msg, ResultMessage):
-                        # Only update session_id from parent results
-                        if not self.session_id or msg.session_id == self.session_id:
+                        is_parent = not self.session_id or msg.session_id == self.session_id
+                        if is_parent:
                             self.session_id = msg.session_id
                             if msg.total_cost_usd:
                                 self.total_cost += msg.total_cost_usd
                             self.total_turns += msg.num_turns
                             break
-                        else:
-                            _log.debug("Drained subagent ResultMessage (session=%s) — continuing",
-                                       msg.session_id)
+                        _log.debug("Drained subagent ResultMessage (session=%s) — continuing",
+                                   msg.session_id)
             except (StopAsyncIteration, asyncio.TimeoutError, Exception) as e:
                 _log.debug("Drain finished: %s", e)
             self._has_pending_result = False
@@ -191,11 +187,22 @@ class ClaudeCodeSession:
         _log.debug("Sending prompt: %s", prompt[:200])
         await self._client.query(prompt)
 
+        # Use receive_messages() instead of receive_response() so we control
+        # when to stop.  receive_response() terminates after ANY ResultMessage,
+        # which breaks when subagents produce their own ResultMessage before the
+        # parent conversation finishes.
         got_result = False
-        response_iter = self._client.receive_response().__aiter__()
+        try:
+            msg_iter = self._client.receive_messages().__aiter__()
+        except Exception as e:
+            _log.error("Failed to create message iterator: %s", e)
+            if on_chunk:
+                on_chunk(f"\n\n*(Error: {e})*")
+            return full_text
+
         while True:
             try:
-                message = await response_iter.__anext__()
+                message = await msg_iter.__anext__()
             except StopAsyncIteration:
                 break
             except asyncio.CancelledError:
@@ -289,21 +296,22 @@ class ClaudeCodeSession:
 
             elif isinstance(message, ResultMessage):
                 is_parent = not self.session_id or message.session_id == self.session_id
-                if is_parent:
-                    self.session_id = message.session_id
-                    got_result = True
-                else:
-                    # Sub-agent completed — decrement depth
-                    self._subagent_depth = max(0, self._subagent_depth - 1)
-                    _log.debug("Subagent ResultMessage — depth now %d, ops=%d",
-                               self._subagent_depth, self._subagent_op_count)
-                    if self._subagent_depth == 0 and on_tool_activity:
-                        on_tool_activity("subagent_done", "", {"op_count": self._subagent_op_count})
                 if message.total_cost_usd:
                     self.total_cost += message.total_cost_usd
                 self.total_turns += message.num_turns
                 _log.debug("Result: parent=%s, turns=%d, cost=$%.4f, error=%s",
                            is_parent, message.num_turns, message.total_cost_usd or 0, message.is_error)
+                if is_parent:
+                    self.session_id = message.session_id
+                    got_result = True
+                    break  # Parent done — stop the loop
+                else:
+                    # Sub-agent completed — decrement depth but keep going
+                    self._subagent_depth = max(0, self._subagent_depth - 1)
+                    _log.debug("Subagent ResultMessage — depth now %d, ops=%d",
+                               self._subagent_depth, self._subagent_op_count)
+                    if self._subagent_depth == 0 and on_tool_activity:
+                        on_tool_activity("subagent_done", "", {"op_count": self._subagent_op_count})
 
         # Track if ResultMessage was missed — will drain it before next query
         if not got_result:
