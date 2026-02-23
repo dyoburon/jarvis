@@ -455,8 +455,8 @@ async def main():
                     skill_tasks.clear()
                     router.close_session()
                     metal.send_chat_end()
-                    metal.send_state("listening")
-                    console.print("[green]Jarvis resumed.[/]")
+                    console.print("[green]All windows closed. Shutting down.[/]")
+                    metal.quit()
                 return
 
             if _is_split_command(user_text):

@@ -233,10 +233,9 @@ class ClaudeCodeSession:
                             on_tool_activity("start", block.name, block.input)
                         _log.debug("Tool use: %s %s", block.name, str(block.input)[:200])
                     elif isinstance(block, TextBlock) and block.text:
-                        full_text += block.text
-                        if on_chunk:
-                            on_chunk(block.text)
-                        _log.debug("Assistant text block: %s", block.text[:200])
+                        # Text already streamed via StreamEvent text_deltas
+                        # (include_partial_messages=True); skip to avoid double-send
+                        _log.debug("Assistant text block (already streamed): %s", block.text[:200])
 
             elif isinstance(message, UserMessage):
                 if hasattr(message, "content"):
