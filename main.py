@@ -182,6 +182,16 @@ async def main():
         ]
         return any(phrase in normalized for phrase in split_phrases)
 
+    PINBALL_PATH = os.path.join(os.path.dirname(__file__), "data", "pinball.html")
+
+    def _is_pinball_command(text: str) -> bool:
+        normalized = text.lower().strip().rstrip(".")
+        pinball_phrases = [
+            "pinball", "play pinball", "launch pinball",
+            "open pinball", "start pinball",
+        ]
+        return any(phrase == normalized or normalized.startswith(phrase) for phrase in pinball_phrases)
+
     MEMES_DIR = os.path.join(os.path.dirname(__file__), "data", "memes")
 
     def _is_meme_command(text: str) -> bool:
@@ -347,7 +357,7 @@ async def main():
 
                     on_tool_activity = make_tool_activity_cb(target_panel)
                     await router.start_code_session_idle(arguments, user_text, panel=target_panel)
-                    metal.send_chat_message("gemini", "**Code Assistant ready.** Type or speak your request.", panel=target_panel)
+                    metal.send_chat_message("gemini", "**Bench 1 ready.** Type or speak your request.", panel=target_panel)
                     console.print(f"  [dim]Code session ready (panel {target_panel})[/]")
                 return
 
@@ -357,7 +367,7 @@ async def main():
 
             # Resolve skill display name
             if tool_name == "code_assistant":
-                skill_name = "Code Assistant"
+                skill_name = "Bench 1"
             elif tool_name == "get_system_overview":
                 skill_name = "System Overview"
             else:
@@ -383,7 +393,10 @@ async def main():
 
                     async def run_code_initial(_p=target_panel, _chunk=on_chunk, _ta=on_tool_activity, _text=user_text):
                         try:
-                            await router.send_code_initial(_text, panel=_p, on_chunk=_chunk, on_tool_activity=_ta)
+                            result = await router.send_code_initial(_text, panel=_p, on_chunk=_chunk, on_tool_activity=_ta)
+                            if not result or not result.strip():
+                                metal.send_chat_message("gemini", "*(Reached turn limit with no text response. Try a more specific request.)*", panel=_p)
+                                console.print(f"[yellow]Empty response after tool loop (panel {_p}) — hit iteration limit[/]")
                         except Exception as e:
                             console.print(f"[red]Skill error (panel {_p}):[/] {e}")
                             metal.send_chat_message("gemini", f"\nError: {e}", panel=_p)
@@ -392,7 +405,7 @@ async def main():
                     skill_tasks[target_panel] = asyncio.create_task(run_code_initial())
                 else:
                     # Hotkey or no transcript — just ready for input
-                    metal.send_chat_message("gemini", "**Code Assistant ready.** Type or speak your request.", panel=target_panel)
+                    metal.send_chat_message("gemini", "**Bench 1 ready.** Type or speak your request.", panel=target_panel)
                     console.print(f"  [dim]Code session ready[/]")
             else:
                 async def run_initial(_p=target_panel, _chunk=on_chunk, _ta=on_tool_activity):
@@ -458,10 +471,15 @@ async def main():
                     # Auto-create code session for new panel
                     if pending_tool_name == "code_assistant":
                         await router.start_code_session_idle("{}", "", panel=new_panel)
-                        metal.send_chat_message("gemini", "**Code Assistant ready.** Type or speak your request.", panel=new_panel)
+                        metal.send_chat_message("gemini", "**Bench 1 ready.** Type or speak your request.", panel=new_panel)
                         console.print(f"  [dim]Code session ready (panel {new_panel})[/]")
                 else:
                     console.print("[yellow]Max 5 windows reached[/]")
+                return
+
+            if _is_pinball_command(user_text):
+                metal.send_web_panel(f"file://{PINBALL_PATH}", title="Pinball")
+                console.print("[bold cyan]Launched Pinball[/]")
                 return
 
             if _is_meme_command(user_text):
@@ -662,6 +680,13 @@ async def main():
                     metal.send_chat_input_text(text, panel=active_panel)
                     metal.send_state("chat")
                 else:
+                    # Quick commands before hitting Gemini
+                    if _is_pinball_command(text):
+                        metal.send_web_panel(f"file://{PINBALL_PATH}", title="Pinball")
+                        metal.send_state("listening")
+                        console.print("[bold cyan]Launched Pinball[/]")
+                        return
+
                     # Default mode: send to Gemini Flash
                     console.print(f"\n[bold white]You:[/] {text}")
                     metal.send_hud_clear()

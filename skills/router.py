@@ -520,7 +520,7 @@ class SkillRouter:
     async def start_code_session_idle(self, arguments: str, user_transcript: str, panel: int = 0):
         """Initialize a Claude Code session without sending any message yet."""
         ps = self._get_panel(panel)
-        ps["skill_name"] = "Code Assistant"
+        ps["skill_name"] = "Bench 1"
         ps["is_code"] = True
         ps["cancelled"] = False
         console.print(f"  [dim]Starting Claude Code session (panel {panel})...[/]")
@@ -545,7 +545,7 @@ class SkillRouter:
         project = params.get("project", "")
 
         ps = self._get_panel(panel)
-        ps["skill_name"] = "Code Assistant"
+        ps["skill_name"] = "Bench 1"
         ps["is_code"] = True
         ps["cancelled"] = False
         console.print(f"  [dim]Starting Gemini code session (panel {panel})...[/]")

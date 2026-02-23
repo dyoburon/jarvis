@@ -232,6 +232,11 @@ class ClaudeCodeSession:
                             category, desc = _format_tool_start(block.name, block.input)
                             on_tool_activity("start", block.name, block.input)
                         _log.debug("Tool use: %s %s", block.name, str(block.input)[:200])
+                    elif isinstance(block, TextBlock) and block.text:
+                        full_text += block.text
+                        if on_chunk:
+                            on_chunk(block.text)
+                        _log.debug("Assistant text block: %s", block.text[:200])
 
             elif isinstance(message, UserMessage):
                 if hasattr(message, "content"):
