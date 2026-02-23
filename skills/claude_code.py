@@ -129,7 +129,7 @@ class ClaudeCodeSession:
             model=self.model,
             system_prompt={"type": "preset", "preset": "claude_code", "append": JARVIS_SYSTEM_PROMPT},
             allowed_tools=["Read", "Write", "Edit", "Bash", "Glob", "Grep",
-                           "WebSearch", "WebFetch", "NotebookEdit", "Task"],
+                           "WebSearch", "WebFetch", "NotebookEdit"],
             permission_mode="acceptEdits",
             cwd=self.cwd,
             max_turns=30,
@@ -164,11 +164,16 @@ class ClaudeCodeSession:
                     msg = await asyncio.wait_for(drain_iter.__anext__(), timeout=120.0)
                     _log.debug("Drained: %s", type(msg).__name__)
                     if isinstance(msg, ResultMessage):
-                        self.session_id = msg.session_id
-                        if msg.total_cost_usd:
-                            self.total_cost += msg.total_cost_usd
-                        self.total_turns += msg.num_turns
-                        break
+                        # Only update session_id from parent results
+                        if not self.session_id or msg.session_id == self.session_id:
+                            self.session_id = msg.session_id
+                            if msg.total_cost_usd:
+                                self.total_cost += msg.total_cost_usd
+                            self.total_turns += msg.num_turns
+                            break
+                        else:
+                            _log.debug("Drained subagent ResultMessage (session=%s) — continuing",
+                                       msg.session_id)
             except (StopAsyncIteration, asyncio.TimeoutError, Exception) as e:
                 _log.debug("Drain finished: %s", e)
             self._has_pending_result = False
@@ -221,12 +226,6 @@ class ClaudeCodeSession:
                         on_tool_activity("start", "Task", {"description": desc})
 
             elif isinstance(message, AssistantMessage):
-                is_subagent = getattr(message, "parent_tool_use_id", None) is not None
-                if is_subagent:
-                    # Subagent messages — don't emit text or tool activity to UI
-                    _log.debug("Subagent AssistantMessage (skipping UI): %s", repr(message)[:200])
-                    continue
-                # Main agent — text already streamed via StreamEvent, handle tool use
                 for block in message.content:
                     if isinstance(block, ToolUseBlock):
                         if on_tool_activity:
@@ -235,11 +234,6 @@ class ClaudeCodeSession:
                         _log.debug("Tool use: %s %s", block.name, str(block.input)[:200])
 
             elif isinstance(message, UserMessage):
-                is_subagent = getattr(message, "parent_tool_use_id", None) is not None
-                if is_subagent:
-                    _log.debug("Subagent UserMessage (skipping UI): %s", repr(message)[:200])
-                    continue
-                # Tool results from main agent
                 if hasattr(message, "content"):
                     content = message.content if isinstance(message.content, list) else [message.content]
                     for block in content:
@@ -250,11 +244,6 @@ class ClaudeCodeSession:
                             _log.debug("Tool result (error=%s): %s", block.is_error, str(block.content)[:200])
 
             elif isinstance(message, StreamEvent):
-                # Only process stream events from the primary session.
-                # Subagent streams have a different session_id and must be ignored
-                # to prevent their text from bleeding into the parent response.
-                if self.session_id and message.session_id != self.session_id:
-                    continue
                 event = message.event
                 if isinstance(event, dict):
                     delta = event.get("delta", {})
@@ -266,13 +255,18 @@ class ClaudeCodeSession:
                                 on_chunk(text)
 
             elif isinstance(message, ResultMessage):
-                self.session_id = message.session_id
+                is_parent = not self.session_id or message.session_id == self.session_id
+                if is_parent:
+                    self.session_id = message.session_id
+                    got_result = True
+                else:
+                    _log.debug("Subagent ResultMessage (session=%s, ours=%s) — skipping session update",
+                               message.session_id, self.session_id)
                 if message.total_cost_usd:
                     self.total_cost += message.total_cost_usd
                 self.total_turns += message.num_turns
-                got_result = True
-                _log.debug("Result: turns=%d, cost=$%.4f, error=%s",
-                           message.num_turns, message.total_cost_usd or 0, message.is_error)
+                _log.debug("Result: parent=%s, turns=%d, cost=$%.4f, error=%s",
+                           is_parent, message.num_turns, message.total_cost_usd or 0, message.is_error)
 
         # Track if ResultMessage was missed — will drain it before next query
         if not got_result:

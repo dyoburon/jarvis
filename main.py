@@ -1,6 +1,9 @@
 import asyncio
+import glob
 import json
 import os
+import random
+import re
 import subprocess
 
 import aiohttp
@@ -83,6 +86,21 @@ class MetalBridge:
     def send_chat_overlay(self, text: str):
         self.send({"type": "chat_overlay", "text": text})
 
+    def send_chat_image(self, path: str, panel: int = None):
+        msg = {"type": "chat_image", "path": path}
+        if panel is not None:
+            msg["panel"] = panel
+        self.send(msg)
+
+    def send_chat_iframe(self, url: str, panel: int = None, height: int = 400):
+        msg = {"type": "chat_iframe", "url": url, "height": height}
+        if panel is not None:
+            msg["panel"] = panel
+        self.send(msg)
+
+    def send_web_panel(self, url: str, title: str = "Web"):
+        self.send({"type": "web_panel", "url": url, "title": title})
+
     def send_chat_input_text(self, text: str, panel: int = None):
         msg = {"type": "chat_input_set", "text": text}
         if panel is not None:
@@ -129,6 +147,23 @@ async def main():
     panel_count: int = 0
     active_panel: int = 0
 
+    def _panel_name(idx: int) -> str:
+        return f"Bench {idx + 1}"
+
+    _IMAGE_PATH_RE = re.compile(r'(/\S+\.(?:png|jpg|jpeg|gif|webp|bmp|tiff|heic))', re.IGNORECASE)
+
+    def _extract_image_paths(text: str) -> tuple[list[str], str]:
+        """Extract image file paths from text. Returns (paths, cleaned_text)."""
+        paths = []
+        for m in _IMAGE_PATH_RE.finditer(text):
+            p = m.group(1)
+            if os.path.isfile(p):
+                paths.append(p)
+        cleaned = _IMAGE_PATH_RE.sub('', text).strip()
+        # Collapse multiple spaces
+        cleaned = re.sub(r'  +', ' ', cleaned)
+        return paths, cleaned
+
     def _is_close_command(text: str) -> bool:
         normalized = text.lower().strip().rstrip(".")
         close_phrases = [
@@ -146,6 +181,24 @@ async def main():
             "open new window", "spawn new window",
         ]
         return any(phrase in normalized for phrase in split_phrases)
+
+    MEMES_DIR = os.path.join(os.path.dirname(__file__), "data", "memes")
+
+    def _is_meme_command(text: str) -> bool:
+        normalized = text.lower().strip().rstrip(".")
+        meme_phrases = [
+            "show me a meme", "meme me", "random meme",
+            "show meme", "gimme a meme", "show a meme",
+        ]
+        return any(phrase in normalized for phrase in meme_phrases)
+
+    def _pick_random_meme() -> str | None:
+        """Pick a random meme image from data/memes/. Returns path or None."""
+        if not os.path.isdir(MEMES_DIR):
+            return None
+        files = glob.glob(os.path.join(MEMES_DIR, "*"))
+        images = [f for f in files if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif", ".webp"))]
+        return random.choice(images) if images else None
 
     # Tool type categories for UI color-coding
     _TOOL_CATEGORIES = {
@@ -281,9 +334,9 @@ async def main():
                 new_panel = panel_count
                 panel_count += 1
                 active_panel = new_panel
-                metal.send_chat_split(f"Panel {panel_count}")
+                metal.send_chat_split(_panel_name(new_panel))
                 metal.send({"type": "chat_focus", "panel": new_panel})
-                console.print(f"[bold cyan]Window spawned ({panel_count}/5), focus → {panel_count}[/]")
+                console.print(f"[bold cyan]Window spawned: {_panel_name(new_panel)} ({panel_count}/5)[/]")
 
                 # Start an independent code session for the new panel
                 if tool_name == "code_assistant":
@@ -398,9 +451,9 @@ async def main():
                     new_panel = panel_count
                     panel_count += 1
                     active_panel = new_panel
-                    metal.send_chat_split(f"Panel {panel_count}")
+                    metal.send_chat_split(_panel_name(new_panel))
                     metal.send({"type": "chat_focus", "panel": new_panel})
-                    console.print(f"[bold cyan]Window spawned ({panel_count}/5), focus → {panel_count}[/]")
+                    console.print(f"[bold cyan]Window spawned: {_panel_name(new_panel)} ({panel_count}/5)[/]")
 
                     # Auto-create code session for new panel
                     if pending_tool_name == "code_assistant":
@@ -409,6 +462,15 @@ async def main():
                         console.print(f"  [dim]Code session ready (panel {new_panel})[/]")
                 else:
                     console.print("[yellow]Max 5 windows reached[/]")
+                return
+
+            if _is_meme_command(user_text):
+                meme_path = _pick_random_meme()
+                if meme_path:
+                    metal.send_chat_image(meme_path, panel=active_panel)
+                    console.print(f"[bold cyan]Meme:[/] {os.path.basename(meme_path)}")
+                else:
+                    metal.send_chat_message("gemini", "No memes found. Add images to `data/memes/`.", panel=active_panel)
                 return
 
             if _is_close_command(user_text):
@@ -478,9 +540,12 @@ async def main():
                 metal.send_chat_message("gemini", "*Wait for response to finish...*", panel=active_panel)
                 return
 
-            # Show user message in chat window
+            # Show user message in chat window (with image preview if paths detected)
             target_panel = active_panel
-            metal.send_chat_message("user", user_text, panel=target_panel)
+            image_paths, display_text = _extract_image_paths(user_text)
+            for img_path in image_paths:
+                metal.send_chat_image(img_path, panel=target_panel)
+            metal.send_chat_message("user", display_text or user_text, panel=target_panel)
             console.print(f"[white]Chat>[/] {user_text} [panel {target_panel}]")
 
             def on_chunk(text: str, _p=target_panel):
