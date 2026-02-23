@@ -515,15 +515,7 @@ class SkillRouter:
             tokens_str = f"{session_total / 1_000:.1f}K"
         else:
             tokens_str = str(session_total)
-        cumulative_cost = 0.0
-        for row in self.token_tracker.get_by_model():
-            pricing = config.GEMINI_PRICING.get(row["model"], {"input": 0, "output": 0})
-            cumulative_cost += (row["prompt_tokens"] * pricing["input"] + row["completion_tokens"] * pricing["output"]) / 1_000_000
-        if cumulative_cost >= 1.0:
-            cost_str = f"${cumulative_cost:.2f}"
-        else:
-            cost_str = f"${cumulative_cost:.4f}"
-        return f"{model} | {tokens_str} tokens | {cost_str}"
+        return f"{model} | {tokens_str} tokens"
 
     async def start_code_session_idle(self, arguments: str, user_transcript: str, panel: int = 0):
         """Initialize a Claude Code session without sending any message yet."""

@@ -39,7 +39,8 @@ JARVIS_SYSTEM_PROMPT = (
     "color-coded activity feed. Before making tool calls, briefly explain "
     "what you're about to do and why (1 line). "
     "The projects directory is ~/Desktop/projects/. Be concise and direct. "
-    "Do not add preamble or postamble. Keep responses short — this is a chat window."
+    "Be concise and direct. Keep responses short — this is a chat window. "
+    "After completing a task, always give a brief summary of what was done."
 )
 
 
@@ -153,13 +154,14 @@ class ClaudeCodeSession:
         self.cancelled = False
         full_text = ""
 
-        # Drain any stale ResultMessage from a previous turn before sending
+        # Drain any stale ResultMessage from a previous turn before sending.
+        # Subagent (Task) tool runs can take minutes, so use a generous timeout.
         if self._has_pending_result:
             _log.debug("Draining stale ResultMessage from previous turn")
             try:
                 drain_iter = self._client.receive_response().__aiter__()
                 while True:
-                    msg = await asyncio.wait_for(drain_iter.__anext__(), timeout=2.0)
+                    msg = await asyncio.wait_for(drain_iter.__anext__(), timeout=120.0)
                     _log.debug("Drained: %s", type(msg).__name__)
                     if isinstance(msg, ResultMessage):
                         self.session_id = msg.session_id
@@ -212,9 +214,19 @@ class ClaudeCodeSession:
                     if sid:
                         self.session_id = sid
                         _log.debug("Session ID: %s", sid)
+                elif message.subtype == "task_started" and hasattr(message, "data"):
+                    desc = message.data.get("description", "subagent")
+                    _log.debug("Subagent started: %s (task_id=%s)", desc, message.data.get("task_id"))
+                    if on_tool_activity:
+                        on_tool_activity("start", "Task", {"description": desc})
 
             elif isinstance(message, AssistantMessage):
-                # Text already streamed via StreamEvent text_deltas — only handle tool use here
+                is_subagent = getattr(message, "parent_tool_use_id", None) is not None
+                if is_subagent:
+                    # Subagent messages — don't emit text or tool activity to UI
+                    _log.debug("Subagent AssistantMessage (skipping UI): %s", repr(message)[:200])
+                    continue
+                # Main agent — text already streamed via StreamEvent, handle tool use
                 for block in message.content:
                     if isinstance(block, ToolUseBlock):
                         if on_tool_activity:
@@ -223,7 +235,11 @@ class ClaudeCodeSession:
                         _log.debug("Tool use: %s %s", block.name, str(block.input)[:200])
 
             elif isinstance(message, UserMessage):
-                # Tool results
+                is_subagent = getattr(message, "parent_tool_use_id", None) is not None
+                if is_subagent:
+                    _log.debug("Subagent UserMessage (skipping UI): %s", repr(message)[:200])
+                    continue
+                # Tool results from main agent
                 if hasattr(message, "content"):
                     content = message.content if isinstance(message.content, list) else [message.content]
                     for block in content:
@@ -234,7 +250,11 @@ class ClaudeCodeSession:
                             _log.debug("Tool result (error=%s): %s", block.is_error, str(block.content)[:200])
 
             elif isinstance(message, StreamEvent):
-                # Real-time text streaming
+                # Only process stream events from the primary session.
+                # Subagent streams have a different session_id and must be ignored
+                # to prevent their text from bleeding into the parent response.
+                if self.session_id and message.session_id != self.session_id:
+                    continue
                 event = message.event
                 if isinstance(event, dict):
                     delta = event.get("delta", {})
@@ -283,5 +303,4 @@ class ClaudeCodeSession:
     def get_status(self) -> str:
         """Format status string for the chat window."""
         model = f"claude-{self.model}"
-        cost = f"${self.total_cost:.4f}" if self.total_cost < 1.0 else f"${self.total_cost:.2f}"
-        return f"{model} | {self.total_turns} turns | {cost}"
+        return f"{model} | {self.total_turns} turns"

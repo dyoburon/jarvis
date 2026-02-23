@@ -277,13 +277,13 @@ async def main():
 
         if event_type == "__skill_start__":
             # If already in a skill session, spawn a new panel with its own session
-            if panel_count > 0 and panel_count < 6:
+            if panel_count > 0 and panel_count < 5:
                 new_panel = panel_count
                 panel_count += 1
                 active_panel = new_panel
                 metal.send_chat_split(f"Panel {panel_count}")
                 metal.send({"type": "chat_focus", "panel": new_panel})
-                console.print(f"[bold cyan]Window spawned ({panel_count}/6), focus → {panel_count}[/]")
+                console.print(f"[bold cyan]Window spawned ({panel_count}/5), focus → {panel_count}[/]")
 
                 # Start an independent code session for the new panel
                 if tool_name == "code_assistant":
@@ -394,13 +394,13 @@ async def main():
                 return
 
             if _is_split_command(user_text):
-                if panel_count < 6:
+                if panel_count < 5:
                     new_panel = panel_count
                     panel_count += 1
                     active_panel = new_panel
                     metal.send_chat_split(f"Panel {panel_count}")
                     metal.send({"type": "chat_focus", "panel": new_panel})
-                    console.print(f"[bold cyan]Window spawned ({panel_count}/6), focus → {panel_count}[/]")
+                    console.print(f"[bold cyan]Window spawned ({panel_count}/5), focus → {panel_count}[/]")
 
                     # Auto-create code session for new panel
                     if pending_tool_name == "code_assistant":
@@ -408,7 +408,7 @@ async def main():
                         metal.send_chat_message("gemini", "**Code Assistant ready.** Type or speak your request.", panel=new_panel)
                         console.print(f"  [dim]Code session ready (panel {new_panel})[/]")
                 else:
-                    console.print("[yellow]Max 6 windows reached[/]")
+                    console.print("[yellow]Max 5 windows reached[/]")
                 return
 
             if _is_close_command(user_text):
