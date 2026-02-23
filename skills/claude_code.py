@@ -222,8 +222,7 @@ class ClaudeCodeSession:
                 elif message.subtype == "task_started" and hasattr(message, "data"):
                     desc = message.data.get("description", "subagent")
                     _log.debug("Subagent started: %s (task_id=%s)", desc, message.data.get("task_id"))
-                    if on_tool_activity:
-                        on_tool_activity("start", "Task", {"description": desc})
+                    # Don't send activity — ToolUseBlock already displayed "Subagent: ..."
 
             elif isinstance(message, AssistantMessage):
                 for block in message.content:

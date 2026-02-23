@@ -148,7 +148,7 @@ async def main():
     active_panel: int = 0
 
     def _panel_name(idx: int) -> str:
-        return f"Bench {idx + 1}"
+        return f"AI Bench {idx + 1}"
 
     _IMAGE_PATH_RE = re.compile(r'(/\S+\.(?:png|jpg|jpeg|gif|webp|bmp|tiff|heic))', re.IGNORECASE)
 
@@ -182,7 +182,7 @@ async def main():
         ]
         return any(phrase in normalized for phrase in split_phrases)
 
-    PINBALL_PATH = os.path.join(os.path.dirname(__file__), "data", "pinball.html")
+    PINBALL_PATH = os.path.join(os.path.dirname(__file__), "pinball.html")
 
     def _is_pinball_command(text: str) -> bool:
         normalized = text.lower().strip().rstrip(".")
@@ -357,7 +357,7 @@ async def main():
 
                     on_tool_activity = make_tool_activity_cb(target_panel)
                     await router.start_code_session_idle(arguments, user_text, panel=target_panel)
-                    metal.send_chat_message("gemini", "**Bench 1 ready.** Type or speak your request.", panel=target_panel)
+                    metal.send_chat_message("gemini", "**AI Bench 1 ready.** Type or speak your request.", panel=target_panel)
                     console.print(f"  [dim]Code session ready (panel {target_panel})[/]")
                 return
 
@@ -367,7 +367,7 @@ async def main():
 
             # Resolve skill display name
             if tool_name == "code_assistant":
-                skill_name = "Bench 1"
+                skill_name = "AI Bench 1"
             elif tool_name == "get_system_overview":
                 skill_name = "System Overview"
             else:
@@ -405,7 +405,7 @@ async def main():
                     skill_tasks[target_panel] = asyncio.create_task(run_code_initial())
                 else:
                     # Hotkey or no transcript — just ready for input
-                    metal.send_chat_message("gemini", "**Bench 1 ready.** Type or speak your request.", panel=target_panel)
+                    metal.send_chat_message("gemini", "**AI Bench 1 ready.** Type or speak your request.", panel=target_panel)
                     console.print(f"  [dim]Code session ready[/]")
             else:
                 async def run_initial(_p=target_panel, _chunk=on_chunk, _ta=on_tool_activity):
@@ -471,14 +471,14 @@ async def main():
                     # Auto-create code session for new panel
                     if pending_tool_name == "code_assistant":
                         await router.start_code_session_idle("{}", "", panel=new_panel)
-                        metal.send_chat_message("gemini", "**Bench 1 ready.** Type or speak your request.", panel=new_panel)
+                        metal.send_chat_message("gemini", "**AI Bench 1 ready.** Type or speak your request.", panel=new_panel)
                         console.print(f"  [dim]Code session ready (panel {new_panel})[/]")
                 else:
                     console.print("[yellow]Max 5 windows reached[/]")
                 return
 
             if _is_pinball_command(user_text):
-                metal.send_web_panel(f"file://{PINBALL_PATH}", title="Pinball")
+                metal.send_chat_iframe(f"file://{PINBALL_PATH}", panel=active_panel, height=720)
                 console.print("[bold cyan]Launched Pinball[/]")
                 return
 
@@ -682,7 +682,7 @@ async def main():
                 else:
                     # Quick commands before hitting Gemini
                     if _is_pinball_command(text):
-                        metal.send_web_panel(f"file://{PINBALL_PATH}", title="Pinball")
+                        metal.send_chat_iframe(f"file://{PINBALL_PATH}", panel=active_panel, height=720)
                         metal.send_state("listening")
                         console.print("[bold cyan]Launched Pinball[/]")
                         return
