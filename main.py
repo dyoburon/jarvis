@@ -2,9 +2,11 @@ import asyncio
 import glob
 import json
 import os
+import queue
 import random
 import re
 import subprocess
+import threading
 
 import aiohttp
 from rich.console import Console
@@ -21,12 +23,61 @@ console = Console()
 METAL_APP = "/Users/dylan/Desktop/projects/music-player/jarvis-bootup/.build/debug/JarvisBootup"
 BASE_PATH = "/Users/dylan/Desktop/projects/music-player"
 
+# Redact API keys, tokens, and secrets from any text shown in the UI
+_SECRET_RE = re.compile(r'|'.join([
+    # OpenAI / Anthropic
+    r'sk-(?:ant-)?(?:api\d+-)?[A-Za-z0-9_\-]{20,}',
+    # Google
+    r'AIza[A-Za-z0-9_\-]{30,}',
+    # GitHub
+    r'ghp_[A-Za-z0-9]{30,}',
+    r'gho_[A-Za-z0-9]{30,}',
+    r'ghs_[A-Za-z0-9]{30,}',
+    r'ghu_[A-Za-z0-9]{30,}',
+    r'github_pat_[A-Za-z0-9_]{30,}',
+    # Stripe
+    r'[spr]k_(?:live|test)_[A-Za-z0-9]{20,}',
+    # Slack
+    r'xox[bpas]-[A-Za-z0-9\-]{20,}',
+    # AWS
+    r'AKIA[A-Z0-9]{16}',
+    # Twilio
+    r'SK[0-9a-fA-F]{32}',
+    # SendGrid
+    r'SG\.[A-Za-z0-9_\-]{20,}\.[A-Za-z0-9_\-]{20,}',
+    # Vercel
+    r'vercel_[A-Za-z0-9_\-]{20,}',
+    # npm
+    r'npm_[A-Za-z0-9]{30,}',
+    # Supabase
+    r'sbp_[A-Za-z0-9]{20,}',
+    # Discord bot token
+    r'[MN][A-Za-z0-9]{23,}\.[A-Za-z0-9_\-]{6}\.[A-Za-z0-9_\-]{27,}',
+    # Mailgun
+    r'key-[A-Za-z0-9]{32}',
+    # Datadog
+    r'dd(?:api|app)[A-Za-z0-9]{32,}',
+    # JWT (covers Supabase anon/service keys too)
+    r'eyJ[A-Za-z0-9_\-]{20,}\.[A-Za-z0-9_\-]+\.[A-Za-z0-9_\-]+',
+    # Catch-all: values after common env var names
+    r'(?:API_KEY|SECRET_?(?:ACCESS_)?KEY|TOKEN|PASSWORD|APIKEY|AUTH|CREDENTIAL)S?\s*[=:]\s*["\']?([A-Za-z0-9_\-./+]{8,})["\']?',
+]))
+
+def _redact_secrets(text: str) -> str:
+    def _replace(m):
+        if m.group(1):
+            return m.group(0).replace(m.group(1), '[REDACTED]')
+        return '[REDACTED]'
+    return _SECRET_RE.sub(_replace, text)
+
 
 class MetalBridge:
     """Sends JSON commands to the Metal app via stdin."""
 
     def __init__(self):
         self.proc = None
+        self._queue = queue.Queue()
+        self._writer_thread = None
 
     def launch(self):
         self.proc = subprocess.Popen(
@@ -35,14 +86,25 @@ class MetalBridge:
             stdout=subprocess.PIPE,
             stderr=subprocess.DEVNULL,
         )
+        self._writer_thread = threading.Thread(target=self._drain, daemon=True)
+        self._writer_thread.start()
+
+    def _drain(self):
+        """Background thread: drain the queue and write to Metal stdin."""
+        while True:
+            data = self._queue.get()
+            if data is None:
+                break
+            if self.proc and self.proc.stdin and self.proc.poll() is None:
+                try:
+                    self.proc.stdin.write((json.dumps(data) + "\n").encode())
+                    self.proc.stdin.flush()
+                except (BrokenPipeError, OSError):
+                    break
 
     def send(self, data: dict):
-        if self.proc and self.proc.stdin and self.proc.poll() is None:
-            try:
-                self.proc.stdin.write((json.dumps(data) + "\n").encode())
-                self.proc.stdin.flush()
-            except (BrokenPipeError, OSError) as e:
-                console.print(f"[dim]Metal bridge write error: {e}[/]")
+        """Non-blocking: enqueue message for the writer thread."""
+        self._queue.put_nowait(data)
 
     def send_audio_level(self, level: float):
         self.send({"type": "audio", "level": level})
@@ -63,7 +125,7 @@ class MetalBridge:
         self.send({"type": "chat_start", "skill": skill_name})
 
     def send_chat_message(self, speaker: str, text: str, panel: int = None):
-        msg = {"type": "chat_message", "speaker": speaker, "text": text}
+        msg = {"type": "chat_message", "speaker": speaker, "text": _redact_secrets(text)}
         if panel is not None:
             msg["panel"] = panel
         self.send(msg)
@@ -115,6 +177,9 @@ class MetalBridge:
 
     def quit(self):
         self.send({"type": "quit"})
+        self._queue.put(None)  # stop writer thread
+        if self._writer_thread:
+            self._writer_thread.join(timeout=2)
         if self.proc:
             try:
                 self.proc.wait(timeout=3)
