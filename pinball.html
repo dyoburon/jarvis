@@ -19,9 +19,11 @@ body {
 
 #game-container {
   position: relative;
+  outline: none;
 }
 
 canvas {
+  display: block;
   border: 2px solid #00e5ff;
   border-radius: 8px;
   box-shadow: 0 0 30px rgba(0, 229, 255, 0.3);
@@ -670,6 +672,42 @@ document.addEventListener('keydown', e => {
     e.preventDefault();
   }
 });
+
+// Responsive scaling - fit canvas to viewport while maintaining aspect ratio
+function resizeGame() {
+  const pad = 20;
+  const maxH = window.innerHeight - pad;
+  const maxW = window.innerWidth - pad;
+  const ratio = W / H;
+  let displayH, displayW;
+  if (maxH * ratio <= maxW) {
+    displayH = maxH;
+    displayW = maxH * ratio;
+  } else {
+    displayW = maxW;
+    displayH = maxW / ratio;
+  }
+  canvas.style.width = displayW + 'px';
+  canvas.style.height = displayH + 'px';
+}
+
+window.addEventListener('resize', resizeGame);
+resizeGame();
+
+// Focus management - ensure keyboard events register (especially in iframes)
+const container = document.getElementById('game-container');
+container.setAttribute('tabindex', '0');
+container.focus();
+document.addEventListener('click', () => { container.focus(); });
+document.addEventListener('mousedown', () => { container.focus(); });
+document.addEventListener('mouseenter', () => { container.focus(); });
+document.addEventListener('mousemove', () => { container.focus(); });
+window.addEventListener('focus', () => { container.focus(); });
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) container.focus();
+});
+// Periodic focus poll — fallback for iframe re-entry in native shells
+setInterval(() => { container.focus(); }, 250);
 
 gameLoop();
 </script>

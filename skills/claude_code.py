@@ -86,15 +86,19 @@ def _format_tool_result(tool_name: str, content) -> str:
     if content is None:
         return "(no output)"
     if isinstance(content, list):
-        # content blocks from API
+        # content blocks from API — extract text, skip binary (images, etc.)
         texts = [b.get("text", "") for b in content if isinstance(b, dict) and b.get("type") == "text"]
-        content = "\n".join(texts) if texts else str(content)
+        if texts:
+            content = "\n".join(texts)
+        else:
+            types = [b.get("type", "?") for b in content if isinstance(b, dict)]
+            return f"({', '.join(types)} content)" if types else "(no text output)"
     text = str(content)
     lines = text.split("\n")
-    if len(lines) > 12:
-        return "\n".join(lines[:8] + ["  ..."] + lines[-3:])
-    if len(text) > 500:
-        return text[:500] + "..."
+    if len(lines) > 30:
+        return "\n".join(lines[:20] + [f"  ... ({len(lines) - 23} more lines)"] + lines[-3:])
+    if len(text) > 1500:
+        return text[:1500] + "..."
     return text
 
 
@@ -111,6 +115,9 @@ class ClaudeCodeSession:
         self.total_turns: int = 0
         self.cancelled = False
         self._has_pending_result = False
+        self._subagent_depth: int = 0
+        self._subagent_op_count: int = 0
+        self._task_tool_ids: set[str] = set()  # ToolUseBlock IDs for Task tools
 
     async def connect(self):
         """Initialize the SDK client."""
@@ -152,6 +159,9 @@ class ClaudeCodeSession:
             await self.connect()
 
         self.cancelled = False
+        self._subagent_depth = 0
+        self._subagent_op_count = 0
+        self._task_tool_ids.clear()
         full_text = ""
 
         # Drain any stale ResultMessage from a previous turn before sending.
@@ -228,9 +238,18 @@ class ClaudeCodeSession:
                 for block in message.content:
                     if isinstance(block, ToolUseBlock):
                         if on_tool_activity:
-                            category, desc = _format_tool_start(block.name, block.input)
-                            on_tool_activity("start", block.name, block.input)
-                        _log.debug("Tool use: %s %s", block.name, str(block.input)[:200])
+                            if self._subagent_depth == 0:
+                                on_tool_activity("start", block.name, block.input)
+                            else:
+                                # Inside a sub-agent — collapse into progress update
+                                self._subagent_op_count += 1
+                                on_tool_activity("subagent_tool", block.name, block.input)
+                        if block.name == "Task":
+                            self._subagent_depth += 1
+                            self._subagent_op_count = 0
+                            self._task_tool_ids.add(block.id)
+                            _log.debug("Task tool started (id=%s) — depth now %d", block.id, self._subagent_depth)
+                        _log.debug("Tool use: %s %s (depth=%d)", block.name, str(block.input)[:200], self._subagent_depth)
                     elif isinstance(block, TextBlock) and block.text:
                         # Text already streamed via StreamEvent text_deltas
                         # (include_partial_messages=True); skip to avoid double-send
@@ -241,10 +260,21 @@ class ClaudeCodeSession:
                     content = message.content if isinstance(message.content, list) else [message.content]
                     for block in content:
                         if isinstance(block, ToolResultBlock):
-                            if on_tool_activity:
-                                result_text = _format_tool_result("", block.content)
+                            is_task_result = hasattr(block, 'tool_use_id') and block.tool_use_id in self._task_tool_ids
+                            result_text = _format_tool_result("", block.content)
+                            if is_task_result:
+                                self._task_tool_ids.discard(block.tool_use_id)
+                                _log.debug("Task tool result (id=%s): %s", block.tool_use_id, result_text[:200])
+                                # Surface a summary of subagent's final output
+                                if on_tool_activity:
+                                    on_tool_activity("subagent_result", "", {"summary": result_text, "is_error": block.is_error})
+                            elif self._subagent_depth > 0:
+                                # Forward subagent internal tool results instead of suppressing
+                                if on_tool_activity:
+                                    on_tool_activity("subagent_result", "", {"summary": result_text, "is_error": block.is_error, "depth": self._subagent_depth})
+                            elif on_tool_activity:
                                 on_tool_activity("result", "", {"summary": result_text, "is_error": block.is_error})
-                            _log.debug("Tool result (error=%s): %s", block.is_error, str(block.content)[:200])
+                            _log.debug("Tool result (error=%s, depth=%d): %s", block.is_error, self._subagent_depth, str(block.content)[:200])
 
             elif isinstance(message, StreamEvent):
                 event = message.event
@@ -263,8 +293,12 @@ class ClaudeCodeSession:
                     self.session_id = message.session_id
                     got_result = True
                 else:
-                    _log.debug("Subagent ResultMessage (session=%s, ours=%s) — skipping session update",
-                               message.session_id, self.session_id)
+                    # Sub-agent completed — decrement depth
+                    self._subagent_depth = max(0, self._subagent_depth - 1)
+                    _log.debug("Subagent ResultMessage — depth now %d, ops=%d",
+                               self._subagent_depth, self._subagent_op_count)
+                    if self._subagent_depth == 0 and on_tool_activity:
+                        on_tool_activity("subagent_done", "", {"op_count": self._subagent_op_count})
                 if message.total_cost_usd:
                     self.total_cost += message.total_cost_usd
                 self.total_turns += message.num_turns

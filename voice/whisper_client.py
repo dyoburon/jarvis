@@ -68,5 +68,14 @@ class WhisperClient:
             return ""
 
     def is_available(self) -> bool:
-        """Check if the vibetotext socket server is running."""
-        return os.path.exists(config.VIBETOTEXT_SOCKET)
+        """Check if the vibetotext socket server is actually listening."""
+        if not os.path.exists(config.VIBETOTEXT_SOCKET):
+            return False
+        try:
+            sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            sock.settimeout(1.0)
+            sock.connect(config.VIBETOTEXT_SOCKET)
+            sock.close()
+            return True
+        except (ConnectionRefusedError, OSError):
+            return False

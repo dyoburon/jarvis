@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>JARVIS Tetris</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: #0a0a0a;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-family: 'Courier New', monospace;
+  overflow: hidden;
+  user-select: none;
+}
+
+#game-container {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  outline: none;
+}
+
+canvas {
+  display: block;
+  border: 2px solid #00e5ff;
+  border-radius: 4px;
+  box-shadow: 0 0 30px rgba(0, 229, 255, 0.2);
+}
+
+#sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-width: 120px;
+}
+
+.panel {
+  border: 1px solid #1a3a4a;
+  border-radius: 4px;
+  padding: 10px;
+  background: #0d1117;
+}
+
+.panel-label {
+  color: #00e5ff;
+  font-size: 11px;
+  font-weight: bold;
+  text-shadow: 0 0 8px rgba(0, 229, 255, 0.5);
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.stat-value {
+  color: #ff6b00;
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+  text-shadow: 0 0 10px rgba(255, 107, 0, 0.5);
+}
+
+.stat-value.level { color: #00ff88; text-shadow: 0 0 10px rgba(0, 255, 136, 0.5); }
+
+#next-canvas {
+  border: 1px solid #1a3a4a;
+  border-radius: 4px;
+  box-shadow: none;
+}
+
+#overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 20;
+}
+
+#overlay.hidden { display: none; }
+
+#overlay h1 {
+  color: #00e5ff;
+  font-size: 32px;
+  text-shadow: 0 0 20px rgba(0, 229, 255, 0.8);
+  margin-bottom: 8px;
+}
+
+#overlay .score-display {
+  color: #ff6b00;
+  font-size: 28px;
+  font-weight: bold;
+  text-shadow: 0 0 12px rgba(255, 107, 0, 0.6);
+  margin: 10px 0;
+}
+
+#overlay h2 {
+  color: #888;
+  font-size: 16px;
+  margin-bottom: 8px;
+}
+
+#overlay p {
+  color: #555;
+  font-size: 12px;
+}
+</style>
+</head>
+<body>
+<div id="game-container" tabindex="0">
+  <canvas id="c"></canvas>
+  <div id="sidebar">
+    <div class="panel">
+      <div class="panel-label">SCORE</div>
+      <div class="stat-value" id="score-val">0</div>
+    </div>
+    <div class="panel">
+      <div class="panel-label">LEVEL</div>
+      <div class="stat-value level" id="level-val">1</div>
+    </div>
+    <div class="panel">
+      <div class="panel-label">LINES</div>
+      <div class="stat-value" id="lines-val">0</div>
+    </div>
+    <div class="panel">
+      <div class="panel-label">NEXT</div>
+      <canvas id="next-canvas" width="100" height="80"></canvas>
+    </div>
+  </div>
+</div>
+
+<div id="overlay">
+  <h1>JARVIS TETRIS</h1>
+  <h2>Press SPACE to start</h2>
+  <p>LEFT/RIGHT move &bull; UP rotate &bull; DOWN soft drop &bull; SPACE hard drop</p>
+</div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const nextCanvas = document.getElementById('next-canvas');
+const nextCtx = nextCanvas.getContext('2d');
+const overlay = document.getElementById('overlay');
+const scoreEl = document.getElementById('score-val');
+const levelEl = document.getElementById('level-val');
+const linesEl = document.getElementById('lines-val');
+
+const COLS = 10;
+const ROWS = 20;
+const CELL = 28;
+canvas.width = COLS * CELL;
+canvas.height = ROWS * CELL;
+
+const CYAN_C = '#00e5ff';
+const ORANGE_C = '#ff6b00';
+const MAGENTA_C = '#ff00ff';
+const YELLOW_C = '#ffdd00';
+const GREEN_C = '#00ff88';
+const RED_C = '#ff0040';
+const BLUE_C = '#4488ff';
+
+const PIECES = {
+  I: { shape: [[0,0],[1,0],[2,0],[3,0]], color: CYAN_C },
+  O: { shape: [[0,0],[1,0],[0,1],[1,1]], color: YELLOW_C },
+  T: { shape: [[0,0],[1,0],[2,0],[1,1]], color: MAGENTA_C },
+  S: { shape: [[1,0],[2,0],[0,1],[1,1]], color: GREEN_C },
+  Z: { shape: [[0,0],[1,0],[1,1],[2,1]], color: RED_C },
+  L: { shape: [[0,0],[0,1],[0,2],[1,2]], color: ORANGE_C },
+  J: { shape: [[1,0],[1,1],[1,2],[0,2]], color: BLUE_C },
+};
+const PIECE_NAMES = Object.keys(PIECES);
+
+let board = [];
+let current = null;
+let currentX = 0, currentY = 0;
+let nextPiece = null;
+let score = 0;
+let level = 1;
+let lines = 0;
+let gameOver = false;
+let gameStarted = false;
+let dropInterval = 800;
+let lastDrop = 0;
+let lockDelay = 0;
+let particles = [];
+let flashRows = [];
+let flashTimer = 0;
+
+function createBoard() {
+  board = [];
+  for (let r = 0; r < ROWS; r++) {
+    board[r] = [];
+    for (let c = 0; c < COLS; c++) {
+      board[r][c] = null;
+    }
+  }
+}
+
+function randomPiece() {
+  const name = PIECE_NAMES[Math.floor(Math.random() * PIECE_NAMES.length)];
+  const p = PIECES[name];
+  return { cells: p.shape.map(([x, y]) => [x, y]), color: p.color, name };
+}
+
+function rotateCells(cells) {
+  const maxX = Math.max(...cells.map(c => c[0]));
+  const maxY = Math.max(...cells.map(c => c[1]));
+  return cells.map(([x, y]) => [maxY - y, x]);
+}
+
+function fits(cells, ox, oy) {
+  for (const [cx, cy] of cells) {
+    const x = ox + cx, y = oy + cy;
+    if (x < 0 || x >= COLS || y >= ROWS) return false;
+    if (y >= 0 && board[y][x]) return false;
+  }
+  return true;
+}
+
+function spawn() {
+  current = nextPiece || randomPiece();
+  nextPiece = randomPiece();
+  currentX = Math.floor((COLS - 3) / 2);
+  currentY = -1;
+  lockDelay = 0;
+  if (!fits(current.cells, currentX, currentY)) {
+    gameOver = true;
+    gameStarted = false;
+    overlay.innerHTML = `
+      <h1>GAME OVER</h1>
+      <div class="score-display">${score.toLocaleString()}</div>
+      <h2>Press SPACE to restart</h2>
+    `;
+    overlay.classList.remove('hidden');
+  }
+  drawNext();
+}
+
+function lock() {
+  for (const [cx, cy] of current.cells) {
+    const x = currentX + cx, y = currentY + cy;
+    if (y >= 0 && y < ROWS) {
+      board[y][x] = current.color;
+    }
+  }
+  // Spawn particles at lock position
+  for (const [cx, cy] of current.cells) {
+    spawnParticles((currentX + cx) * CELL + CELL / 2, (currentY + cy) * CELL + CELL / 2, current.color, 3);
+  }
+  clearLines();
+  spawn();
+}
+
+function clearLines() {
+  const full = [];
+  for (let r = 0; r < ROWS; r++) {
+    if (board[r].every(c => c !== null)) full.push(r);
+  }
+  if (full.length === 0) return;
+
+  // Flash effect
+  flashRows = full;
+  flashTimer = 6;
+
+  // Score
+  const pts = [0, 100, 300, 500, 800];
+  score += (pts[full.length] || 800) * level;
+  lines += full.length;
+  level = Math.floor(lines / 10) + 1;
+  dropInterval = Math.max(50, 800 - (level - 1) * 70);
+
+  scoreEl.textContent = score.toLocaleString();
+  levelEl.textContent = level;
+  linesEl.textContent = lines;
+
+  // Particles for cleared rows
+  for (const r of full) {
+    for (let c = 0; c < COLS; c++) {
+      spawnParticles(c * CELL + CELL / 2, r * CELL + CELL / 2, board[r][c] || CYAN_C, 4);
+    }
+  }
+
+  // Remove rows
+  for (const r of full.sort((a, b) => b - a)) {
+    board.splice(r, 1);
+    board.unshift(new Array(COLS).fill(null));
+  }
+}
+
+function spawnParticles(x, y, color, count) {
+  for (let i = 0; i < count; i++) {
+    const angle = Math.random() * Math.PI * 2;
+    const speed = 1 + Math.random() * 2;
+    particles.push({
+      x, y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      life: 20 + Math.random() * 15,
+      maxLife: 35,
+      color,
+      r: 1 + Math.random() * 2,
+    });
+  }
+}
+
+function ghostY() {
+  let gy = currentY;
+  while (fits(current.cells, currentX, gy + 1)) gy++;
+  return gy;
+}
+
+function drawCell(context, x, y, color, glow) {
+  const px = x * CELL, py = y * CELL;
+  // Glow
+  if (glow) {
+    context.shadowColor = color;
+    context.shadowBlur = 8;
+  }
+  context.fillStyle = color;
+  context.fillRect(px + 1, py + 1, CELL - 2, CELL - 2);
+  // Inner highlight
+  context.fillStyle = 'rgba(255,255,255,0.15)';
+  context.fillRect(px + 2, py + 2, CELL - 6, 3);
+  context.fillRect(px + 2, py + 2, 3, CELL - 6);
+  // Inner shadow
+  context.fillStyle = 'rgba(0,0,0,0.2)';
+  context.fillRect(px + CELL - 4, py + 4, 2, CELL - 6);
+  context.fillRect(px + 4, py + CELL - 4, CELL - 6, 2);
+  context.shadowBlur = 0;
+}
+
+function drawBoard() {
+  // Background
+  ctx.fillStyle = '#0a0a0a';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Grid lines
+  ctx.strokeStyle = '#111a22';
+  ctx.lineWidth = 0.5;
+  for (let r = 0; r <= ROWS; r++) {
+    ctx.beginPath();
+    ctx.moveTo(0, r * CELL);
+    ctx.lineTo(canvas.width, r * CELL);
+    ctx.stroke();
+  }
+  for (let c = 0; c <= COLS; c++) {
+    ctx.beginPath();
+    ctx.moveTo(c * CELL, 0);
+    ctx.lineTo(c * CELL, canvas.height);
+    ctx.stroke();
+  }
+
+  // Locked cells
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      if (board[r][c]) {
+        // Flash effect
+        if (flashTimer > 0 && flashRows.includes(r)) {
+          ctx.fillStyle = flashTimer % 2 === 0 ? '#ffffff' : board[r][c];
+          ctx.fillRect(c * CELL + 1, r * CELL + 1, CELL - 2, CELL - 2);
+        } else {
+          drawCell(ctx, c, r, board[r][c], false);
+        }
+      }
+    }
+  }
+
+  if (!current || gameOver) return;
+
+  // Ghost piece
+  const gy = ghostY();
+  for (const [cx, cy] of current.cells) {
+    const x = currentX + cx, y = gy + cy;
+    if (y >= 0) {
+      ctx.fillStyle = current.color + '22';
+      ctx.strokeStyle = current.color + '44';
+      ctx.lineWidth = 1;
+      ctx.fillRect(x * CELL + 1, y * CELL + 1, CELL - 2, CELL - 2);
+      ctx.strokeRect(x * CELL + 1, y * CELL + 1, CELL - 2, CELL - 2);
+    }
+  }
+
+  // Current piece
+  for (const [cx, cy] of current.cells) {
+    const x = currentX + cx, y = currentY + cy;
+    if (y >= 0) {
+      drawCell(ctx, x, y, current.color, true);
+    }
+  }
+
+  // Particles
+  particles.forEach(p => {
+    const alpha = p.life / p.maxLife;
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = p.color;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r * alpha, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  ctx.globalAlpha = 1;
+}
+
+function drawNext() {
+  nextCtx.fillStyle = '#0d1117';
+  nextCtx.fillRect(0, 0, 100, 80);
+  if (!nextPiece) return;
+
+  const cells = nextPiece.cells;
+  const minX = Math.min(...cells.map(c => c[0]));
+  const maxX = Math.max(...cells.map(c => c[0]));
+  const minY = Math.min(...cells.map(c => c[1]));
+  const maxY = Math.max(...cells.map(c => c[1]));
+  const pw = maxX - minX + 1, ph = maxY - minY + 1;
+  const s = 18;
+  const ox = Math.floor((100 - pw * s) / 2) - minX * s;
+  const oy = Math.floor((80 - ph * s) / 2) - minY * s;
+
+  for (const [cx, cy] of cells) {
+    const px = ox + cx * s, py = oy + cy * s;
+    nextCtx.shadowColor = nextPiece.color;
+    nextCtx.shadowBlur = 6;
+    nextCtx.fillStyle = nextPiece.color;
+    nextCtx.fillRect(px + 1, py + 1, s - 2, s - 2);
+    nextCtx.fillStyle = 'rgba(255,255,255,0.15)';
+    nextCtx.fillRect(px + 2, py + 2, s - 5, 2);
+    nextCtx.shadowBlur = 0;
+  }
+}
+
+let lastTime = 0;
+
+function gameLoop(time) {
+  const dt = time - lastTime;
+  lastTime = time;
+
+  // Flash timer
+  if (flashTimer > 0) flashTimer--;
+
+  // Particles
+  particles = particles.filter(p => {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += 0.05;
+    p.life--;
+    return p.life > 0;
+  });
+
+  if (gameStarted && !gameOver) {
+    if (time - lastDrop > dropInterval) {
+      lastDrop = time;
+      if (fits(current.cells, currentX, currentY + 1)) {
+        currentY++;
+        lockDelay = 0;
+      } else {
+        lockDelay += dropInterval;
+        if (lockDelay >= 500) lock();
+      }
+    }
+  }
+
+  drawBoard();
+  requestAnimationFrame(gameLoop);
+}
+
+function startGame() {
+  createBoard();
+  score = 0; level = 1; lines = 0;
+  dropInterval = 800;
+  gameOver = false;
+  gameStarted = true;
+  particles = [];
+  flashRows = [];
+  flashTimer = 0;
+  scoreEl.textContent = '0';
+  levelEl.textContent = '1';
+  linesEl.textContent = '0';
+  overlay.classList.add('hidden');
+  nextPiece = randomPiece();
+  spawn();
+  lastDrop = performance.now();
+}
+
+document.addEventListener('keydown', e => {
+  if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) {
+    e.preventDefault();
+  }
+
+  if (e.code === 'Space' && (!gameStarted || gameOver)) {
+    startGame();
+    return;
+  }
+
+  if (!gameStarted || gameOver || !current) return;
+
+  if (e.code === 'ArrowLeft') {
+    if (fits(current.cells, currentX - 1, currentY)) currentX--;
+  } else if (e.code === 'ArrowRight') {
+    if (fits(current.cells, currentX + 1, currentY)) currentX++;
+  } else if (e.code === 'ArrowDown') {
+    if (fits(current.cells, currentX, currentY + 1)) {
+      currentY++;
+      score += 1;
+      scoreEl.textContent = score.toLocaleString();
+      lastDrop = performance.now();
+    }
+  } else if (e.code === 'ArrowUp' || e.code === 'KeyZ') {
+    const rotated = rotateCells(current.cells);
+    // Try rotation with wall kicks
+    const kicks = [0, -1, 1, -2, 2];
+    for (const kick of kicks) {
+      if (fits(rotated, currentX + kick, currentY)) {
+        current.cells = rotated;
+        currentX += kick;
+        break;
+      }
+    }
+  } else if (e.code === 'Space') {
+    // Hard drop
+    let dropped = 0;
+    while (fits(current.cells, currentX, currentY + 1)) {
+      currentY++;
+      dropped++;
+    }
+    score += dropped * 2;
+    scoreEl.textContent = score.toLocaleString();
+    lock();
+  }
+});
+
+// Focus management for iframe embedding
+const container = document.getElementById('game-container');
+container.focus();
+document.addEventListener('click', () => { container.focus(); });
+document.addEventListener('mousedown', () => { container.focus(); });
+document.addEventListener('mouseenter', () => { container.focus(); });
+document.addEventListener('mousemove', () => { container.focus(); });
+window.addEventListener('focus', () => { container.focus(); });
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) container.focus();
+});
+// Periodic focus poll — fallback for iframe re-entry in native shells
+setInterval(() => { container.focus(); }, 250);
+
+// Responsive scaling - fit game to viewport while maintaining aspect ratio
+function resizeGame() {
+  const pad = 20;
+  const maxH = window.innerHeight - pad;
+  const maxW = window.innerWidth - pad;
+  // Game container natural size: canvas (280) + gap (20) + sidebar (~140) = ~440 wide, 560 tall
+  const naturalW = COLS * CELL + 20 + 140;
+  const naturalH = ROWS * CELL;
+  const ratio = naturalW / naturalH;
+  let displayH, displayW;
+  if (maxH * ratio <= maxW) {
+    displayH = maxH;
+    displayW = maxH * ratio;
+  } else {
+    displayW = maxW;
+    displayH = maxW / ratio;
+  }
+  const scale = displayH / naturalH;
+  const gc = document.getElementById('game-container');
+  gc.style.transform = `scale(${scale})`;
+  gc.style.transformOrigin = 'center center';
+}
+
+window.addEventListener('resize', resizeGame);
+resizeGame();
+
+requestAnimationFrame(gameLoop);
+</script>
+</body>
+</html>

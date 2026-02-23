@@ -98,6 +98,12 @@ class MetalBridge:
             msg["panel"] = panel
         self.send(msg)
 
+    def send_chat_iframe_fullscreen(self, url: str, panel: int = None):
+        msg = {"type": "chat_iframe_fullscreen", "url": url}
+        if panel is not None:
+            msg["panel"] = panel
+        self.send(msg)
+
     def send_web_panel(self, url: str, title: str = "Web"):
         self.send({"type": "web_panel", "url": url, "title": title})
 
@@ -183,6 +189,9 @@ async def main():
         return any(phrase in normalized for phrase in split_phrases)
 
     PINBALL_PATH = os.path.join(os.path.dirname(__file__), "pinball.html")
+    MINESWEEPER_PATH = os.path.join(os.path.dirname(__file__), "minesweeper.html")
+    TETRIS_PATH = os.path.join(os.path.dirname(__file__), "tetris.html")
+    DRAW_PATH = os.path.join(os.path.dirname(__file__), "draw.html")
 
     def _is_pinball_command(text: str) -> bool:
         normalized = text.lower().strip().rstrip(".")
@@ -191,6 +200,31 @@ async def main():
             "open pinball", "start pinball",
         ]
         return any(phrase == normalized or normalized.startswith(phrase) for phrase in pinball_phrases)
+
+    def _is_minesweeper_command(text: str) -> bool:
+        normalized = text.lower().strip().rstrip(".")
+        minesweeper_phrases = [
+            "minesweeper", "play minesweeper", "launch minesweeper",
+            "open minesweeper", "start minesweeper", "mine sweeper",
+        ]
+        return any(phrase == normalized or normalized.startswith(phrase) for phrase in minesweeper_phrases)
+
+    def _is_tetris_command(text: str) -> bool:
+        normalized = text.lower().strip().rstrip(".")
+        tetris_phrases = [
+            "tetris", "play tetris", "launch tetris",
+            "open tetris", "start tetris",
+        ]
+        return any(phrase == normalized or normalized.startswith(phrase) for phrase in tetris_phrases)
+
+    def _is_draw_command(text: str) -> bool:
+        normalized = text.lower().strip().rstrip(".")
+        draw_phrases = [
+            "draw", "drawing", "open draw", "launch draw",
+            "start drawing", "whiteboard", "open whiteboard",
+            "excalidraw", "sketch", "open sketch",
+        ]
+        return any(phrase == normalized or normalized.startswith(phrase) for phrase in draw_phrases)
 
     MEMES_DIR = os.path.join(os.path.dirname(__file__), "data", "memes")
 
@@ -315,6 +349,24 @@ async def main():
                     category, description = _format_tool_start(tool_name, data)
                 metal.send_chat_message(f"tool_{category}", description, panel=target_panel)
                 console.print(f"  [yellow]{description}[/]")
+            elif event == "subagent_tool":
+                # Sub-agent internal tool — update the live row in-place
+                if tool_name in _CC_TOOL_CATEGORIES:
+                    _, description = _cc_format_tool_start(tool_name, data)
+                else:
+                    _, description = _format_tool_start(tool_name, data)
+                metal.send_chat_message("subagent_op", description, panel=target_panel)
+                console.print(f"    [dim]{description}[/]")
+            elif event == "subagent_result":
+                summary = data.get("summary", "")
+                is_error = data.get("is_error", False)
+                prefix = "ERROR: " if is_error else ""
+                metal.send_chat_message("subagent_result", f"{prefix}{summary}", panel=target_panel)
+                console.print(f"    [dim]→ {prefix}{summary[:120]}[/]")
+            elif event == "subagent_done":
+                op_count = data.get("op_count", 0)
+                metal.send_chat_message("subagent_done", str(op_count), panel=target_panel)
+                console.print(f"  [dim]Subagent done ({op_count} ops)[/]")
             elif event == "result":
                 # Claude Code results have "summary" key
                 if "summary" in data:
@@ -478,8 +530,23 @@ async def main():
                 return
 
             if _is_pinball_command(user_text):
-                metal.send_chat_iframe(f"file://{PINBALL_PATH}", panel=active_panel, height=720)
+                metal.send_chat_iframe_fullscreen(f"file://{PINBALL_PATH}", panel=active_panel)
                 console.print("[bold cyan]Launched Pinball[/]")
+                return
+
+            if _is_minesweeper_command(user_text):
+                metal.send_chat_iframe(f"file://{MINESWEEPER_PATH}", panel=active_panel, height=720)
+                console.print("[bold cyan]Launched Minesweeper[/]")
+                return
+
+            if _is_tetris_command(user_text):
+                metal.send_chat_iframe_fullscreen(f"file://{TETRIS_PATH}", panel=active_panel)
+                console.print("[bold cyan]Launched Tetris[/]")
+                return
+
+            if _is_draw_command(user_text):
+                metal.send_chat_iframe(f"file://{DRAW_PATH}", panel=active_panel, height=720)
+                console.print("[bold cyan]Launched Draw[/]")
                 return
 
             if _is_meme_command(user_text):
@@ -646,7 +713,8 @@ async def main():
                 ptt_active = True
                 mic._skill_capture = skill_mic
                 skill_mic.start_recording()
-                metal.send_state("recording")
+                if not skill_active:
+                    metal.send_state("recording")
                 console.print("[yellow]PTT recording...[/]")
 
             elif not pressed and ptt_active:
@@ -682,9 +750,27 @@ async def main():
                 else:
                     # Quick commands before hitting Gemini
                     if _is_pinball_command(text):
-                        metal.send_chat_iframe(f"file://{PINBALL_PATH}", panel=active_panel, height=720)
+                        metal.send_chat_iframe_fullscreen(f"file://{PINBALL_PATH}", panel=active_panel)
                         metal.send_state("listening")
                         console.print("[bold cyan]Launched Pinball[/]")
+                        return
+
+                    if _is_minesweeper_command(text):
+                        metal.send_chat_iframe(f"file://{MINESWEEPER_PATH}", panel=active_panel, height=720)
+                        metal.send_state("listening")
+                        console.print("[bold cyan]Launched Minesweeper[/]")
+                        return
+
+                    if _is_tetris_command(text):
+                        metal.send_chat_iframe_fullscreen(f"file://{TETRIS_PATH}", panel=active_panel)
+                        metal.send_state("listening")
+                        console.print("[bold cyan]Launched Tetris[/]")
+                        return
+
+                    if _is_draw_command(text):
+                        metal.send_chat_iframe(f"file://{DRAW_PATH}", panel=active_panel, height=720)
+                        metal.send_state("listening")
+                        console.print("[bold cyan]Launched Draw[/]")
                         return
 
                     # Default mode: send to Gemini Flash
