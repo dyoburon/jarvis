@@ -1,6 +1,8 @@
 import asyncio
 import glob
 import json
+import logging
+import logging.handlers
 import os
 import queue
 import random
@@ -13,6 +15,18 @@ from rich.console import Console
 from rich.panel import Panel
 
 import config
+
+# Persistent log file — survives across sessions, rotates at 5MB
+LOG_PATH = os.path.join(os.path.dirname(__file__), "jarvis.log")
+_file_handler = logging.handlers.RotatingFileHandler(
+    LOG_PATH, maxBytes=5 * 1024 * 1024, backupCount=3, encoding="utf-8",
+)
+_file_handler.setFormatter(logging.Formatter(
+    "%(asctime)s [%(levelname)s] %(message)s", datefmt="%Y-%m-%d %H:%M:%S",
+))
+log = logging.getLogger("jarvis")
+log.setLevel(logging.DEBUG)
+log.addHandler(_file_handler)
 from skills.claude_code import _format_tool_start as _cc_format_tool_start, _format_tool_result as _cc_format_tool_result, _TOOL_CATEGORIES as _CC_TOOL_CATEGORIES
 from skills.router import SkillRouter, _skills
 from voice.audio import MicCapture, SkillMicCapture
@@ -188,6 +202,7 @@ class MetalBridge:
 
 
 async def main():
+    log.info("=== Jarvis starting ===")
     if not config.GOOGLE_API_KEY:
         console.print("[red]GOOGLE_API_KEY not set in .env[/]")
         return
@@ -341,6 +356,28 @@ async def main():
             "start subway surfers", "play subway", "subway surf",
         ]
         return any(phrase == normalized or normalized.startswith(phrase) for phrase in subway_phrases)
+
+    def _is_kart_command(text: str) -> bool:
+        normalized = text.lower().strip().rstrip(".")
+        kart_phrases = [
+            "kart", "kart bros", "kartbros", "play kart",
+            "mario kart", "racing", "play racing",
+            "launch kart", "start kart", "open kart",
+        ]
+        return any(phrase == normalized or normalized.startswith(phrase) for phrase in kart_phrases)
+
+    # 1v100 Trivia Game (deployed to Vercel)
+    TRIVIA_BASE_URL = os.environ.get("TRIVIA_URL", "https://onev100.onrender.com")
+
+    def _is_trivia_command(text: str) -> bool:
+        normalized = text.lower().strip().rstrip(".")
+        trivia_phrases = [
+            "1 vs 100", "1v100", "one vs hundred", "one versus hundred",
+            "trivia", "play trivia", "launch trivia", "start trivia",
+            "trivia game", "one vs one hundred", "1 versus 100",
+            "play 1v100", "play 1 vs 100",
+        ]
+        return any(phrase == normalized or normalized.startswith(phrase) for phrase in trivia_phrases)
 
     def _is_subway_video_command(text: str) -> bool:
         normalized = text.lower().strip().rstrip(".")
@@ -523,6 +560,7 @@ async def main():
         nonlocal skill_tasks, panel_count, active_panel
         nonlocal skill_active, pending_tool_name
 
+        log.info(f"on_skill_input: event={event_type} tool={tool_name} text={user_text[:80] if user_text else ''}")
         if event_type == "__skill_start__":
             # If already in a skill session, spawn a new panel with its own session
             if panel_count > 0 and panel_count < 5:
@@ -662,6 +700,23 @@ async def main():
                     console.print("[yellow]Max 5 windows reached[/]")
                 return
 
+            if user_text.strip().lower() in ("logs", "debug", "show logs"):
+                try:
+                    combined = ""
+                    for label, path in [("jarvis.log", LOG_PATH), ("metal.log", os.path.join(os.path.dirname(__file__), "metal.log"))]:
+                        if os.path.exists(path):
+                            with open(path, "r") as f:
+                                lines = f.readlines()
+                            combined += f"\n=== {label} (last 40 lines) ===\n" + "".join(lines[-40:])
+                    import subprocess as _sp
+                    _sp.run(["pbcopy"], input=combined.encode(), check=True)
+                    metal.send_chat_message("system", f"**Logs copied to clipboard** ({len(combined)} chars)", panel=active_panel)
+                    console.print("[bold cyan]Logs copied to clipboard[/]")
+                except Exception as e:
+                    log.error(f"Failed to show logs: {e}")
+                    console.print(f"[red]Failed to show logs: {e}[/]")
+                return
+
             open_url = _parse_open_url(user_text)
             if open_url:
                 metal.send_chat_iframe(open_url, panel=active_panel, height=720)
@@ -696,6 +751,18 @@ async def main():
             if _is_asteroids_command(user_text):
                 metal.send_chat_iframe_fullscreen(f"file://{ASTEROIDS_PATH}", panel=active_panel)
                 console.print("[bold cyan]Launched Asteroids[/]")
+                return
+
+            if _is_kart_command(user_text):
+                log.info(f"Kart command (chat): '{user_text}'")
+                metal.send_chat_iframe_fullscreen("https://kartbros.io", panel=active_panel)
+                console.print("[bold cyan]Launched KartBros[/]")
+                return
+
+            if _is_trivia_command(user_text):
+                log.info(f"Trivia command (chat): '{user_text}'")
+                metal.send_chat_iframe_fullscreen(f"{TRIVIA_BASE_URL}/play", panel=active_panel)
+                console.print("[bold cyan]Launched 1v100 Trivia[/]")
                 return
 
             if _is_subway_video_command(user_text):
@@ -897,15 +964,18 @@ async def main():
                         metal.send_state("listening")
                     return
 
+                log.debug(f"PTT: {len(audio)} samples, transcribing...")
                 console.print(f"[dim]PTT: {len(audio)} samples, transcribing...[/]")
                 text = await whisper_client.transcribe(audio, sample_rate=config.WHISPER_SAMPLE_RATE)
 
                 if not text:
+                    log.debug("PTT: empty transcription")
                     console.print("[dim]PTT: empty transcription[/]")
                     if not skill_active:
                         metal.send_state("listening")
                     return
 
+                log.info(f"PTT> {text}")
                 console.print(f"[white]PTT>[/] {text}")
 
                 if skill_active:
@@ -967,6 +1037,31 @@ async def main():
                         console.print("[bold cyan]Launched Subway Surfers[/]")
                         return
 
+                    if _is_kart_command(text):
+                        log.info(f"Kart command detected: '{text}'")
+                        metal.send_chat_iframe_fullscreen("https://kartbros.io", panel=active_panel)
+                        metal.send_state("listening")
+                        console.print("[bold cyan]Launched KartBros[/]")
+                        return
+
+                    if _is_trivia_command(text):
+                        log.info(f"Trivia command detected: '{text}'")
+                        try:
+                            import httpx as _httpx
+                            resp = _httpx.post(f"{TRIVIA_BASE_URL}/api/game/create", timeout=10)
+                            data = resp.json()
+                            join_code = data.get("joinCode", "")
+                            log.info(f"Trivia game created: code={join_code}, opening {TRIVIA_BASE_URL}/play")
+                            metal.send_chat_iframe_fullscreen(f"{TRIVIA_BASE_URL}/play", panel=active_panel)
+                            console.print(f"[bold cyan]Launched 1v100 Trivia[/] — Join code: [bold orange]{join_code}[/]")
+                        except Exception as e:
+                            log.error(f"Trivia create failed: {e}", exc_info=True)
+                            console.print(f"[red]Failed to create trivia game: {e}[/]")
+                            metal.send_chat_iframe_fullscreen(f"{TRIVIA_BASE_URL}/play", panel=active_panel)
+                            console.print("[bold cyan]Launched 1v100 Trivia (fallback)[/]")
+                        metal.send_state("listening")
+                        return
+
                     # Default mode: send to Gemini Flash
                     console.print(f"\n[bold white]You:[/] {text}")
                     metal.send_hud_clear()
@@ -1011,6 +1106,7 @@ async def main():
                     break
                 try:
                     msg = json.loads(line.decode().strip())
+                    log.debug(f"Metal msg: {msg.get('type')} {json.dumps({k:v for k,v in msg.items() if k != 'type'})[:120]}")
                     if msg.get("type") == "panel_focus":
                         active_panel = msg.get("panel", 0)
                     elif msg.get("type") == "chat_input" and skill_active:
@@ -1045,8 +1141,9 @@ async def main():
         )
 
     except KeyboardInterrupt:
-        pass
+        log.info("Shutting down (KeyboardInterrupt)")
     except Exception as e:
+        log.error(f"Fatal error: {e}", exc_info=True)
         console.print(f"[red]Error:[/] {e}")
         import traceback
         traceback.print_exc()

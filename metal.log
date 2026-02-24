@@ -1,0 +1,204 @@
+2026-02-24T01:43:12Z [METAL] showFullscreenIframe: url=https://onev100.onrender.com/play panel=2 isFile=false
+2026-02-24T01:43:12Z [METAL] showFullscreenIframe: navigating WKWebView to https://onev100.onrender.com/play
+2026-02-24T01:43:14Z [METAL] keyDown: navigated fullscreen, key=1 char=s firstResponder=Optional(<WKWebView: 0xc1c042800>)
+2026-02-24T01:43:14Z [METAL] keyDown: navigated fullscreen, key=0 char=a firstResponder=Optional(<WKWebView: 0xc1c042800>)
+2026-02-24T01:43:14Z [METAL] keyDown: navigated fullscreen, key=2 char=d firstResponder=Optional(<WKWebView: 0xc1c042800>)
+2026-02-24T01:43:14Z [METAL] keyDown: navigated fullscreen, key=1 char=s firstResponder=Optional(<WKWebView: 0xc1c042800>)
+2026-02-24T01:43:14Z [METAL] keyDown: navigated fullscreen, key=0 char=a firstResponder=Optional(<WKWebView: 0xc1c042800>)
+2026-02-24T01:43:15Z [METAL] keyDown: Escape → hideFullscreenIframe
+2026-02-24T01:43:15Z [METAL] hideFullscreenIframe: navigated=true
+2026-02-24T01:47:01Z [METAL] showFullscreenIframe: url=https://onev100.onrender.com/play panel=2 isFile=false
+2026-02-24T01:47:01Z [METAL] showFullscreenIframe: navigating WKWebView to https://onev100.onrender.com/play
+2026-02-24T01:49:53Z [METAL] keyDown: Escape → hideFullscreenIframe
+2026-02-24T01:49:53Z [METAL] hideFullscreenIframe: navigated=true
+2026-02-24T02:00:39Z [METAL] showFullscreenIframe: url=https://onev100.onrender.com/play panel=2 isFile=false
+2026-02-24T02:00:39Z [METAL] showFullscreenIframe: navigating WKWebView to https://onev100.onrender.com/play
+2026-02-24T02:03:57Z [METAL] keyDown: Escape → hideFullscreenIframe
+2026-02-24T02:03:57Z [METAL] hideFullscreenIframe: navigated=true
+2026-02-24T02:23:54Z [METAL] showFullscreenIframe: url=https://kartbros.io panel=2 isFile=false
+2026-02-24T02:23:54Z [METAL] showFullscreenIframe: navigating WKWebView to https://kartbros.io
+2026-02-24T02:24:31Z [METAL] keyDown: Escape → hideFullscreenIframe
+2026-02-24T02:24:31Z [METAL] hideFullscreenIframe: navigated=true
+2026-02-24T02:27:56Z [METAL] showFullscreenIframe: url=https://kartbros.io panel=2 isFile=false
+2026-02-24T02:27:56Z [METAL] showFullscreenIframe: navigating WKWebView to https://kartbros.io
+2026-02-24T02:28:31Z [METAL] keyDown: Escape → hideFullscreenIframe
+2026-02-24T02:28:31Z [METAL] hideFullscreenIframe: navigated=true
+2026-02-24T02:29:01Z [METAL] showFullscreenIframe: url=https://kartbros.io panel=2 isFile=false
+2026-02-24T02:29:01Z [METAL] showFullscreenIframe: navigating WKWebView to https://kartbros.io
+2026-02-24T02:29:12Z [METAL] keyDown: Escape → hideFullscreenIframe
+2026-02-24T02:29:12Z [METAL] hideFullscreenIframe: navigated=true
+2026-02-24T02:39:16Z [METAL] showFullscreenIframe: url=https://kartbros.io panel=2 isFile=false
+2026-02-24T02:39:16Z [METAL] showFullscreenIframe: navigating WKWebView to https://kartbros.io
+2026-02-24T02:39:31Z [METAL] keyDown: Escape → hideFullscreenIframe
+2026-02-24T02:39:31Z [METAL] hideFullscreenIframe: navigated=true
+2026-02-24T02:47:47Z [METAL] JarvisBootup started — build v2
+2026-02-24T02:47:57Z [METAL] showFullscreenIframe: url=https://kartbros.io panel=2 isFile=false
+2026-02-24T02:47:57Z [METAL] showFullscreenIframe: navigating WKWebView to https://kartbros.io
+2026-02-24T02:48:05Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-24T02:48:05Z [METAL] forwardKeyToNavigated: keydown keyCode=1 char=s
+2026-02-24T02:48:05Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-24T02:48:05Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-24T02:48:05Z [METAL] forwardKeyToNavigated: keydown keyCode=1 char=s
+2026-02-24T02:48:05Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-24T02:48:05Z [METAL] forwardKeyToNavigated: keydown keyCode=1 char=s
+2026-02-24T02:48:05Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-24T02:48:05Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-24T02:48:05Z [METAL] forwardKeyToNavigated: keydown keyCode=1 char=s
+2026-02-24T02:48:05Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-24T02:48:05Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-24T02:48:05Z [METAL] forwardKeyToNavigated: keydown keyCode=1 char=s
+2026-02-24T02:48:05Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-24T02:48:06Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-24T02:48:07Z [METAL] forwardKeyToNavigated: keydown keyCode=37 char=l
+2026-02-24T02:48:07Z [METAL] forwardKeyToNavigated: keydown keyCode=31 char=o
+2026-02-24T02:48:07Z [METAL] forwardKeyToNavigated: keydown keyCode=5 char=g
+2026-02-24T02:48:08Z [METAL] forwardKeyToNavigated: keydown keyCode=1 char=s
+2026-02-24T02:48:08Z [METAL] forwardKeyToNavigated: keydown keyCode=1 char=s
+2026-02-24T02:48:08Z [METAL] keyDown: Escape → hideFullscreenIframe
+2026-02-24T02:48:08Z [METAL] hideFullscreenIframe: navigated=true
+2026-02-24T02:50:22Z [METAL] JarvisBootup started — build v2
+2026-02-24T02:50:31Z [METAL] showFullscreenIframe: url=https://kartbros.io panel=2 isFile=false
+2026-02-24T02:50:31Z [METAL] showFullscreenIframe: navigating WKWebView to https://kartbros.io
+2026-02-24T02:50:38Z [METAL] forwardKeyToNavigated: keydown keyCode=1 char=s
+2026-02-24T02:50:38Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-24T02:50:38Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-24T02:50:38Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-24T02:50:39Z [METAL] forwardKeyToNavigated: keydown keyCode=1 char=s
+2026-02-24T02:50:39Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-24T02:50:39Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-24T02:50:39Z [METAL] forwardKeyToNavigated: keydown keyCode=1 char=s
+2026-02-24T02:50:39Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-24T02:50:39Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-24T02:50:39Z [METAL] forwardKeyToNavigated: keydown keyCode=1 char=s
+2026-02-24T02:50:39Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-24T02:50:40Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-24T02:50:40Z [METAL] forwardKeyToNavigated: keydown keyCode=18 char=1
+2026-02-24T02:50:40Z [METAL] forwardKeyToNavigated: keydown keyCode=19 char=2
+2026-02-24T02:50:40Z [METAL] forwardKeyToNavigated: keydown keyCode=20 char=3
+2026-02-24T02:50:40Z [METAL] forwardKeyToNavigated: keydown keyCode=19 char=2
+2026-02-24T02:50:40Z [METAL] forwardKeyToNavigated: keydown keyCode=18 char=1
+2026-02-24T02:50:40Z [METAL] forwardKeyToNavigated: keydown keyCode=20 char=3
+2026-02-24T02:50:41Z [METAL] forwardKeyToNavigated: keydown keyCode=19 char=2
+2026-02-24T02:50:41Z [METAL] forwardKeyToNavigated: keydown keyCode=18 char=1
+2026-02-24T02:50:41Z [METAL] forwardKeyToNavigated: keydown keyCode=1 char=s
+2026-02-24T02:50:41Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-24T02:50:41Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-24T02:50:41Z [METAL] forwardKeyToNavigated: keydown keyCode=1 char=s
+2026-02-24T02:50:41Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-24T02:50:42Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-24T02:50:42Z [METAL] forwardKeyToNavigated: keydown keyCode=1 char=s
+2026-02-24T02:50:42Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-24T02:50:42Z [METAL] forwardKeyToNavigated: keydown keyCode=1 char=S
+2026-02-24T02:50:42Z [METAL] forwardKeyToNavigated: keydown keyCode=1 char=S
+2026-02-24T02:50:43Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=D
+2026-02-24T02:50:44Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-24T02:50:44Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-24T02:50:49Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-24T02:50:49Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-24T02:50:49Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-24T02:50:49Z [METAL] forwardKeyToNavigated: keydown keyCode=1 char=s
+2026-02-24T02:50:50Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-24T02:50:50Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-24T02:50:51Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-24T02:50:51Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-24T02:50:51Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-24T02:50:51Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-24T02:50:52Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-24T02:50:52Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-24T02:50:52Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-24T02:50:53Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-24T02:50:54Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-24T02:50:56Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-24T02:50:57Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-24T02:50:57Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-24T02:50:57Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-24T02:50:58Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-24T02:50:58Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-24T02:50:58Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-24T02:50:58Z [METAL] forwardKeyToNavigated: keydown keyCode=1 char=s
+2026-02-24T02:50:58Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-24T02:50:58Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-24T02:50:58Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-24T02:51:01Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-24T02:51:01Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-24T02:51:02Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-24T02:51:02Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-24T02:51:02Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-24T02:51:03Z [METAL] forwardKeyToNavigated: keydown keyCode=49 char= 
+2026-02-24T02:51:03Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-24T02:51:03Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-24T02:51:04Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-24T02:51:04Z [METAL] keyDown: Escape → hideFullscreenIframe
+2026-02-24T02:51:04Z [METAL] hideFullscreenIframe: navigated=true
+2026-02-24T02:51:07Z [METAL] showFullscreenIframe: url=https://kartbros.io panel=2 isFile=false
+2026-02-24T02:51:07Z [METAL] showFullscreenIframe: navigating WKWebView to https://kartbros.io
+2026-02-24T02:52:46Z [METAL] forwardKeyToNavigated: keydown keyCode=31 char=o
+2026-02-24T02:52:47Z [METAL] forwardKeyToNavigated: keydown keyCode=40 char=k
+2026-02-24T02:52:47Z [METAL] forwardKeyToNavigated: keydown keyCode=49 char= 
+2026-02-24T02:53:28Z [METAL] forwardKeyToNavigated: keydown keyCode=1 char=s
+2026-02-24T02:53:28Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-24T02:53:28Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-24T02:53:28Z [METAL] forwardKeyToNavigated: keydown keyCode=1 char=s
+2026-02-24T02:53:28Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-24T02:53:29Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-24T02:53:29Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-24T02:53:29Z [METAL] forwardKeyToNavigated: keydown keyCode=1 char=s
+2026-02-24T02:54:25Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-24T02:54:25Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-24T02:54:30Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-24T02:54:31Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-24T02:54:31Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-24T02:54:40Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-24T02:54:41Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-24T02:54:41Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-24T02:54:42Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-24T02:54:43Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-24T02:54:43Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-24T02:54:45Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-24T02:54:46Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-24T02:54:46Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-24T02:54:46Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=D
+2026-02-24T02:54:47Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=W
+2026-02-24T02:54:47Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=A
+2026-02-24T02:54:47Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=D
+2026-02-24T02:54:47Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=W
+2026-02-24T02:54:47Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=A
+2026-02-24T02:54:48Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=W
+2026-02-24T02:54:48Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=A
+2026-02-24T02:54:48Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=D
+2026-02-24T02:54:48Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=W
+2026-02-24T02:54:48Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=A
+2026-02-24T02:54:49Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=D
+2026-02-24T02:54:49Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=W
+2026-02-24T02:54:50Z [METAL] forwardKeyToNavigated: keydown keyCode=126 char=
+2026-02-24T02:54:50Z [METAL] forwardKeyToNavigated: keydown keyCode=124 char=
+2026-02-24T02:54:50Z [METAL] forwardKeyToNavigated: keydown keyCode=125 char=
+2026-02-24T02:54:50Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=A
+2026-02-24T02:54:50Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=D
+2026-02-24T02:54:50Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=A
+2026-02-24T02:54:50Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=W
+2026-02-24T02:54:50Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=D
+2026-02-24T02:54:51Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=A
+2026-02-24T02:54:51Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=W
+2026-02-24T02:54:51Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=D
+2026-02-24T02:54:51Z [METAL] forwardKeyToNavigated: keydown keyCode=1 char=S
+2026-02-24T02:54:51Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=A
+2026-02-24T02:54:51Z [METAL] forwardKeyToNavigated: keydown keyCode=49 char= 
+2026-02-24T02:54:52Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=D
+2026-02-24T02:54:52Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=W
+2026-02-24T02:54:52Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=A
+2026-02-24T02:54:52Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=D
+2026-02-24T02:54:52Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=W
+2026-02-24T02:54:52Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=A
+2026-02-24T02:54:53Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=W
+2026-02-24T02:54:53Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=D
+2026-02-24T02:54:53Z [METAL] keyDown: Escape → hideFullscreenIframe
+2026-02-24T02:54:53Z [METAL] hideFullscreenIframe: navigated=true
+2026-02-24T03:04:13Z [METAL] JarvisBootup started — build v2
+2026-02-24T03:13:51Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=1 isFile=true
+2026-02-24T03:14:21Z [METAL] keyDown: Escape → hideFullscreenIframe
+2026-02-24T03:14:21Z [METAL] hideFullscreenIframe: navigated=false
+2026-02-24T03:24:33Z [METAL] JarvisBootup started — build v2
+2026-02-24T03:24:38Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=1 isFile=true
+2026-02-24T03:25:47Z [METAL] keyDown: Escape → hideFullscreenIframe
+2026-02-24T03:25:47Z [METAL] hideFullscreenIframe: navigated=false
