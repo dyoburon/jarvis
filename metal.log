@@ -202,3 +202,1263 @@
 2026-02-24T03:24:38Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=1 isFile=true
 2026-02-24T03:25:47Z [METAL] keyDown: Escape → hideFullscreenIframe
 2026-02-24T03:25:47Z [METAL] hideFullscreenIframe: navigated=false
+2026-02-24T20:49:55Z [METAL] JarvisBootup started — build v2
+2026-02-24T22:08:38Z [METAL] JarvisBootup started — build v2
+2026-02-24T22:09:41Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=1 isFile=true
+2026-02-24T22:10:53Z [METAL] keyDown: Escape → hideFullscreenIframe
+2026-02-24T22:10:53Z [METAL] hideFullscreenIframe: navigated=false
+2026-02-24T22:19:34Z [METAL] JarvisBootup started — build v2
+2026-02-24T22:19:54Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=3 isFile=true
+2026-02-24T22:20:04Z [METAL] keyDown: Escape → hideFullscreenIframe
+2026-02-24T22:20:04Z [METAL] hideFullscreenIframe: navigated=false
+2026-02-24T23:01:38Z [METAL] JarvisBootup started — build v2
+2026-02-24T23:01:40Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=0 isFile=true
+2026-02-24T23:01:40Z [METAL] hideFullscreenIframe: navigated=false
+2026-02-24T23:01:41Z [METAL] showFullscreenIframe: url=https://kartbros.io panel=0 isFile=false
+2026-02-24T23:01:41Z [METAL] showFullscreenIframe: navigating WKWebView to https://kartbros.io
+2026-02-24T23:01:42Z [METAL] hideFullscreenIframe: navigated=true
+2026-02-24T23:01:42Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=0 isFile=true
+2026-02-24T23:01:47Z [METAL] restoreGameFocus: navigated=false — injecting focus events
+2026-02-24T23:01:53Z [METAL] hideFullscreenIframe: navigated=false
+2026-02-24T23:01:53Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=0 isFile=true
+2026-02-24T23:01:53Z [METAL] hideFullscreenIframe: navigated=false
+2026-02-24T23:01:54Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=0 isFile=true
+2026-02-24T23:01:55Z [METAL] hideFullscreenIframe: navigated=false
+2026-02-24T23:01:55Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=0 isFile=true
+2026-02-24T23:01:57Z [METAL] hideFullscreenIframe: navigated=false
+2026-02-24T23:02:01Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/tetris.html panel=1 isFile=true
+2026-02-24T23:02:01Z [METAL] hideFullscreenIframe: navigated=false
+2026-02-24T23:02:24Z [METAL] JarvisBootup started — build v2
+2026-02-24T23:02:26Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=0 isFile=true
+2026-02-24T23:02:27Z [METAL] hideFullscreenIframe: navigated=false
+2026-02-24T23:20:24Z [METAL] JarvisBootup started — build v2
+2026-02-24T23:20:26Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=0 isFile=true
+2026-02-24T23:20:36Z [METAL] hideFullscreenIframe: navigated=false panel=0
+2026-02-24T23:20:37Z [METAL] showFullscreenIframe: url=https://kartbros.io panel=0 isFile=false
+2026-02-24T23:20:37Z [METAL] showFullscreenIframe: navigating WKWebView to https://kartbros.io
+2026-02-24T23:20:38Z [METAL] hideFullscreenIframe: navigated=true panel=0
+2026-02-24T23:20:38Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=0 isFile=true
+2026-02-24T23:20:49Z [METAL] hideFullscreenIframe: navigated=false panel=0
+2026-02-24T23:20:49Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=0 isFile=true
+2026-02-24T23:20:50Z [METAL] hideFullscreenIframe: navigated=false panel=0
+2026-02-24T23:20:51Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=0 isFile=true
+2026-02-24T23:20:51Z [METAL] hideFullscreenIframe: navigated=false panel=0
+2026-02-24T23:20:51Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=0 isFile=true
+2026-02-24T23:20:53Z [METAL] hideFullscreenIframe: navigated=false panel=0
+2026-02-24T23:20:57Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/tetris.html panel=1 isFile=true
+2026-02-24T23:20:57Z [METAL] hideFullscreenIframe: navigated=false panel=1
+2026-02-24T23:22:26Z [METAL] JarvisBootup started — build v2
+2026-02-24T23:22:28Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=0 isFile=true
+2026-02-24T23:22:28Z [METAL] hideFullscreenIframe: navigated=false panel=0
+2026-02-24T23:22:29Z [METAL] showFullscreenIframe: url=https://kartbros.io panel=0 isFile=false
+2026-02-24T23:22:29Z [METAL] showFullscreenIframe: navigating WKWebView to https://kartbros.io
+2026-02-24T23:22:29Z [METAL] hideFullscreenIframe: navigated=true panel=0
+2026-02-24T23:22:30Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=0 isFile=true
+2026-02-24T23:22:40Z [METAL] hideFullscreenIframe: navigated=false panel=0
+2026-02-24T23:22:41Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=0 isFile=true
+2026-02-24T23:22:41Z [METAL] hideFullscreenIframe: navigated=false panel=0
+2026-02-24T23:22:42Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=0 isFile=true
+2026-02-24T23:22:42Z [METAL] hideFullscreenIframe: navigated=false panel=0
+2026-02-24T23:22:43Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=0 isFile=true
+2026-02-24T23:22:45Z [METAL] hideFullscreenIframe: navigated=false panel=0
+2026-02-24T23:22:49Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/tetris.html panel=1 isFile=true
+2026-02-24T23:22:49Z [METAL] hideFullscreenIframe: navigated=false panel=1
+2026-02-24T23:23:22Z [METAL] JarvisBootup started — build v2
+2026-02-24T23:23:28Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=3 isFile=true
+2026-02-24T23:23:48Z [METAL] keyDown: Escape → hideFullscreenIframe
+2026-02-24T23:23:48Z [METAL] hideFullscreenIframe: navigated=false panel=3
+2026-02-24T23:27:27Z [METAL] JarvisBootup started — build v2
+2026-02-24T23:27:28Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=0 isFile=true
+2026-02-24T23:27:39Z [METAL] hideFullscreenIframe: navigated=false panel=0
+2026-02-24T23:27:39Z [METAL] showFullscreenIframe: url=https://kartbros.io panel=0 isFile=false
+2026-02-24T23:27:39Z [METAL] showFullscreenIframe: navigating WKWebView to https://kartbros.io
+2026-02-24T23:27:40Z [METAL] hideFullscreenIframe: navigated=true panel=0
+2026-02-24T23:27:40Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=0 isFile=true
+2026-02-24T23:27:51Z [METAL] hideFullscreenIframe: navigated=false panel=0
+2026-02-24T23:27:52Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=0 isFile=true
+2026-02-24T23:27:52Z [METAL] hideFullscreenIframe: navigated=false panel=0
+2026-02-24T23:27:53Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=0 isFile=true
+2026-02-24T23:27:53Z [METAL] hideFullscreenIframe: navigated=false panel=0
+2026-02-24T23:27:54Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=0 isFile=true
+2026-02-24T23:27:56Z [METAL] hideFullscreenIframe: navigated=false panel=0
+2026-02-24T23:28:00Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/tetris.html panel=1 isFile=true
+2026-02-24T23:28:00Z [METAL] hideFullscreenIframe: navigated=false panel=1
+2026-02-24T23:28:01Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=0 isFile=true
+2026-02-24T23:28:02Z [METAL] hideFullscreenIframe: navigated=false panel=0
+2026-02-24T23:29:02Z [METAL] JarvisBootup started — build v2
+2026-02-24T23:29:05Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=0 isFile=true
+2026-02-24T23:29:05Z [METAL] hideFullscreenIframe: navigated=false panel=0
+2026-02-24T23:29:06Z [METAL] showFullscreenIframe: url=https://kartbros.io panel=0 isFile=false
+2026-02-24T23:29:06Z [METAL] showFullscreenIframe: navigating WKWebView to https://kartbros.io
+2026-02-24T23:29:07Z [METAL] hideFullscreenIframe: navigated=true panel=0
+2026-02-24T23:29:07Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=0 isFile=true
+2026-02-24T23:29:08Z [METAL] hideFullscreenIframe: navigated=false panel=0
+2026-02-24T23:29:08Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=0 isFile=true
+2026-02-24T23:29:08Z [METAL] hideFullscreenIframe: navigated=false panel=0
+2026-02-24T23:29:10Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=0 isFile=true
+2026-02-24T23:29:10Z [METAL] hideFullscreenIframe: navigated=false panel=0
+2026-02-24T23:29:10Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=0 isFile=true
+2026-02-24T23:29:12Z [METAL] hideFullscreenIframe: navigated=false panel=0
+2026-02-24T23:29:16Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/tetris.html panel=1 isFile=true
+2026-02-24T23:29:17Z [METAL] hideFullscreenIframe: navigated=false panel=1
+2026-02-24T23:29:17Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=0 isFile=true
+2026-02-24T23:29:19Z [METAL] hideFullscreenIframe: navigated=false panel=0
+2026-02-24T23:29:49Z [METAL] JarvisBootup started — build v2
+2026-02-24T23:29:56Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=2 isFile=true
+2026-02-24T23:33:33Z [METAL] JarvisBootup started — build v2
+2026-02-24T23:33:36Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=0 isFile=true
+2026-02-24T23:33:36Z [METAL] hideFullscreenIframe: navigated=false panel=0
+2026-02-24T23:33:37Z [METAL] showFullscreenIframe: url=https://kartbros.io panel=0 isFile=false
+2026-02-24T23:33:37Z [METAL] showFullscreenIframe: navigating WKWebView to https://kartbros.io
+2026-02-24T23:33:38Z [METAL] hideFullscreenIframe: navigated=true panel=0
+2026-02-24T23:33:38Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=0 isFile=true
+2026-02-24T23:33:39Z [METAL] hideFullscreenIframe: navigated=false panel=0
+2026-02-24T23:33:40Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=0 isFile=true
+2026-02-24T23:33:40Z [METAL] hideFullscreenIframe: navigated=false panel=0
+2026-02-24T23:33:41Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=0 isFile=true
+2026-02-24T23:33:41Z [METAL] hideFullscreenIframe: navigated=false panel=0
+2026-02-24T23:33:41Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=0 isFile=true
+2026-02-24T23:33:43Z [METAL] hideFullscreenIframe: navigated=false panel=0
+2026-02-24T23:33:47Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/tetris.html panel=1 isFile=true
+2026-02-24T23:33:48Z [METAL] hideFullscreenIframe: navigated=false panel=1
+2026-02-24T23:33:48Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=0 isFile=true
+2026-02-24T23:33:50Z [METAL] hideFullscreenIframe: navigated=false panel=0
+2026-02-24T23:35:49Z [METAL] JarvisBootup started — build v2
+2026-02-24T23:36:04Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=1 isFile=true
+2026-02-25T00:01:33Z [METAL] JarvisBootup started — build v2
+2026-02-25T00:28:52Z [METAL] JarvisBootup started — build v2
+2026-02-25T00:29:05Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=1 isFile=true
+2026-02-25T00:33:35Z [METAL] JarvisBootup started — build v2
+2026-02-25T00:34:11Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=2 isFile=true
+2026-02-25T00:34:19Z [METAL] restoreGameFocus: navigated=false — injecting focus events
+2026-02-25T00:34:20Z [METAL] restoreGameFocus: navigated=false — injecting focus events
+2026-02-25T00:50:12Z [METAL] JarvisBootup started — build v2
+2026-02-25T00:50:17Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=2 isFile=true
+2026-02-25T01:13:34Z [METAL] JarvisBootup started — build v2
+2026-02-25T01:13:35Z [METAL] applicationDidBecomeActive: fullscreen=false
+2026-02-25T01:13:36Z [METAL] updateFocusIndicators: activePanel=0 panelCount=1
+2026-02-25T01:13:36Z [METAL] updateFocusIndicators: makeFirstResponder panel=0 before=Optional(<WKWebView: 0x9d0a25000>) after=Optional(<WKWebView: 0x9d0a25000>)
+2026-02-25T01:13:37Z [METAL] updateFocusIndicators: activePanel=1 panelCount=2
+2026-02-25T01:13:37Z [METAL] updateFocusIndicators: activePanel=1 panelCount=2
+2026-02-25T01:13:37Z [METAL] updateFocusIndicators: activePanel=2 panelCount=3
+2026-02-25T01:13:37Z [METAL] updateFocusIndicators: activePanel=2 panelCount=3
+2026-02-25T01:13:37Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x9d0a24800>) after=Optional(<WKWebView: 0x9d0a24800>)
+2026-02-25T01:13:37Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x9d0a24800>) after=Optional(<WKWebView: 0x9d0a24800>)
+2026-02-25T01:13:38Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0x9d0a27400>) after=Optional(<WKWebView: 0x9d0a27400>)
+2026-02-25T01:13:38Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0x9d0a27400>) after=Optional(<WKWebView: 0x9d0a27400>)
+2026-02-25T01:13:42Z [METAL] WKMessage: "asteroid" from_panel=2 activePanel=2 fullscreen=false
+2026-02-25T01:13:42Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=2 isFile=true
+2026-02-25T01:13:42Z [METAL] WKMessage: "__iframe_loaded__" from_panel=2 activePanel=2 fullscreen=true
+2026-02-25T01:14:02Z [METAL] __focus__: from_panel=1 activePanel=2 fullscreen=true fullscreenPanel=2 firstResponder=Optional(<WKWebView: 0x9d0a24800>)
+2026-02-25T01:14:02Z [METAL] updateFocusIndicators: activePanel=1 panelCount=3
+2026-02-25T01:14:03Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x9d0a24800>) after=Optional(<WKWebView: 0x9d0a24800>)
+2026-02-25T01:14:04Z [METAL] keyDown: fullscreen active but NOT on active panel — key=a going to forwardKey (chat) instead of game. isActivePanelFullscreen=false firstResponder=Optional(<WKWebView: 0x9d0a27400>)
+2026-02-25T01:14:04Z [METAL] keyDown: fullscreen active but NOT on active panel — key=s going to forwardKey (chat) instead of game. isActivePanelFullscreen=false firstResponder=Optional(<WKWebView: 0x9d0a27400>)
+2026-02-25T01:14:04Z [METAL] keyDown: fullscreen active but NOT on active panel — key=d going to forwardKey (chat) instead of game. isActivePanelFullscreen=false firstResponder=Optional(<WKWebView: 0x9d0a27400>)
+2026-02-25T01:14:04Z [METAL] keyDown: fullscreen active but NOT on active panel — key=a going to forwardKey (chat) instead of game. isActivePanelFullscreen=false firstResponder=Optional(<WKWebView: 0x9d0a27400>)
+2026-02-25T01:14:04Z [METAL] keyDown: fullscreen active but NOT on active panel — key=d going to forwardKey (chat) instead of game. isActivePanelFullscreen=false firstResponder=Optional(<WKWebView: 0x9d0a27400>)
+2026-02-25T01:14:04Z [METAL] keyDown: fullscreen active but NOT on active panel — key=s going to forwardKey (chat) instead of game. isActivePanelFullscreen=false firstResponder=Optional(<WKWebView: 0x9d0a27400>)
+2026-02-25T01:14:04Z [METAL] keyDown: fullscreen active but NOT on active panel — key=a going to forwardKey (chat) instead of game. isActivePanelFullscreen=false firstResponder=Optional(<WKWebView: 0x9d0a27400>)
+2026-02-25T01:14:05Z [METAL] __focus__: from_panel=1 activePanel=1 fullscreen=true fullscreenPanel=2 firstResponder=Optional(<WKWebView: 0x9d0a24800>)
+2026-02-25T01:14:05Z [METAL] __focus__: SKIPPED — already activePanel=1
+2026-02-25T01:14:05Z [METAL] keyDown: fullscreen active but NOT on active panel — key=d going to forwardKey (chat) instead of game. isActivePanelFullscreen=false firstResponder=Optional(<WKWebView: 0x9d0a27400>)
+2026-02-25T01:14:05Z [METAL] keyDown: fullscreen active but NOT on active panel — key=a going to forwardKey (chat) instead of game. isActivePanelFullscreen=false firstResponder=Optional(<WKWebView: 0x9d0a24800>)
+2026-02-25T01:14:06Z [METAL] keyDown: fullscreen active but NOT on active panel — key=s going to forwardKey (chat) instead of game. isActivePanelFullscreen=false firstResponder=Optional(<WKWebView: 0x9d0a24800>)
+2026-02-25T01:14:06Z [METAL] keyDown: fullscreen active but NOT on active panel — key=d going to forwardKey (chat) instead of game. isActivePanelFullscreen=false firstResponder=Optional(<WKWebView: 0x9d0a24800>)
+2026-02-25T01:14:06Z [METAL] keyDown: fullscreen active but NOT on active panel — key=a going to forwardKey (chat) instead of game. isActivePanelFullscreen=false firstResponder=Optional(<WKWebView: 0x9d0a24800>)
+2026-02-25T01:14:06Z [METAL] keyDown: fullscreen active but NOT on active panel — key=s going to forwardKey (chat) instead of game. isActivePanelFullscreen=false firstResponder=Optional(<WKWebView: 0x9d0a24800>)
+2026-02-25T01:14:06Z [METAL] __focus__: from_panel=1 activePanel=1 fullscreen=true fullscreenPanel=2 firstResponder=Optional(<WKWebView: 0x9d0a24800>)
+2026-02-25T01:14:06Z [METAL] __focus__: SKIPPED — already activePanel=1
+2026-02-25T01:14:06Z [METAL] __focus__: from_panel=1 activePanel=1 fullscreen=true fullscreenPanel=2 firstResponder=Optional(<WKWebView: 0x9d0a24800>)
+2026-02-25T01:14:06Z [METAL] __focus__: SKIPPED — already activePanel=1
+2026-02-25T01:14:07Z [METAL] keyDown: fullscreen active but NOT on active panel — key=d going to forwardKey (chat) instead of game. isActivePanelFullscreen=false firstResponder=Optional(<WKWebView: 0x9d0a27400>)
+2026-02-25T01:14:07Z [METAL] keyDown: fullscreen active but NOT on active panel — key=s going to forwardKey (chat) instead of game. isActivePanelFullscreen=false firstResponder=Optional(<WKWebView: 0x9d0a24800>)
+2026-02-25T01:14:07Z [METAL] keyDown: fullscreen active but NOT on active panel — key=a going to forwardKey (chat) instead of game. isActivePanelFullscreen=false firstResponder=Optional(<WKWebView: 0x9d0a24800>)
+2026-02-25T01:14:07Z [METAL] keyDown: fullscreen active but NOT on active panel — key=d going to forwardKey (chat) instead of game. isActivePanelFullscreen=false firstResponder=Optional(<WKWebView: 0x9d0a24800>)
+2026-02-25T01:14:07Z [METAL] keyDown: fullscreen active but NOT on active panel — key=s going to forwardKey (chat) instead of game. isActivePanelFullscreen=false firstResponder=Optional(<WKWebView: 0x9d0a24800>)
+2026-02-25T01:14:07Z [METAL] keyDown: fullscreen active but NOT on active panel — key=a going to forwardKey (chat) instead of game. isActivePanelFullscreen=false firstResponder=Optional(<WKWebView: 0x9d0a24800>)
+2026-02-25T01:14:08Z [METAL] __focus__: from_panel=1 activePanel=1 fullscreen=true fullscreenPanel=2 firstResponder=Optional(<WKWebView: 0x9d0a24800>)
+2026-02-25T01:14:08Z [METAL] __focus__: SKIPPED — already activePanel=1
+2026-02-25T01:14:08Z [METAL] keyDown: fullscreen active but NOT on active panel — key= going to forwardKey (chat) instead of game. isActivePanelFullscreen=false firstResponder=Optional(<WKWebView: 0x9d0a24800>)
+2026-02-25T01:14:08Z [METAL] keyDown: fullscreen active but NOT on active panel — key= going to forwardKey (chat) instead of game. isActivePanelFullscreen=false firstResponder=Optional(<WKWebView: 0x9d0a24800>)
+2026-02-25T01:14:09Z [METAL] keyDown: fullscreen active but NOT on active panel — key= going to forwardKey (chat) instead of game. isActivePanelFullscreen=false firstResponder=Optional(<WKWebView: 0x9d0a24800>)
+2026-02-25T01:14:09Z [METAL] keyDown: fullscreen active but NOT on active panel — key= going to forwardKey (chat) instead of game. isActivePanelFullscreen=false firstResponder=Optional(<WKWebView: 0x9d0a24800>)
+2026-02-25T01:14:09Z [METAL] WKMessage: "__escape__" from_panel=1 activePanel=1 fullscreen=true
+2026-02-25T01:14:09Z [METAL] updateFocusIndicators: activePanel=1 panelCount=2
+2026-02-25T01:14:09Z [METAL] updateFocusIndicators: activePanel=1 panelCount=2
+2026-02-25T01:17:58Z [METAL] JarvisBootup started — build v2
+2026-02-25T01:18:02Z [METAL] applicationDidBecomeActive: fullscreen=false
+2026-02-25T01:18:02Z [METAL] updateFocusIndicators: activePanel=0 panelCount=1
+2026-02-25T01:18:03Z [METAL] updateFocusIndicators: makeFirstResponder panel=0 before=Optional(<WKWebView: 0xa975fc000>) after=Optional(<WKWebView: 0xa975fc000>)
+2026-02-25T01:18:03Z [METAL] updateFocusIndicators: activePanel=1 panelCount=2
+2026-02-25T01:18:03Z [METAL] updateFocusIndicators: activePanel=1 panelCount=2
+2026-02-25T01:18:03Z [METAL] updateFocusIndicators: activePanel=2 panelCount=3
+2026-02-25T01:18:03Z [METAL] updateFocusIndicators: activePanel=2 panelCount=3
+2026-02-25T01:18:03Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0xa975fe400>) after=Optional(<WKWebView: 0xa975fe400>)
+2026-02-25T01:18:03Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0xa975fe400>) after=Optional(<WKWebView: 0xa975fe400>)
+2026-02-25T01:18:04Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0xa975fec00>) after=Optional(<WKWebView: 0xa975fec00>)
+2026-02-25T01:18:04Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0xa975fec00>) after=Optional(<WKWebView: 0xa975fec00>)
+2026-02-25T01:18:06Z [METAL] updateFocusIndicators: activePanel=3 panelCount=4
+2026-02-25T01:18:06Z [METAL] updateFocusIndicators: activePanel=3 panelCount=4
+2026-02-25T01:18:06Z [METAL] updateFocusIndicators: makeFirstResponder panel=3 before=Optional(<WKWebView: 0xa975ffc00>) after=Optional(<WKWebView: 0xa975ffc00>)
+2026-02-25T01:18:06Z [METAL] updateFocusIndicators: makeFirstResponder panel=3 before=Optional(<WKWebView: 0xa975ffc00>) after=Optional(<WKWebView: 0xa975ffc00>)
+2026-02-25T01:18:08Z [METAL] __focus__: from_panel=2 activePanel=3 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0xa975fec00>)
+2026-02-25T01:18:08Z [METAL] updateFocusIndicators: activePanel=2 panelCount=4
+2026-02-25T01:18:08Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0xa975fec00>) after=Optional(<WKWebView: 0xa975fec00>)
+2026-02-25T01:18:09Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T01:18:09Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T01:18:09Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0xa9735d800>) after=Optional(<WKWebView: 0xa9735d800>)
+2026-02-25T01:18:09Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0xa9735d800>) after=Optional(<WKWebView: 0xa9735d800>)
+2026-02-25T01:18:10Z [METAL] __focus__: from_panel=4 activePanel=4 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0xa9735d800>)
+2026-02-25T01:18:10Z [METAL] __focus__: SKIPPED — already activePanel=4
+2026-02-25T01:18:16Z [METAL] WKMessage: "asteroid" from_panel=4 activePanel=4 fullscreen=false
+2026-02-25T01:18:16Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=4 isFile=true
+2026-02-25T01:18:16Z [METAL] WKMessage: "__iframe_loaded__" from_panel=4 activePanel=4 fullscreen=true
+2026-02-25T01:18:24Z [METAL] __focus__: from_panel=2 activePanel=4 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0xa975fec00>)
+2026-02-25T01:18:24Z [METAL] updateFocusIndicators: activePanel=2 panelCount=5
+2026-02-25T01:18:24Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0xa975fec00>) after=Optional(<WKWebView: 0xa975fec00>)
+2026-02-25T01:18:26Z [METAL] __focus__: from_panel=2 activePanel=2 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0xa975fec00>)
+2026-02-25T01:18:26Z [METAL] __focus__: SKIPPED — already activePanel=2
+2026-02-25T01:18:27Z [METAL] __focus__: from_panel=2 activePanel=2 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0xa975fec00>)
+2026-02-25T01:18:27Z [METAL] __focus__: SKIPPED — already activePanel=2
+2026-02-25T01:18:28Z [METAL] __focus__: from_panel=2 activePanel=2 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0xa975fec00>)
+2026-02-25T01:18:28Z [METAL] __focus__: SKIPPED — already activePanel=2
+2026-02-25T01:18:28Z [METAL] __focus__: from_panel=2 activePanel=2 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0xa975fec00>)
+2026-02-25T01:18:28Z [METAL] __focus__: SKIPPED — already activePanel=2
+2026-02-25T01:18:29Z [METAL] __focus__: from_panel=2 activePanel=2 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0xa975fec00>)
+2026-02-25T01:18:29Z [METAL] __focus__: SKIPPED — already activePanel=2
+2026-02-25T01:18:29Z [METAL] __focus__: from_panel=2 activePanel=2 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0xa975fec00>)
+2026-02-25T01:18:29Z [METAL] __focus__: SKIPPED — already activePanel=2
+2026-02-25T01:18:29Z [METAL] __focus__: from_panel=2 activePanel=2 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0xa975fec00>)
+2026-02-25T01:18:29Z [METAL] __focus__: SKIPPED — already activePanel=2
+2026-02-25T01:18:30Z [METAL] __focus__: from_panel=2 activePanel=2 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0xa975fec00>)
+2026-02-25T01:18:30Z [METAL] __focus__: SKIPPED — already activePanel=2
+2026-02-25T01:18:31Z [METAL] keyDown: Escape → hideFullscreenIframe
+2026-02-25T01:18:31Z [METAL] hideFullscreenIframe: navigated=false panel=4
+2026-02-25T01:18:31Z [METAL] __focus__: from_panel=4 activePanel=2 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0xa9735d800>)
+2026-02-25T01:18:31Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T01:18:32Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0xa9735d800>) after=Optional(<WKWebView: 0xa9735d800>)
+2026-02-25T01:18:32Z [METAL] __focus__: from_panel=2 activePanel=4 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0xa975fec00>)
+2026-02-25T01:18:32Z [METAL] updateFocusIndicators: activePanel=2 panelCount=5
+2026-02-25T01:18:33Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0xa975fec00>) after=Optional(<WKWebView: 0xa975fec00>)
+2026-02-25T01:18:33Z [METAL] __focus__: from_panel=4 activePanel=2 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0xa9735d800>)
+2026-02-25T01:18:33Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T01:18:34Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0xa9735d800>) after=Optional(<WKWebView: 0xa9735d800>)
+2026-02-25T01:18:35Z [METAL] __focus__: from_panel=2 activePanel=4 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0xa975fec00>)
+2026-02-25T01:18:35Z [METAL] updateFocusIndicators: activePanel=2 panelCount=5
+2026-02-25T01:18:35Z [METAL] __focus__: from_panel=4 activePanel=2 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0xa9735d800>)
+2026-02-25T01:18:35Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T01:18:35Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0xa9735d800>) after=Optional(<WKWebView: 0xa975fec00>)
+2026-02-25T01:18:36Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0xa975fec00>) after=Optional(<WKWebView: 0xa9735d800>)
+2026-02-25T01:18:36Z [METAL] WKMessage: "__escape__" from_panel=4 activePanel=4 fullscreen=false
+2026-02-25T01:18:36Z [METAL] updateFocusIndicators: activePanel=3 panelCount=4
+2026-02-25T01:18:36Z [METAL] updateFocusIndicators: activePanel=3 panelCount=4
+2026-02-25T01:22:17Z [METAL] JarvisBootup started — build v2
+2026-02-25T01:22:18Z [METAL] applicationDidBecomeActive: fullscreen=false
+2026-02-25T01:22:19Z [METAL] updateFocusIndicators: activePanel=0 panelCount=1
+2026-02-25T01:22:20Z [METAL] updateFocusIndicators: makeFirstResponder panel=0 before=Optional(<WKWebView: 0x868a99000>) after=Optional(<WKWebView: 0x868a99000>)
+2026-02-25T01:22:20Z [METAL] updateFocusIndicators: activePanel=1 panelCount=2
+2026-02-25T01:22:20Z [METAL] updateFocusIndicators: activePanel=1 panelCount=2
+2026-02-25T01:22:21Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x868a99800>) after=Optional(<WKWebView: 0x868a99800>)
+2026-02-25T01:22:21Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x868a99800>) after=Optional(<WKWebView: 0x868a99800>)
+2026-02-25T01:22:21Z [METAL] updateFocusIndicators: activePanel=2 panelCount=3
+2026-02-25T01:22:21Z [METAL] updateFocusIndicators: activePanel=2 panelCount=3
+2026-02-25T01:22:21Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0x868a9b400>) after=Optional(<WKWebView: 0x868a9b400>)
+2026-02-25T01:22:21Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0x868a9b400>) after=Optional(<WKWebView: 0x868a9b400>)
+2026-02-25T01:22:21Z [METAL] updateFocusIndicators: activePanel=3 panelCount=4
+2026-02-25T01:22:21Z [METAL] updateFocusIndicators: activePanel=3 panelCount=4
+2026-02-25T01:22:22Z [METAL] updateFocusIndicators: makeFirstResponder panel=3 before=Optional(<WKWebView: 0x868a98800>) after=Optional(<WKWebView: 0x868a98800>)
+2026-02-25T01:22:22Z [METAL] updateFocusIndicators: makeFirstResponder panel=3 before=Optional(<WKWebView: 0x868a98800>) after=Optional(<WKWebView: 0x868a98800>)
+2026-02-25T01:22:22Z [METAL] __focus__: from_panel=3 activePanel=3 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x868a98800>)
+2026-02-25T01:22:22Z [METAL] __focus__: SKIPPED — already activePanel=3
+2026-02-25T01:22:24Z [METAL] WKMessage: "asteroid" from_panel=3 activePanel=3 fullscreen=false
+2026-02-25T01:22:24Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=3 isFile=true
+2026-02-25T01:22:24Z [METAL] WKMessage: "__iframe_loaded__" from_panel=3 activePanel=3 fullscreen=true
+2026-02-25T01:22:27Z [METAL] __focus__: from_panel=1 activePanel=3 fullscreen=true fullscreenPanel=3 firstResponder=Optional(<WKWebView: 0x868a99800>)
+2026-02-25T01:22:27Z [METAL] updateFocusIndicators: activePanel=1 panelCount=4
+2026-02-25T01:22:27Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x868a99800>) after=Optional(<WKWebView: 0x868a99800>)
+2026-02-25T01:22:28Z [METAL] refocusFullscreen: click on game panel 3, switching from activePanel=1
+2026-02-25T01:22:28Z [METAL] updateFocusIndicators: activePanel=3 panelCount=4
+2026-02-25T01:22:28Z [METAL] restoreGameFocus: navigated=false — injecting focus events
+2026-02-25T01:22:28Z [METAL] updateFocusIndicators: makeFirstResponder panel=3 before=Optional(<WKWebView: 0x868a98800>) after=Optional(<WKWebView: 0x868a98800>)
+2026-02-25T01:22:29Z [METAL] __focus__: from_panel=1 activePanel=3 fullscreen=true fullscreenPanel=3 firstResponder=Optional(<WKWebView: 0x868a99800>)
+2026-02-25T01:22:29Z [METAL] updateFocusIndicators: activePanel=1 panelCount=4
+2026-02-25T01:22:29Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x868a99800>) after=Optional(<WKWebView: 0x868a99800>)
+2026-02-25T01:22:30Z [METAL] refocusFullscreen: click on game panel 3, switching from activePanel=1
+2026-02-25T01:22:30Z [METAL] updateFocusIndicators: activePanel=3 panelCount=4
+2026-02-25T01:22:30Z [METAL] restoreGameFocus: navigated=false — injecting focus events
+2026-02-25T01:22:30Z [METAL] updateFocusIndicators: makeFirstResponder panel=3 before=Optional(<WKWebView: 0x868a98800>) after=Optional(<WKWebView: 0x868a98800>)
+2026-02-25T01:22:31Z [METAL] __focus__: from_panel=1 activePanel=3 fullscreen=true fullscreenPanel=3 firstResponder=Optional(<WKWebView: 0x868a99800>)
+2026-02-25T01:22:31Z [METAL] updateFocusIndicators: activePanel=1 panelCount=4
+2026-02-25T01:22:32Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x868a99800>) after=Optional(<WKWebView: 0x868a99800>)
+2026-02-25T01:22:33Z [METAL] refocusFullscreen: click on game panel 3, switching from activePanel=1
+2026-02-25T01:22:33Z [METAL] updateFocusIndicators: activePanel=3 panelCount=4
+2026-02-25T01:22:33Z [METAL] restoreGameFocus: navigated=false — injecting focus events
+2026-02-25T01:22:34Z [METAL] updateFocusIndicators: makeFirstResponder panel=3 before=Optional(<WKWebView: 0x868a98800>) after=Optional(<WKWebView: 0x868a98800>)
+2026-02-25T01:22:45Z [METAL] __focus__: from_panel=1 activePanel=3 fullscreen=true fullscreenPanel=3 firstResponder=Optional(<WKWebView: 0x868a99800>)
+2026-02-25T01:22:45Z [METAL] updateFocusIndicators: activePanel=1 panelCount=4
+2026-02-25T01:22:45Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x868a99800>) after=Optional(<WKWebView: 0x868a99800>)
+2026-02-25T01:23:03Z [METAL] refocusFullscreen: click on game panel 3, switching from activePanel=1
+2026-02-25T01:23:03Z [METAL] updateFocusIndicators: activePanel=3 panelCount=4
+2026-02-25T01:23:03Z [METAL] restoreGameFocus: navigated=false — injecting focus events
+2026-02-25T01:23:03Z [METAL] updateFocusIndicators: makeFirstResponder panel=3 before=Optional(<WKWebView: 0x868a98800>) after=Optional(<WKWebView: 0x868a98800>)
+2026-02-25T01:23:05Z [METAL] __focus__: from_panel=1 activePanel=3 fullscreen=true fullscreenPanel=3 firstResponder=Optional(<WKWebView: 0x868a99800>)
+2026-02-25T01:23:05Z [METAL] updateFocusIndicators: activePanel=1 panelCount=4
+2026-02-25T01:23:06Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x868a99800>) after=Optional(<WKWebView: 0x868a99800>)
+2026-02-25T01:23:06Z [METAL] refocusFullscreen: click on game panel 3, switching from activePanel=1
+2026-02-25T01:23:06Z [METAL] updateFocusIndicators: activePanel=3 panelCount=4
+2026-02-25T01:23:06Z [METAL] restoreGameFocus: navigated=false — injecting focus events
+2026-02-25T01:23:06Z [METAL] updateFocusIndicators: makeFirstResponder panel=3 before=Optional(<WKWebView: 0x868a98800>) after=Optional(<WKWebView: 0x868a98800>)
+2026-02-25T01:23:10Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T01:23:10Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T01:23:10Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0x868ea0000>) after=Optional(<WKWebView: 0x868ea0000>)
+2026-02-25T01:23:10Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0x868ea0000>) after=Optional(<WKWebView: 0x868ea0000>)
+2026-02-25T01:23:11Z [METAL] refocusFullscreen: click on game panel 3, switching from activePanel=4
+2026-02-25T01:23:11Z [METAL] updateFocusIndicators: activePanel=3 panelCount=5
+2026-02-25T01:23:11Z [METAL] restoreGameFocus: navigated=false — injecting focus events
+2026-02-25T01:23:11Z [METAL] updateFocusIndicators: makeFirstResponder panel=3 before=Optional(<WKWebView: 0x868a98800>) after=Optional(<WKWebView: 0x868a98800>)
+2026-02-25T01:23:11Z [METAL] keyDown: Escape → hideFullscreenIframe
+2026-02-25T01:23:11Z [METAL] hideFullscreenIframe: navigated=false panel=3
+2026-02-25T01:23:12Z [METAL] __focus__: from_panel=4 activePanel=3 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x868ea0000>)
+2026-02-25T01:23:12Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T01:23:12Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0x868ea0000>) after=Optional(<WKWebView: 0x868ea0000>)
+2026-02-25T01:23:14Z [METAL] WKMessage: "kart" from_panel=4 activePanel=4 fullscreen=false
+2026-02-25T01:23:14Z [METAL] showFullscreenIframe: url=https://kartbros.io panel=4 isFile=false
+2026-02-25T01:23:14Z [METAL] showFullscreenIframe: navigating WKWebView to https://kartbros.io
+2026-02-25T01:23:25Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:23:26Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=D
+2026-02-25T01:23:26Z [METAL] forwardKeyToNavigated: keydown keyCode=16 char=Y
+2026-02-25T01:23:27Z [METAL] __focus__: from_panel=1 activePanel=4 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0x868a99800>)
+2026-02-25T01:23:27Z [METAL] updateFocusIndicators: activePanel=1 panelCount=5
+2026-02-25T01:23:28Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x868a99800>) after=Optional(<WKWebView: 0x868a99800>)
+2026-02-25T01:23:29Z [METAL] refocusFullscreen: click on game panel 4, switching from activePanel=1
+2026-02-25T01:23:29Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T01:23:29Z [METAL] restoreGameFocus: navigated=true — injecting focus events
+2026-02-25T01:23:29Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0x868ea0000>) after=Optional(<WKWebView: 0x868ea0000>)
+2026-02-25T01:23:29Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:23:29Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:23:30Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:23:30Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=D
+2026-02-25T01:23:30Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=D
+2026-02-25T01:23:31Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:23:31Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:23:31Z [METAL] forwardKeyToNavigated: keydown keyCode=1 char=s
+2026-02-25T01:23:31Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:23:31Z [METAL] forwardKeyToNavigated: keydown keyCode=1 char=s
+2026-02-25T01:23:31Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:23:51Z [METAL] applicationDidBecomeActive: fullscreen=true
+2026-02-25T01:23:51Z [METAL] applicationDidBecomeActive: restoring game focus
+2026-02-25T01:23:51Z [METAL] restoreGameFocus: navigated=true — injecting focus events
+2026-02-25T01:24:28Z [METAL] applicationDidBecomeActive: fullscreen=true
+2026-02-25T01:24:28Z [METAL] applicationDidBecomeActive: restoring game focus
+2026-02-25T01:24:28Z [METAL] restoreGameFocus: navigated=true — injecting focus events
+2026-02-25T01:24:45Z [METAL] applicationDidBecomeActive: fullscreen=true
+2026-02-25T01:24:45Z [METAL] applicationDidBecomeActive: restoring game focus
+2026-02-25T01:24:45Z [METAL] restoreGameFocus: navigated=true — injecting focus events
+2026-02-25T01:24:54Z [METAL] __focus__: from_panel=1 activePanel=4 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0x868a99800>)
+2026-02-25T01:24:54Z [METAL] updateFocusIndicators: activePanel=1 panelCount=5
+2026-02-25T01:24:54Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x868a99800>) after=Optional(<WKWebView: 0x868a99800>)
+2026-02-25T01:24:54Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T01:24:54Z [METAL] __focus__: from_panel=2 activePanel=1 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0x868a9b400>)
+2026-02-25T01:24:54Z [METAL] updateFocusIndicators: activePanel=2 panelCount=5
+2026-02-25T01:24:55Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0x868a9b400>) after=Optional(<WKWebView: 0x868a9b400>)
+2026-02-25T01:25:02Z [METAL] WKMessage: "open localhost:3000/app" from_panel=2 activePanel=2 fullscreen=true
+2026-02-25T01:25:09Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T01:25:16Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T01:25:16Z [METAL] __focus__: from_panel=1 activePanel=2 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0x868a99800>)
+2026-02-25T01:25:16Z [METAL] updateFocusIndicators: activePanel=1 panelCount=5
+2026-02-25T01:25:17Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x868a99800>) after=Optional(<WKWebView: 0x868a99800>)
+2026-02-25T01:25:29Z [METAL] WKMessage: "in jarvis i should be able to resize the panels on the sides" from_panel=1 activePanel=1 fullscreen=true
+2026-02-25T01:25:33Z [METAL] refocusFullscreen: click on game panel 4, switching from activePanel=1
+2026-02-25T01:25:33Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T01:25:33Z [METAL] restoreGameFocus: navigated=true — injecting focus events
+2026-02-25T01:25:33Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0x868ea0000>) after=Optional(<WKWebView: 0x868ea0000>)
+2026-02-25T01:25:41Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:25:44Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:25:44Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:25:46Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:25:48Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:25:49Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:25:49Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:25:50Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:25:50Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:25:51Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:25:51Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:25:52Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:25:52Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:25:52Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:25:52Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:25:53Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:25:53Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:25:54Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:25:54Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:25:55Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:25:55Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:25:56Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:25:56Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:25:56Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:25:57Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:25:57Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:25:58Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:25:58Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:25:58Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:25:58Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:25:59Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:25:59Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:26:00Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:26:00Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:26:00Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:26:00Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:26:01Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:26:01Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:26:01Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:26:01Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:26:01Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:26:01Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:26:01Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:26:01Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:26:01Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:26:01Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:26:01Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:26:02Z [METAL] forwardKeyToNavigated: keydown keyCode=49 char= 
+2026-02-25T01:26:02Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:26:02Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:03Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:03Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:03Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:03Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:04Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:26:04Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:06Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:26:07Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:07Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:08Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:08Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:09Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:10Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:10Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:12Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:12Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:12Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:13Z [METAL] forwardKeyToNavigated: keydown keyCode=49 char= 
+2026-02-25T01:26:13Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:26:14Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:26:14Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:26:14Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:26:14Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:15Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:26:15Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:26:16Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:16Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:17Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:18Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:26:18Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:18Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:19Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:19Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:26:20Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:20Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:26:20Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:26:21Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:21Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:22Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:22Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:22Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:26:22Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:26:23Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:24Z [METAL] forwardKeyToNavigated: keydown keyCode=49 char= 
+2026-02-25T01:26:24Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:24Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:24Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:24Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:25Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:26:25Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:26Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:26:26Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:26:27Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:26:27Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:26:27Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:26:27Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:26:28Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:26:28Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:26:28Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:26:28Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:26:28Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:26:29Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:29Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:26:30Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:30Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:30Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:26:31Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:26:31Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:26:31Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:26:31Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:26:31Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:26:31Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:26:31Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:26:31Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:32Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:32Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:34Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:34Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:35Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:26:35Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:36Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:36Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:26:37Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:37Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:38Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:39Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:40Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:41Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:26:41Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:26:41Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:26:41Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:26:41Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:26:42Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:42Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:26:43Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:26:43Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:44Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:44Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:44Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:46Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:47Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:26:47Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:48Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:48Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:49Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:26:50Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:50Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:50Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:50Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:51Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:52Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:52Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:52Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:52Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:52Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:52Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:53Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:26:53Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:26:53Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:26:53Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:26:53Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:26:53Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:26:54Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:26:54Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:26:54Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:26:54Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:26:54Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:55Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:26:56Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:26:56Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:26:56Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:26:57Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:26:57Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:26:57Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:26:58Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:26:58Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:26:59Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:27:00Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:27:00Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:27:01Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:27:01Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:27:01Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:27:02Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:27:02Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:27:02Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:27:03Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:27:03Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:27:05Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:27:05Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:27:05Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:27:06Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:27:06Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:27:07Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:27:07Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:27:07Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:27:08Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:27:09Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:27:09Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:27:10Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:27:10Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:27:10Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:27:10Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:27:12Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:27:13Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:00Z [METAL] __focus__: from_panel=1 activePanel=4 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0x868a99800>)
+2026-02-25T01:28:00Z [METAL] updateFocusIndicators: activePanel=1 panelCount=5
+2026-02-25T01:28:00Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x868a99800>) after=Optional(<WKWebView: 0x868a99800>)
+2026-02-25T01:28:02Z [METAL] WKMessage: "how goes it" from_panel=1 activePanel=1 fullscreen=true
+2026-02-25T01:28:12Z [METAL] refocusFullscreen: click on game panel 4, switching from activePanel=1
+2026-02-25T01:28:12Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T01:28:12Z [METAL] restoreGameFocus: navigated=true — injecting focus events
+2026-02-25T01:28:13Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0x868ea0000>) after=Optional(<WKWebView: 0x868ea0000>)
+2026-02-25T01:28:17Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:17Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:28:18Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:28:18Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:28:18Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:28:18Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:28:21Z [METAL] __focus__: from_panel=1 activePanel=4 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0x868a99800>)
+2026-02-25T01:28:21Z [METAL] updateFocusIndicators: activePanel=1 panelCount=5
+2026-02-25T01:28:22Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x868a99800>) after=Optional(<WKWebView: 0x868a99800>)
+2026-02-25T01:28:23Z [METAL] refocusFullscreen: click on game panel 4, switching from activePanel=1
+2026-02-25T01:28:23Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T01:28:23Z [METAL] restoreGameFocus: navigated=true — injecting focus events
+2026-02-25T01:28:24Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0x868ea0000>) after=Optional(<WKWebView: 0x868ea0000>)
+2026-02-25T01:28:25Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:28:27Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:28:28Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:28:28Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:28Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:28Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:30Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:30Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:31Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:28:31Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:32Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:32Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:28:33Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:33Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:34Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:28:34Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:35Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:28:35Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:36Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:37Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:28:37Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:38Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:39Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:41Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:42Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:42Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:42Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:42Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:42Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:43Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:43Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:44Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:44Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:44Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:45Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:45Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:45Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:46Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:46Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:47Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:47Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:28:49Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:50Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:28:50Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:28:50Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:28:51Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:28:52Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:28:52Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:52Z [METAL] forwardKeyToNavigated: keydown keyCode=49 char= 
+2026-02-25T01:28:53Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:53Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:54Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:54Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:54Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:54Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:54Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:54Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:55Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:28:55Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:56Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:57Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:57Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:58Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:28:58Z [METAL] forwardKeyToNavigated: keydown keyCode=49 char= 
+2026-02-25T01:28:58Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:28:59Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:28:59Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:00Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:29:00Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:01Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:01Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:02Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:29:03Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:29:03Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:04Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:04Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:05Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:06Z [METAL] forwardKeyToNavigated: keydown keyCode=49 char= 
+2026-02-25T01:29:06Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:29:06Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:07Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:07Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:08Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:29:08Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:09Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:09Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:10Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:11Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:12Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:14Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:14Z [METAL] forwardKeyToNavigated: keydown keyCode=49 char= 
+2026-02-25T01:29:14Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:15Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:16Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:29:16Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:29:17Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:18Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:19Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:19Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:29:20Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:29:20Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:29:20Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:29:20Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:29:20Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:29:20Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:29:20Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:29:20Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:29:21Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:29:21Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:29:21Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:22Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:22Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:29:23Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:29:23Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:29:23Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:29:23Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:29:23Z [METAL] forwardKeyToNavigated: keydown keyCode=49 char= 
+2026-02-25T01:29:24Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:29:24Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:24Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:25Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:25Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:26Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:29:26Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:26Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:27Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:27Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:29:28Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:28Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:29Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:29Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:29:30Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:30Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:30Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:31Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:29:31Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:32Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:32Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:32Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:29:33Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:33Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:33Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:29:35Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:36Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:37Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:29:38Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:39Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:39Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:29:40Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:40Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:40Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:40Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:40Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:41Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:41Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:41Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:41Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:29:41Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:29:42Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:43Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:44Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:45Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:29:45Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:45Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:45Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:29:46Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:29:46Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:29:46Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:29:46Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:29:46Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:29:47Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:47Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:29:48Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:29:48Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:29:48Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:29:48Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:29:48Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:29:49Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:29:49Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:29:49Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:29:49Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:49Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:50Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:50Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:50Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:50Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:50Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:50Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:50Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:50Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:50Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:50Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:50Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:51Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:51Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:51Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:51Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:51Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:51Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:51Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:51Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:51Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:51Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:51Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:51Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:52Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:52Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:52Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:52Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:52Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:52Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:53Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:29:53Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:29:53Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:29:54Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:29:54Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:29:54Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:29:54Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:29:54Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:29:54Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:29:54Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:29:54Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:29:54Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:29:54Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:29:54Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:29:54Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:29:54Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:29:55Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T01:29:55Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:29:55Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:55Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:56Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:56Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:56Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:29:58Z [METAL] forwardKeyToNavigated: keydown keyCode=49 char= 
+2026-02-25T01:29:58Z [METAL] forwardKeyToNavigated: keydown keyCode=49 char= 
+2026-02-25T01:29:58Z [METAL] forwardKeyToNavigated: keydown keyCode=49 char= 
+2026-02-25T01:29:58Z [METAL] forwardKeyToNavigated: keydown keyCode=49 char= 
+2026-02-25T01:29:58Z [METAL] forwardKeyToNavigated: keydown keyCode=49 char= 
+2026-02-25T01:29:58Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:29:58Z [METAL] forwardKeyToNavigated: keydown keyCode=49 char= 
+2026-02-25T01:29:58Z [METAL] forwardKeyToNavigated: keydown keyCode=49 char= 
+2026-02-25T01:29:59Z [METAL] forwardKeyToNavigated: keydown keyCode=49 char= 
+2026-02-25T01:29:59Z [METAL] forwardKeyToNavigated: keydown keyCode=49 char= 
+2026-02-25T01:29:59Z [METAL] forwardKeyToNavigated: keydown keyCode=49 char= 
+2026-02-25T01:29:59Z [METAL] forwardKeyToNavigated: keydown keyCode=49 char= 
+2026-02-25T01:29:59Z [METAL] forwardKeyToNavigated: keydown keyCode=49 char= 
+2026-02-25T01:29:59Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:30:00Z [METAL] forwardKeyToNavigated: keydown keyCode=49 char= 
+2026-02-25T01:30:00Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:30:03Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:30:03Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:30:04Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:30:04Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:30:04Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:30:05Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T01:30:06Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T01:30:18Z [METAL] __focus__: from_panel=1 activePanel=4 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0x868a99800>)
+2026-02-25T01:30:18Z [METAL] updateFocusIndicators: activePanel=1 panelCount=5
+2026-02-25T01:30:19Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x868a99800>) after=Optional(<WKWebView: 0x868a99800>)
+2026-02-25T01:30:27Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T01:30:27Z [METAL] __focus__: from_panel=1 activePanel=1 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0x868a99800>)
+2026-02-25T01:30:27Z [METAL] __focus__: SKIPPED — already activePanel=1
+2026-02-25T01:30:27Z [METAL] WKMessage: "__escape__" from_panel=1 activePanel=1 fullscreen=true
+2026-02-25T01:30:27Z [METAL] updateFocusIndicators: activePanel=1 panelCount=4
+2026-02-25T01:30:27Z [METAL] updateFocusIndicators: activePanel=1 panelCount=4
+2026-02-25T01:30:39Z [METAL] JarvisBootup started — build v2
+2026-02-25T01:30:40Z [METAL] applicationDidBecomeActive: fullscreen=false
+2026-02-25T01:30:41Z [METAL] updateFocusIndicators: activePanel=0 panelCount=1
+2026-02-25T01:30:41Z [METAL] __focus__: from_panel=0 activePanel=0 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7cf6a4000>)
+2026-02-25T01:30:41Z [METAL] __focus__: SKIPPED — already activePanel=0
+2026-02-25T01:30:41Z [METAL] updateFocusIndicators: makeFirstResponder panel=0 before=Optional(<WKWebView: 0x7cf6a4000>) after=Optional(<WKWebView: 0x7cf6a4000>)
+2026-02-25T01:30:42Z [METAL] updateFocusIndicators: activePanel=1 panelCount=2
+2026-02-25T01:30:42Z [METAL] updateFocusIndicators: activePanel=1 panelCount=2
+2026-02-25T01:30:42Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x7cf6a7000>) after=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:30:42Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x7cf6a7000>) after=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:30:42Z [METAL] updateFocusIndicators: activePanel=2 panelCount=3
+2026-02-25T01:30:42Z [METAL] updateFocusIndicators: activePanel=2 panelCount=3
+2026-02-25T01:30:43Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0x7cf6a7c00>) after=Optional(<WKWebView: 0x7cf6a7c00>)
+2026-02-25T01:30:43Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0x7cf6a7c00>) after=Optional(<WKWebView: 0x7cf6a7c00>)
+2026-02-25T01:30:43Z [METAL] updateFocusIndicators: activePanel=3 panelCount=4
+2026-02-25T01:30:43Z [METAL] updateFocusIndicators: activePanel=3 panelCount=4
+2026-02-25T01:30:43Z [METAL] updateFocusIndicators: makeFirstResponder panel=3 before=Optional(<WKWebView: 0x7d01d4800>) after=Optional(<WKWebView: 0x7d01d4800>)
+2026-02-25T01:30:43Z [METAL] updateFocusIndicators: makeFirstResponder panel=3 before=Optional(<WKWebView: 0x7d01d4800>) after=Optional(<WKWebView: 0x7d01d4800>)
+2026-02-25T01:30:43Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T01:30:43Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T01:30:44Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0x7d01d5800>) after=Optional(<WKWebView: 0x7d01d5800>)
+2026-02-25T01:30:44Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0x7d01d5800>) after=Optional(<WKWebView: 0x7d01d5800>)
+2026-02-25T01:30:44Z [METAL] __focus__: from_panel=2 activePanel=4 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7cf6a7c00>)
+2026-02-25T01:30:44Z [METAL] updateFocusIndicators: activePanel=2 panelCount=5
+2026-02-25T01:30:45Z [METAL] __focus__: from_panel=2 activePanel=2 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7cf6a7c00>)
+2026-02-25T01:30:45Z [METAL] __focus__: SKIPPED — already activePanel=2
+2026-02-25T01:30:45Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0x7cf6a7c00>) after=Optional(<WKWebView: 0x7cf6a7c00>)
+2026-02-25T01:30:47Z [METAL] __focus__: from_panel=2 activePanel=2 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7cf6a7c00>)
+2026-02-25T01:30:47Z [METAL] __focus__: SKIPPED — already activePanel=2
+2026-02-25T01:30:48Z [METAL] __focus__: from_panel=2 activePanel=2 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7cf6a7c00>)
+2026-02-25T01:30:48Z [METAL] __focus__: SKIPPED — already activePanel=2
+2026-02-25T01:30:48Z [METAL] __focus__: from_panel=1 activePanel=2 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:30:48Z [METAL] updateFocusIndicators: activePanel=1 panelCount=5
+2026-02-25T01:30:49Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x7cf6a7c00>) after=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:30:49Z [METAL] __focus__: from_panel=2 activePanel=1 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:30:49Z [METAL] updateFocusIndicators: activePanel=2 panelCount=5
+2026-02-25T01:30:49Z [METAL] __focus__: from_panel=4 activePanel=2 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7d01d5800>)
+2026-02-25T01:30:49Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T01:30:49Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0x7cf6a7c00>) after=Optional(<WKWebView: 0x7cf6a7c00>)
+2026-02-25T01:30:49Z [METAL] __focus__: from_panel=2 activePanel=4 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7cf6a7c00>)
+2026-02-25T01:30:49Z [METAL] updateFocusIndicators: activePanel=2 panelCount=5
+2026-02-25T01:30:50Z [METAL] __focus__: from_panel=4 activePanel=2 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7d01d5800>)
+2026-02-25T01:30:50Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T01:30:50Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0x7d01d5800>) after=Optional(<WKWebView: 0x7d01d5800>)
+2026-02-25T01:30:50Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0x7d01d5800>) after=Optional(<WKWebView: 0x7cf6a7c00>)
+2026-02-25T01:30:50Z [METAL] __focus__: from_panel=1 activePanel=4 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:30:50Z [METAL] updateFocusIndicators: activePanel=1 panelCount=5
+2026-02-25T01:30:50Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0x7cf6a7000>) after=Optional(<WKWebView: 0x7d01d5800>)
+2026-02-25T01:30:50Z [METAL] __focus__: from_panel=2 activePanel=1 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7cf6a7c00>)
+2026-02-25T01:30:50Z [METAL] updateFocusIndicators: activePanel=2 panelCount=5
+2026-02-25T01:30:51Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x7cf6a7c00>) after=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:30:51Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0x7cf6a7000>) after=Optional(<WKWebView: 0x7cf6a7c00>)
+2026-02-25T01:30:51Z [METAL] __focus__: from_panel=4 activePanel=2 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7d01d5800>)
+2026-02-25T01:30:51Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T01:30:51Z [METAL] __focus__: from_panel=2 activePanel=4 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7cf6a7c00>)
+2026-02-25T01:30:51Z [METAL] updateFocusIndicators: activePanel=2 panelCount=5
+2026-02-25T01:30:51Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0x7cf6a7c00>) after=Optional(<WKWebView: 0x7d01d5800>)
+2026-02-25T01:30:51Z [METAL] __focus__: from_panel=4 activePanel=2 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7d01d5800>)
+2026-02-25T01:30:51Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T01:30:52Z [METAL] __focus__: from_panel=1 activePanel=4 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:30:52Z [METAL] updateFocusIndicators: activePanel=1 panelCount=5
+2026-02-25T01:30:52Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0x7cf6a7000>) after=Optional(<WKWebView: 0x7cf6a7c00>)
+2026-02-25T01:30:52Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0x7cf6a7c00>) after=Optional(<WKWebView: 0x7d01d5800>)
+2026-02-25T01:30:52Z [METAL] __focus__: from_panel=2 activePanel=1 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7cf6a7c00>)
+2026-02-25T01:30:52Z [METAL] updateFocusIndicators: activePanel=2 panelCount=5
+2026-02-25T01:30:52Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x7cf6a7c00>) after=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:30:52Z [METAL] __focus__: from_panel=4 activePanel=2 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7d01d5800>)
+2026-02-25T01:30:52Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T01:30:53Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0x7cf6a7000>) after=Optional(<WKWebView: 0x7cf6a7c00>)
+2026-02-25T01:30:53Z [METAL] __focus__: from_panel=1 activePanel=4 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7cf6a7c00>)
+2026-02-25T01:30:53Z [METAL] updateFocusIndicators: activePanel=1 panelCount=5
+2026-02-25T01:30:53Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0x7cf6a7000>) after=Optional(<WKWebView: 0x7d01d5800>)
+2026-02-25T01:30:53Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x7d01d5800>) after=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:30:53Z [METAL] __focus__: from_panel=4 activePanel=1 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7d01d5800>)
+2026-02-25T01:30:53Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T01:30:54Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0x7d01d5800>) after=Optional(<WKWebView: 0x7d01d5800>)
+2026-02-25T01:30:54Z [METAL] __focus__: from_panel=4 activePanel=4 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7d01d5800>)
+2026-02-25T01:30:54Z [METAL] __focus__: SKIPPED — already activePanel=4
+2026-02-25T01:30:55Z [METAL] __focus__: from_panel=2 activePanel=4 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7cf6a7c00>)
+2026-02-25T01:30:55Z [METAL] updateFocusIndicators: activePanel=2 panelCount=5
+2026-02-25T01:30:55Z [METAL] __focus__: from_panel=1 activePanel=2 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:30:55Z [METAL] updateFocusIndicators: activePanel=1 panelCount=5
+2026-02-25T01:30:55Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0x7cf6a7000>) after=Optional(<WKWebView: 0x7cf6a7c00>)
+2026-02-25T01:30:56Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x7cf6a7c00>) after=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:31:05Z [METAL] WKMessage: "currently I cannot resize the panels in jarvis why" from_panel=1 activePanel=1 fullscreen=false
+2026-02-25T01:31:06Z [METAL] __focus__: from_panel=2 activePanel=1 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7cf6a7c00>)
+2026-02-25T01:31:06Z [METAL] updateFocusIndicators: activePanel=2 panelCount=5
+2026-02-25T01:31:06Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0x7cf6a7c00>) after=Optional(<WKWebView: 0x7cf6a7c00>)
+2026-02-25T01:31:10Z [METAL] WKMessage: "open localhost:3000" from_panel=2 activePanel=2 fullscreen=false
+2026-02-25T01:31:30Z [METAL] __focus__: from_panel=1 activePanel=2 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:31:30Z [METAL] updateFocusIndicators: activePanel=1 panelCount=5
+2026-02-25T01:31:31Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x7cf6a7000>) after=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:31:31Z [METAL] __focus__: from_panel=4 activePanel=1 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7d01d5800>)
+2026-02-25T01:31:31Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T01:31:32Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0x7d01d5800>) after=Optional(<WKWebView: 0x7d01d5800>)
+2026-02-25T01:31:35Z [METAL] WKMessage: "tetris" from_panel=4 activePanel=4 fullscreen=false
+2026-02-25T01:31:35Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/tetris.html panel=4 isFile=true
+2026-02-25T01:31:35Z [METAL] WKMessage: "__iframe_loaded__" from_panel=4 activePanel=4 fullscreen=true
+2026-02-25T01:31:41Z [METAL] keyDown: Escape → hideFullscreenIframe
+2026-02-25T01:31:41Z [METAL] hideFullscreenIframe: navigated=false panel=4
+2026-02-25T01:31:41Z [METAL] __focus__: from_panel=4 activePanel=4 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7d01d5800>)
+2026-02-25T01:31:41Z [METAL] __focus__: SKIPPED — already activePanel=4
+2026-02-25T01:31:46Z [METAL] WKMessage: "doodlejump" from_panel=4 activePanel=4 fullscreen=false
+2026-02-25T01:31:46Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/doodlejump.html panel=4 isFile=true
+2026-02-25T01:31:46Z [METAL] WKMessage: "__iframe_loaded__" from_panel=4 activePanel=4 fullscreen=true
+2026-02-25T01:32:44Z [METAL] keyDown: Escape → hideFullscreenIframe
+2026-02-25T01:32:44Z [METAL] hideFullscreenIframe: navigated=false panel=4
+2026-02-25T01:32:45Z [METAL] __focus__: from_panel=4 activePanel=4 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7d01d5800>)
+2026-02-25T01:32:45Z [METAL] __focus__: SKIPPED — already activePanel=4
+2026-02-25T01:32:45Z [METAL] __focus__: from_panel=4 activePanel=4 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7d01d5800>)
+2026-02-25T01:32:45Z [METAL] __focus__: SKIPPED — already activePanel=4
+2026-02-25T01:32:51Z [METAL] __focus__: from_panel=1 activePanel=4 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:32:51Z [METAL] updateFocusIndicators: activePanel=1 panelCount=5
+2026-02-25T01:32:51Z [METAL] __focus__: from_panel=1 activePanel=1 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:32:51Z [METAL] __focus__: SKIPPED — already activePanel=1
+2026-02-25T01:32:51Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x7cf6a7000>) after=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:32:54Z [METAL] WKMessage: "cool is it fixed" from_panel=1 activePanel=1 fullscreen=false
+2026-02-25T01:33:18Z [METAL] __focus__: from_panel=2 activePanel=1 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7cf6a7c00>)
+2026-02-25T01:33:18Z [METAL] updateFocusIndicators: activePanel=2 panelCount=5
+2026-02-25T01:33:19Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0x7cf6a7c00>) after=Optional(<WKWebView: 0x7cf6a7c00>)
+2026-02-25T01:33:22Z [METAL] __focus__: from_panel=1 activePanel=2 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:33:22Z [METAL] updateFocusIndicators: activePanel=1 panelCount=5
+2026-02-25T01:33:22Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x7cf6a7000>) after=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:33:29Z [METAL] __focus__: from_panel=1 activePanel=1 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:33:29Z [METAL] __focus__: SKIPPED — already activePanel=1
+2026-02-25T01:34:17Z [METAL] applicationDidBecomeActive: fullscreen=false
+2026-02-25T01:34:18Z [METAL] __focus__: from_panel=1 activePanel=1 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:34:18Z [METAL] __focus__: SKIPPED — already activePanel=1
+2026-02-25T01:34:19Z [METAL] __focus__: from_panel=1 activePanel=1 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:34:19Z [METAL] __focus__: SKIPPED — already activePanel=1
+2026-02-25T01:34:22Z [METAL] WKMessage: "how goes it" from_panel=1 activePanel=1 fullscreen=false
+2026-02-25T01:34:55Z [METAL] __focus__: from_panel=1 activePanel=1 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:34:55Z [METAL] __focus__: SKIPPED — already activePanel=1
+2026-02-25T01:34:58Z [METAL] __focus__: from_panel=1 activePanel=1 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:34:58Z [METAL] __focus__: SKIPPED — already activePanel=1
+2026-02-25T01:35:01Z [METAL] __focus__: from_panel=1 activePanel=1 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:35:01Z [METAL] __focus__: SKIPPED — already activePanel=1
+2026-02-25T01:35:02Z [METAL] __focus__: from_panel=1 activePanel=1 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:35:02Z [METAL] __focus__: SKIPPED — already activePanel=1
+2026-02-25T01:35:02Z [METAL] __focus__: from_panel=1 activePanel=1 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:35:02Z [METAL] __focus__: SKIPPED — already activePanel=1
+2026-02-25T01:35:02Z [METAL] __focus__: from_panel=1 activePanel=1 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:35:02Z [METAL] __focus__: SKIPPED — already activePanel=1
+2026-02-25T01:35:02Z [METAL] __focus__: from_panel=1 activePanel=1 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:35:02Z [METAL] __focus__: SKIPPED — already activePanel=1
+2026-02-25T01:35:03Z [METAL] __focus__: from_panel=1 activePanel=1 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:35:03Z [METAL] __focus__: SKIPPED — already activePanel=1
+2026-02-25T01:35:04Z [METAL] __focus__: from_panel=0 activePanel=1 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7cf6a4000>)
+2026-02-25T01:35:04Z [METAL] updateFocusIndicators: activePanel=0 panelCount=5
+2026-02-25T01:35:04Z [METAL] updateFocusIndicators: makeFirstResponder panel=0 before=Optional(<WKWebView: 0x7cf6a4000>) after=Optional(<WKWebView: 0x7cf6a4000>)
+2026-02-25T01:35:27Z [METAL] WKMessage: "[ AI Bench 2 ] so lets rename this in jarvis - this is Opus " from_panel=0 activePanel=0 fullscreen=false
+2026-02-25T01:35:35Z [METAL] __focus__: from_panel=0 activePanel=0 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7cf6a4000>)
+2026-02-25T01:35:35Z [METAL] __focus__: SKIPPED — already activePanel=0
+2026-02-25T01:35:39Z [METAL] __focus__: from_panel=1 activePanel=0 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:35:39Z [METAL] updateFocusIndicators: activePanel=1 panelCount=5
+2026-02-25T01:35:40Z [METAL] __focus__: from_panel=1 activePanel=1 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:35:40Z [METAL] __focus__: SKIPPED — already activePanel=1
+2026-02-25T01:35:40Z [METAL] __focus__: from_panel=1 activePanel=1 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:35:40Z [METAL] __focus__: SKIPPED — already activePanel=1
+2026-02-25T01:35:40Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x7cf6a7000>) after=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:35:40Z [METAL] __focus__: from_panel=4 activePanel=1 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x7d01d5800>)
+2026-02-25T01:35:40Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T01:35:41Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0x7d01d5800>) after=Optional(<WKWebView: 0x7d01d5800>)
+2026-02-25T01:35:42Z [METAL] WKMessage: "asteroid" from_panel=4 activePanel=4 fullscreen=false
+2026-02-25T01:35:42Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=4 isFile=true
+2026-02-25T01:35:42Z [METAL] WKMessage: "__iframe_loaded__" from_panel=4 activePanel=4 fullscreen=true
+2026-02-25T01:37:23Z [METAL] __focus__: from_panel=1 activePanel=4 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:37:23Z [METAL] updateFocusIndicators: activePanel=1 panelCount=5
+2026-02-25T01:37:23Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x7cf6a7000>) after=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:37:28Z [METAL] refocusFullscreen: click on game panel 4, switching from activePanel=1
+2026-02-25T01:37:28Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T01:37:28Z [METAL] restoreGameFocus: navigated=false — injecting focus events
+2026-02-25T01:37:28Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0x7d01d5800>) after=Optional(<WKWebView: 0x7d01d5800>)
+2026-02-25T01:37:29Z [METAL] __focus__: from_panel=1 activePanel=4 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:37:29Z [METAL] updateFocusIndicators: activePanel=1 panelCount=5
+2026-02-25T01:37:30Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x7cf6a7000>) after=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:37:32Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T01:37:32Z [METAL] __focus__: from_panel=3 activePanel=1 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0x7d01d4800>)
+2026-02-25T01:37:32Z [METAL] updateFocusIndicators: activePanel=3 panelCount=5
+2026-02-25T01:37:32Z [METAL] updateFocusIndicators: makeFirstResponder panel=3 before=Optional(<WKWebView: 0x7d01d4800>) after=Optional(<WKWebView: 0x7d01d4800>)
+2026-02-25T01:37:43Z [METAL] refocusFullscreen: click on game panel 4, switching from activePanel=3
+2026-02-25T01:37:43Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T01:37:43Z [METAL] restoreGameFocus: navigated=false — injecting focus events
+2026-02-25T01:37:44Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0x7d01d5800>) after=Optional(<WKWebView: 0x7d01d5800>)
+2026-02-25T01:37:45Z [METAL] __focus__: from_panel=3 activePanel=4 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0x7d01d4800>)
+2026-02-25T01:37:45Z [METAL] updateFocusIndicators: activePanel=3 panelCount=5
+2026-02-25T01:37:45Z [METAL] updateFocusIndicators: makeFirstResponder panel=3 before=Optional(<WKWebView: 0x7d01d4800>) after=Optional(<WKWebView: 0x7d01d4800>)
+2026-02-25T01:37:46Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T01:37:46Z [METAL] __focus__: from_panel=3 activePanel=3 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0x7d01d4800>)
+2026-02-25T01:37:46Z [METAL] __focus__: SKIPPED — already activePanel=3
+2026-02-25T01:37:46Z [METAL] refocusFullscreen: click on game panel 4, switching from activePanel=3
+2026-02-25T01:37:46Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T01:37:46Z [METAL] restoreGameFocus: navigated=false — injecting focus events
+2026-02-25T01:37:46Z [METAL] __focus__: from_panel=3 activePanel=4 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0x7d01d4800>)
+2026-02-25T01:37:46Z [METAL] updateFocusIndicators: activePanel=3 panelCount=5
+2026-02-25T01:37:46Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0x7d01d4800>) after=Optional(<WKWebView: 0x7d01d5800>)
+2026-02-25T01:37:47Z [METAL] updateFocusIndicators: makeFirstResponder panel=3 before=Optional(<WKWebView: 0x7d01d5800>) after=Optional(<WKWebView: 0x7d01d4800>)
+2026-02-25T01:37:47Z [METAL] refocusFullscreen: click on game panel 4, switching from activePanel=3
+2026-02-25T01:37:47Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T01:37:47Z [METAL] restoreGameFocus: navigated=false — injecting focus events
+2026-02-25T01:37:47Z [METAL] __focus__: from_panel=3 activePanel=4 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0x7d01d4800>)
+2026-02-25T01:37:47Z [METAL] updateFocusIndicators: activePanel=3 panelCount=5
+2026-02-25T01:37:47Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0x7d01d4800>) after=Optional(<WKWebView: 0x7d01d5800>)
+2026-02-25T01:37:48Z [METAL] refocusFullscreen: click on game panel 4, switching from activePanel=3
+2026-02-25T01:37:48Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T01:37:48Z [METAL] restoreGameFocus: navigated=false — injecting focus events
+2026-02-25T01:37:48Z [METAL] updateFocusIndicators: makeFirstResponder panel=3 before=Optional(<WKWebView: 0x7d01d5800>) after=Optional(<WKWebView: 0x7d01d4800>)
+2026-02-25T01:37:48Z [METAL] __focus__: from_panel=3 activePanel=4 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0x7d01d4800>)
+2026-02-25T01:37:48Z [METAL] updateFocusIndicators: activePanel=3 panelCount=5
+2026-02-25T01:37:48Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0x7d01d4800>) after=Optional(<WKWebView: 0x7d01d5800>)
+2026-02-25T01:37:48Z [METAL] updateFocusIndicators: makeFirstResponder panel=3 before=Optional(<WKWebView: 0x7d01d5800>) after=Optional(<WKWebView: 0x7d01d4800>)
+2026-02-25T01:37:49Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T01:37:49Z [METAL] __focus__: from_panel=3 activePanel=3 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0x7d01d4800>)
+2026-02-25T01:37:49Z [METAL] __focus__: SKIPPED — already activePanel=3
+2026-02-25T01:37:49Z [METAL] refocusFullscreen: click on game panel 4, switching from activePanel=3
+2026-02-25T01:37:49Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T01:37:49Z [METAL] restoreGameFocus: navigated=false — injecting focus events
+2026-02-25T01:37:50Z [METAL] __focus__: from_panel=3 activePanel=4 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0x7d01d4800>)
+2026-02-25T01:37:50Z [METAL] updateFocusIndicators: activePanel=3 panelCount=5
+2026-02-25T01:37:50Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0x7d01d4800>) after=Optional(<WKWebView: 0x7d01d5800>)
+2026-02-25T01:37:50Z [METAL] updateFocusIndicators: makeFirstResponder panel=3 before=Optional(<WKWebView: 0x7d01d5800>) after=Optional(<WKWebView: 0x7d01d4800>)
+2026-02-25T01:37:50Z [METAL] refocusFullscreen: click on game panel 4, switching from activePanel=3
+2026-02-25T01:37:50Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T01:37:50Z [METAL] restoreGameFocus: navigated=false — injecting focus events
+2026-02-25T01:37:51Z [METAL] __focus__: from_panel=1 activePanel=4 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:37:51Z [METAL] updateFocusIndicators: activePanel=1 panelCount=5
+2026-02-25T01:37:51Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0x7cf6a7000>) after=Optional(<WKWebView: 0x7d01d5800>)
+2026-02-25T01:37:51Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x7d01d5800>) after=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:37:51Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T01:37:52Z [METAL] __focus__: from_panel=1 activePanel=1 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:37:52Z [METAL] __focus__: SKIPPED — already activePanel=1
+2026-02-25T01:37:52Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T01:37:52Z [METAL] __focus__: from_panel=0 activePanel=1 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0x7cf6a4000>)
+2026-02-25T01:37:52Z [METAL] updateFocusIndicators: activePanel=0 panelCount=5
+2026-02-25T01:37:52Z [METAL] updateFocusIndicators: makeFirstResponder panel=0 before=Optional(<WKWebView: 0x7cf6a4000>) after=Optional(<WKWebView: 0x7cf6a4000>)
+2026-02-25T01:37:53Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T01:37:53Z [METAL] __focus__: from_panel=1 activePanel=0 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:37:53Z [METAL] updateFocusIndicators: activePanel=1 panelCount=5
+2026-02-25T01:37:53Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x7cf6a7000>) after=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:37:54Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T01:37:54Z [METAL] __focus__: from_panel=1 activePanel=1 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:37:54Z [METAL] __focus__: SKIPPED — already activePanel=1
+2026-02-25T01:37:54Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T01:37:54Z [METAL] __focus__: from_panel=0 activePanel=1 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0x7cf6a4000>)
+2026-02-25T01:37:54Z [METAL] updateFocusIndicators: activePanel=0 panelCount=5
+2026-02-25T01:37:54Z [METAL] updateFocusIndicators: makeFirstResponder panel=0 before=Optional(<WKWebView: 0x7cf6a4000>) after=Optional(<WKWebView: 0x7cf6a4000>)
+2026-02-25T01:37:56Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T01:37:56Z [METAL] __focus__: from_panel=3 activePanel=0 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0x7d01d4800>)
+2026-02-25T01:37:56Z [METAL] updateFocusIndicators: activePanel=3 panelCount=5
+2026-02-25T01:37:56Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T01:37:56Z [METAL] __focus__: from_panel=0 activePanel=3 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0x7cf6a4000>)
+2026-02-25T01:37:56Z [METAL] updateFocusIndicators: activePanel=0 panelCount=5
+2026-02-25T01:37:57Z [METAL] updateFocusIndicators: makeFirstResponder panel=3 before=Optional(<WKWebView: 0x7cf6a4000>) after=Optional(<WKWebView: 0x7d01d4800>)
+2026-02-25T01:37:57Z [METAL] updateFocusIndicators: makeFirstResponder panel=0 before=Optional(<WKWebView: 0x7d01d4800>) after=Optional(<WKWebView: 0x7cf6a4000>)
+2026-02-25T01:37:57Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T01:37:57Z [METAL] __focus__: from_panel=1 activePanel=0 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:37:57Z [METAL] updateFocusIndicators: activePanel=1 panelCount=5
+2026-02-25T01:37:57Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T01:37:57Z [METAL] __focus__: from_panel=0 activePanel=1 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0x7cf6a4000>)
+2026-02-25T01:37:57Z [METAL] updateFocusIndicators: activePanel=0 panelCount=5
+2026-02-25T01:37:58Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x7cf6a4000>) after=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:37:58Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T01:37:58Z [METAL] __focus__: from_panel=1 activePanel=0 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:37:58Z [METAL] updateFocusIndicators: activePanel=1 panelCount=5
+2026-02-25T01:37:58Z [METAL] updateFocusIndicators: makeFirstResponder panel=0 before=Optional(<WKWebView: 0x7cf6a7000>) after=Optional(<WKWebView: 0x7cf6a4000>)
+2026-02-25T01:37:58Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x7cf6a7000>) after=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:37:59Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T01:37:59Z [METAL] __focus__: from_panel=3 activePanel=1 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0x7d01d4800>)
+2026-02-25T01:37:59Z [METAL] updateFocusIndicators: activePanel=3 panelCount=5
+2026-02-25T01:37:59Z [METAL] updateFocusIndicators: makeFirstResponder panel=3 before=Optional(<WKWebView: 0x7d01d4800>) after=Optional(<WKWebView: 0x7d01d4800>)
+2026-02-25T01:37:59Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T01:37:59Z [METAL] __focus__: from_panel=0 activePanel=3 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0x7cf6a4000>)
+2026-02-25T01:37:59Z [METAL] updateFocusIndicators: activePanel=0 panelCount=5
+2026-02-25T01:38:00Z [METAL] updateFocusIndicators: makeFirstResponder panel=0 before=Optional(<WKWebView: 0x7cf6a4000>) after=Optional(<WKWebView: 0x7cf6a4000>)
+2026-02-25T01:38:00Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T01:38:00Z [METAL] __focus__: from_panel=1 activePanel=0 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:38:00Z [METAL] updateFocusIndicators: activePanel=1 panelCount=5
+2026-02-25T01:38:00Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x7cf6a7000>) after=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:38:01Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T01:38:01Z [METAL] __focus__: from_panel=1 activePanel=1 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:38:01Z [METAL] __focus__: SKIPPED — already activePanel=1
+2026-02-25T01:38:02Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T01:38:02Z [METAL] __focus__: from_panel=0 activePanel=1 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0x7cf6a4000>)
+2026-02-25T01:38:02Z [METAL] updateFocusIndicators: activePanel=0 panelCount=5
+2026-02-25T01:38:02Z [METAL] updateFocusIndicators: makeFirstResponder panel=0 before=Optional(<WKWebView: 0x7cf6a4000>) after=Optional(<WKWebView: 0x7cf6a4000>)
+2026-02-25T01:38:02Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T01:38:02Z [METAL] __focus__: from_panel=3 activePanel=0 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0x7d01d4800>)
+2026-02-25T01:38:02Z [METAL] updateFocusIndicators: activePanel=3 panelCount=5
+2026-02-25T01:38:02Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T01:38:02Z [METAL] __focus__: from_panel=0 activePanel=3 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0x7cf6a4000>)
+2026-02-25T01:38:02Z [METAL] updateFocusIndicators: activePanel=0 panelCount=5
+2026-02-25T01:38:03Z [METAL] updateFocusIndicators: makeFirstResponder panel=3 before=Optional(<WKWebView: 0x7cf6a4000>) after=Optional(<WKWebView: 0x7d01d4800>)
+2026-02-25T01:38:03Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T01:38:03Z [METAL] __focus__: from_panel=3 activePanel=0 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0x7d01d4800>)
+2026-02-25T01:38:03Z [METAL] updateFocusIndicators: activePanel=3 panelCount=5
+2026-02-25T01:38:03Z [METAL] updateFocusIndicators: makeFirstResponder panel=0 before=Optional(<WKWebView: 0x7d01d4800>) after=Optional(<WKWebView: 0x7cf6a4000>)
+2026-02-25T01:38:03Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T01:38:03Z [METAL] __focus__: from_panel=1 activePanel=3 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:38:03Z [METAL] updateFocusIndicators: activePanel=1 panelCount=5
+2026-02-25T01:38:03Z [METAL] updateFocusIndicators: makeFirstResponder panel=3 before=Optional(<WKWebView: 0x7cf6a7000>) after=Optional(<WKWebView: 0x7d01d4800>)
+2026-02-25T01:38:03Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T01:38:03Z [METAL] __focus__: from_panel=1 activePanel=1 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:38:03Z [METAL] __focus__: SKIPPED — already activePanel=1
+2026-02-25T01:38:04Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x7cf6a7000>) after=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:38:04Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T01:38:04Z [METAL] __focus__: from_panel=0 activePanel=1 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0x7cf6a4000>)
+2026-02-25T01:38:04Z [METAL] updateFocusIndicators: activePanel=0 panelCount=5
+2026-02-25T01:38:04Z [METAL] updateFocusIndicators: makeFirstResponder panel=0 before=Optional(<WKWebView: 0x7cf6a4000>) after=Optional(<WKWebView: 0x7cf6a4000>)
+2026-02-25T01:38:04Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T01:38:04Z [METAL] __focus__: from_panel=3 activePanel=0 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0x7d01d4800>)
+2026-02-25T01:38:04Z [METAL] updateFocusIndicators: activePanel=3 panelCount=5
+2026-02-25T01:38:05Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T01:38:05Z [METAL] __focus__: from_panel=0 activePanel=3 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0x7cf6a4000>)
+2026-02-25T01:38:05Z [METAL] updateFocusIndicators: activePanel=0 panelCount=5
+2026-02-25T01:38:05Z [METAL] updateFocusIndicators: makeFirstResponder panel=3 before=Optional(<WKWebView: 0x7cf6a4000>) after=Optional(<WKWebView: 0x7d01d4800>)
+2026-02-25T01:38:05Z [METAL] updateFocusIndicators: makeFirstResponder panel=0 before=Optional(<WKWebView: 0x7d01d4800>) after=Optional(<WKWebView: 0x7cf6a4000>)
+2026-02-25T01:38:05Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T01:38:05Z [METAL] __focus__: from_panel=0 activePanel=0 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0x7cf6a4000>)
+2026-02-25T01:38:05Z [METAL] __focus__: SKIPPED — already activePanel=0
+2026-02-25T01:38:11Z [METAL] WKMessage: "how goes it" from_panel=0 activePanel=0 fullscreen=true
+2026-02-25T01:38:12Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T01:38:12Z [METAL] __focus__: from_panel=1 activePanel=0 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:38:12Z [METAL] updateFocusIndicators: activePanel=1 panelCount=5
+2026-02-25T01:38:13Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x7cf6a7000>) after=Optional(<WKWebView: 0x7cf6a7000>)
+2026-02-25T01:38:15Z [METAL] WKMessage: "how goes it" from_panel=1 activePanel=1 fullscreen=true
+2026-02-25T01:38:22Z [METAL] WKMessage: "__escape__" from_panel=1 activePanel=1 fullscreen=true
+2026-02-25T01:38:22Z [METAL] updateFocusIndicators: activePanel=1 panelCount=4
+2026-02-25T01:38:22Z [METAL] updateFocusIndicators: activePanel=1 panelCount=4
+2026-02-25T01:39:26Z [METAL] JarvisBootup started — build v2
+2026-02-25T01:39:27Z [METAL] applicationDidBecomeActive: fullscreen=false
+2026-02-25T01:39:28Z [METAL] updateFocusIndicators: activePanel=0 panelCount=1
+2026-02-25T01:39:28Z [METAL] updateFocusIndicators: makeFirstResponder panel=0 before=Optional(<WKWebView: 0x9235cd000>) after=Optional(<WKWebView: 0x9235cd000>)
+2026-02-25T01:39:29Z [METAL] updateFocusIndicators: activePanel=1 panelCount=2
+2026-02-25T01:39:29Z [METAL] updateFocusIndicators: activePanel=1 panelCount=2
+2026-02-25T01:39:29Z [METAL] updateFocusIndicators: activePanel=2 panelCount=3
+2026-02-25T01:39:29Z [METAL] updateFocusIndicators: activePanel=2 panelCount=3
+2026-02-25T01:39:29Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x9235cd800>) after=Optional(<WKWebView: 0x9235cd800>)
+2026-02-25T01:39:29Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x9235cd800>) after=Optional(<WKWebView: 0x9235cd800>)
+2026-02-25T01:39:30Z [METAL] updateFocusIndicators: activePanel=3 panelCount=4
+2026-02-25T01:39:30Z [METAL] updateFocusIndicators: activePanel=3 panelCount=4
+2026-02-25T01:39:30Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0x9235ce400>) after=Optional(<WKWebView: 0x9235ce400>)
+2026-02-25T01:39:30Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0x9235ce400>) after=Optional(<WKWebView: 0x9235ce400>)
+2026-02-25T01:39:30Z [METAL] updateFocusIndicators: makeFirstResponder panel=3 before=Optional(<WKWebView: 0x9233b0000>) after=Optional(<WKWebView: 0x9233b0000>)
+2026-02-25T01:39:30Z [METAL] updateFocusIndicators: makeFirstResponder panel=3 before=Optional(<WKWebView: 0x9233b0000>) after=Optional(<WKWebView: 0x9233b0000>)
+2026-02-25T01:39:31Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T01:39:31Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T01:39:31Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0x9233b1400>) after=Optional(<WKWebView: 0x9233b1400>)
+2026-02-25T01:39:31Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0x9233b1400>) after=Optional(<WKWebView: 0x9233b1400>)
+2026-02-25T01:39:31Z [METAL] __focus__: from_panel=4 activePanel=4 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x9233b1400>)
+2026-02-25T01:39:31Z [METAL] __focus__: SKIPPED — already activePanel=4
+2026-02-25T01:39:35Z [METAL] __focus__: from_panel=2 activePanel=4 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x9235ce400>)
+2026-02-25T01:39:35Z [METAL] updateFocusIndicators: activePanel=2 panelCount=5
+2026-02-25T01:39:35Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0x9235ce400>) after=Optional(<WKWebView: 0x9235ce400>)
+2026-02-25T01:39:38Z [METAL] __focus__: from_panel=2 activePanel=2 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x9235ce400>)
+2026-02-25T01:39:38Z [METAL] __focus__: SKIPPED — already activePanel=2
+2026-02-25T01:39:38Z [METAL] __focus__: from_panel=1 activePanel=2 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x9235cd800>)
+2026-02-25T01:39:38Z [METAL] updateFocusIndicators: activePanel=1 panelCount=5
+2026-02-25T01:39:38Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x9235cd800>) after=Optional(<WKWebView: 0x9235cd800>)
+2026-02-25T01:39:39Z [METAL] __focus__: from_panel=4 activePanel=1 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x9233b1400>)
+2026-02-25T01:39:39Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T01:39:40Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0x9233b1400>) after=Optional(<WKWebView: 0x9233b1400>)
+2026-02-25T01:39:40Z [METAL] WKMessage: "__escape__" from_panel=4 activePanel=4 fullscreen=false
+2026-02-25T01:39:40Z [METAL] updateFocusIndicators: activePanel=3 panelCount=4
+2026-02-25T01:39:40Z [METAL] updateFocusIndicators: activePanel=3 panelCount=4
+2026-02-25T01:46:37Z [METAL] JarvisBootup started — build v2
+2026-02-25T01:46:38Z [METAL] applicationDidBecomeActive: fullscreen=false
+2026-02-25T01:46:52Z [METAL] updateFocusIndicators: activePanel=0 panelCount=1
+2026-02-25T01:46:53Z [METAL] updateFocusIndicators: makeFirstResponder panel=0 before=Optional(<WKWebView: 0x96ce91000>) after=Optional(<WKWebView: 0x96ce91000>)
+2026-02-25T01:46:54Z [METAL] updateFocusIndicators: activePanel=1 panelCount=2
+2026-02-25T01:46:54Z [METAL] updateFocusIndicators: activePanel=1 panelCount=2
+2026-02-25T01:46:54Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x96ce92800>) after=Optional(<WKWebView: 0x96ce92800>)
+2026-02-25T01:46:54Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x96ce92800>) after=Optional(<WKWebView: 0x96ce92800>)
+2026-02-25T01:46:54Z [METAL] updateFocusIndicators: activePanel=2 panelCount=3
+2026-02-25T01:46:54Z [METAL] updateFocusIndicators: activePanel=2 panelCount=3
+2026-02-25T01:46:55Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0x96ce90800>) after=Optional(<WKWebView: 0x96ce90800>)
+2026-02-25T01:46:55Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0x96ce90800>) after=Optional(<WKWebView: 0x96ce90800>)
+2026-02-25T01:46:55Z [METAL] updateFocusIndicators: activePanel=3 panelCount=4
+2026-02-25T01:46:55Z [METAL] updateFocusIndicators: activePanel=3 panelCount=4
+2026-02-25T01:46:55Z [METAL] updateFocusIndicators: makeFirstResponder panel=3 before=Optional(<WKWebView: 0x96ce93400>) after=Optional(<WKWebView: 0x96ce93400>)
+2026-02-25T01:46:55Z [METAL] updateFocusIndicators: makeFirstResponder panel=3 before=Optional(<WKWebView: 0x96ce93400>) after=Optional(<WKWebView: 0x96ce93400>)
+2026-02-25T01:49:14Z [METAL] applicationDidBecomeActive: fullscreen=false
+2026-02-25T01:49:17Z [METAL] __focus__: from_panel=1 activePanel=3 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x96ce92800>)
+2026-02-25T01:49:17Z [METAL] updateFocusIndicators: activePanel=1 panelCount=4
+2026-02-25T01:49:18Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x96ce92800>) after=Optional(<WKWebView: 0x96ce92800>)
+2026-02-25T01:51:15Z [METAL] applicationDidBecomeActive: fullscreen=false
+2026-02-25T01:51:15Z [METAL] WKMessage: "__escape__" from_panel=1 activePanel=1 fullscreen=false
+2026-02-25T01:51:15Z [METAL] updateFocusIndicators: activePanel=1 panelCount=3
+2026-02-25T01:51:15Z [METAL] updateFocusIndicators: activePanel=1 panelCount=3

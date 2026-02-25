@@ -27,6 +27,7 @@ _file_handler.setFormatter(logging.Formatter(
 log = logging.getLogger("jarvis")
 log.setLevel(logging.DEBUG)
 log.addHandler(_file_handler)
+from game_event_log import GameEventLog
 from skills.claude_code import _format_tool_start as _cc_format_tool_start, _format_tool_result as _cc_format_tool_result, _TOOL_CATEGORIES as _CC_TOOL_CATEGORIES
 from skills.router import SkillRouter, _skills
 from voice.audio import MicCapture, SkillMicCapture
@@ -34,8 +35,8 @@ from voice.whisper_client import WhisperClient
 
 console = Console()
 
-METAL_APP = "/Users/dylan/Desktop/projects/music-player/jarvis-bootup/.build/debug/JarvisBootup"
-BASE_PATH = "/Users/dylan/Desktop/projects/music-player"
+METAL_APP = "/Users/dylan/Desktop/projects/jarvis/metal-app/.build/debug/JarvisBootup"
+BASE_PATH = "/Users/dylan/Desktop/projects/jarvis"
 
 # Redact API keys, tokens, and secrets from any text shown in the UI
 _SECRET_RE = re.compile(r'|'.join([
@@ -92,6 +93,7 @@ class MetalBridge:
         self.proc = None
         self._queue = queue.Queue()
         self._writer_thread = None
+        self.on_game_action = None  # callback: (action, **kwargs) -> None
 
     def launch(self):
         self.proc = subprocess.Popen(
@@ -146,9 +148,13 @@ class MetalBridge:
 
     def send_chat_split(self, title: str):
         self.send({"type": "chat_split", "title": title})
+        if self.on_game_action:
+            self.on_game_action("send_chat_split", title=title)
 
     def send_chat_close_panel(self):
         self.send({"type": "chat_close_panel"})
+        if self.on_game_action:
+            self.on_game_action("send_chat_close_panel")
 
     def send_chat_status(self, text: str, panel: int = None):
         msg = {"type": "chat_status", "text": text}
@@ -179,6 +185,8 @@ class MetalBridge:
         if panel is not None:
             msg["panel"] = panel
         self.send(msg)
+        if self.on_game_action:
+            self.on_game_action("send_iframe_fullscreen", url=url, panel=panel)
 
     def send_web_panel(self, url: str, title: str = "Web"):
         self.send({"type": "web_panel", "url": url, "title": title})
@@ -210,6 +218,8 @@ async def main():
     # Launch Metal display
     metal = MetalBridge()
     metal.launch()
+    event_log = GameEventLog()
+    metal.on_game_action = lambda action, **kw: event_log.log_action(action, **kw)
 
     console.print(Panel(
         "[bold cyan]JARVIS[/] — Personal AI Assistant\n"
@@ -237,7 +247,7 @@ async def main():
     active_panel: int = 0
 
     def _panel_name(idx: int) -> str:
-        return f"AI Bench {idx + 1}"
+        return f"Opus 4.6 Assistant {idx + 1}"
 
     _URL_RE = re.compile(r'^(https?://\S+|localhost:\d+\S*)$', re.IGNORECASE)
 
@@ -556,7 +566,7 @@ async def main():
         for p in range(panel_count):
             metal.send_chat_status(status, panel=p)
 
-    async def on_skill_input(event_type: str, tool_name: str, arguments: str, user_text: str):
+    async def on_skill_input(event_type: str, tool_name: str, arguments: str, user_text: str, panel: int = 0):
         nonlocal skill_tasks, panel_count, active_panel
         nonlocal skill_active, pending_tool_name
 
@@ -580,7 +590,7 @@ async def main():
 
                     on_tool_activity = make_tool_activity_cb(target_panel)
                     await router.start_code_session_idle(arguments, user_text, panel=target_panel)
-                    metal.send_chat_message("gemini", "**AI Bench 1 ready.** Type or speak your request.", panel=target_panel)
+                    metal.send_chat_message("gemini", "**Opus 4.6 Assistant 1 ready.** Type or speak your request.", panel=target_panel)
                     console.print(f"  [dim]Code session ready (panel {target_panel})[/]")
                 return
 
@@ -590,7 +600,7 @@ async def main():
 
             # Resolve skill display name
             if tool_name == "code_assistant":
-                skill_name = "AI Bench 1"
+                skill_name = "Opus 4.6 Assistant 1"
             elif tool_name == "get_system_overview":
                 skill_name = "System Overview"
             else:
@@ -618,7 +628,7 @@ async def main():
                         try:
                             result = await router.send_code_initial(_text, panel=_p, on_chunk=_chunk, on_tool_activity=_ta)
                             if not result or not result.strip():
-                                metal.send_chat_message("gemini", "*(Reached turn limit with no text response. Try a more specific request.)*", panel=_p)
+                                metal.send_chat_message("gemini", "*(No text response — check logs for errors.)*", panel=_p)
                                 console.print(f"[yellow]Empty response after tool loop (panel {_p}) — hit iteration limit[/]")
                         except Exception as e:
                             console.print(f"[red]Skill error (panel {_p}):[/] {e}")
@@ -628,7 +638,7 @@ async def main():
                     skill_tasks[target_panel] = asyncio.create_task(run_code_initial())
                 else:
                     # Hotkey or no transcript — just ready for input
-                    metal.send_chat_message("gemini", "**AI Bench 1 ready.** Type or speak your request.", panel=target_panel)
+                    metal.send_chat_message("gemini", "**Opus 4.6 Assistant 1 ready.** Type or speak your request.", panel=target_panel)
                     console.print(f"  [dim]Code session ready[/]")
             else:
                 async def run_initial(_p=target_panel, _chunk=on_chunk, _ta=on_tool_activity):
@@ -648,27 +658,26 @@ async def main():
             # Escape key: cancel stream + close focused panel
             if user_text == "__escape__":
                 # Cancel the focused panel's task and session
-                router.cancel_panel(active_panel)
-                task = skill_tasks.pop(active_panel, None)
+                router.cancel_panel(panel)
+                task = skill_tasks.pop(panel, None)
                 if task and not task.done():
                     task.cancel()
                     try:
                         await asyncio.wait_for(task, timeout=1.0)
                     except (asyncio.CancelledError, asyncio.TimeoutError, Exception):
                         pass
-                    console.print(f"[yellow]Stream cancelled (panel {active_panel})[/]")
+                    console.print(f"[yellow]Stream cancelled (panel {panel})[/]")
 
                 if panel_count > 1:
-                    router.close_panel(active_panel)
+                    router.close_panel(panel)
                     panel_count -= 1
                     metal.send_chat_close_panel()
                     # Renumber: shift tasks for panels above the closed one
                     new_tasks: dict[int, asyncio.Task] = {}
                     for pid, t in skill_tasks.items():
-                        new_tasks[pid - 1 if pid > active_panel else pid] = t
+                        new_tasks[pid - 1 if pid > panel else pid] = t
                     skill_tasks = new_tasks
-                    if active_panel >= panel_count:
-                        active_panel = panel_count - 1
+                    active_panel = min(panel, panel_count - 1)
                     metal.send({"type": "chat_focus", "panel": active_panel})
                     console.print(f"[bold cyan]Closed panel ({panel_count} remaining)[/]")
                 else:
@@ -694,7 +703,7 @@ async def main():
                     # Auto-create code session for new panel
                     if pending_tool_name == "code_assistant":
                         await router.start_code_session_idle("{}", "", panel=new_panel)
-                        metal.send_chat_message("gemini", "**AI Bench 1 ready.** Type or speak your request.", panel=new_panel)
+                        metal.send_chat_message("gemini", "**Opus 4.6 Assistant 1 ready.** Type or speak your request.", panel=new_panel)
                         console.print(f"  [dim]Code session ready (panel {new_panel})[/]")
                 else:
                     console.print("[yellow]Max 5 windows reached[/]")
@@ -710,7 +719,7 @@ async def main():
                             combined += f"\n=== {label} (last 40 lines) ===\n" + "".join(lines[-40:])
                     import subprocess as _sp
                     _sp.run(["pbcopy"], input=combined.encode(), check=True)
-                    metal.send_chat_message("system", f"**Logs copied to clipboard** ({len(combined)} chars)", panel=active_panel)
+                    metal.send_chat_message("system", f"**Logs copied to clipboard** ({len(combined)} chars)", panel=panel)
                     console.print("[bold cyan]Logs copied to clipboard[/]")
                 except Exception as e:
                     log.error(f"Failed to show logs: {e}")
@@ -719,49 +728,49 @@ async def main():
 
             open_url = _parse_open_url(user_text)
             if open_url:
-                metal.send_chat_iframe(open_url, panel=active_panel, height=720)
+                metal.send_chat_iframe_fullscreen(open_url, panel=panel)
                 console.print(f"[bold cyan]Opened URL in panel:[/] {open_url}")
                 return
 
             if _is_pinball_command(user_text):
-                metal.send_chat_iframe_fullscreen(f"file://{PINBALL_PATH}", panel=active_panel)
+                metal.send_chat_iframe_fullscreen(f"file://{PINBALL_PATH}", panel=panel)
                 console.print("[bold cyan]Launched Pinball[/]")
                 return
 
             if _is_minesweeper_command(user_text):
-                metal.send_chat_iframe(f"file://{MINESWEEPER_PATH}", panel=active_panel, height=720)
+                metal.send_chat_iframe(f"file://{MINESWEEPER_PATH}", panel=panel, height=720)
                 console.print("[bold cyan]Launched Minesweeper[/]")
                 return
 
             if _is_tetris_command(user_text):
-                metal.send_chat_iframe_fullscreen(f"file://{TETRIS_PATH}", panel=active_panel)
+                metal.send_chat_iframe_fullscreen(f"file://{TETRIS_PATH}", panel=panel)
                 console.print("[bold cyan]Launched Tetris[/]")
                 return
 
             if _is_draw_command(user_text):
-                metal.send_chat_iframe(f"file://{DRAW_PATH}", panel=active_panel, height=720)
+                metal.send_chat_iframe(f"file://{DRAW_PATH}", panel=panel, height=720)
                 console.print("[bold cyan]Launched Draw[/]")
                 return
 
             if _is_doodlejump_command(user_text):
-                metal.send_chat_iframe_fullscreen(f"file://{DOODLEJUMP_PATH}", panel=active_panel)
+                metal.send_chat_iframe_fullscreen(f"file://{DOODLEJUMP_PATH}", panel=panel)
                 console.print("[bold cyan]Launched Doodle Jump[/]")
                 return
 
             if _is_asteroids_command(user_text):
-                metal.send_chat_iframe_fullscreen(f"file://{ASTEROIDS_PATH}", panel=active_panel)
+                metal.send_chat_iframe_fullscreen(f"file://{ASTEROIDS_PATH}", panel=panel)
                 console.print("[bold cyan]Launched Asteroids[/]")
                 return
 
             if _is_kart_command(user_text):
                 log.info(f"Kart command (chat): '{user_text}'")
-                metal.send_chat_iframe_fullscreen("https://kartbros.io", panel=active_panel)
+                metal.send_chat_iframe_fullscreen("https://kartbros.io", panel=panel)
                 console.print("[bold cyan]Launched KartBros[/]")
                 return
 
             if _is_trivia_command(user_text):
                 log.info(f"Trivia command (chat): '{user_text}'")
-                metal.send_chat_iframe_fullscreen(f"{TRIVIA_BASE_URL}/play", panel=active_panel)
+                metal.send_chat_iframe_fullscreen(f"{TRIVIA_BASE_URL}/play", panel=panel)
                 console.print("[bold cyan]Launched 1v100 Trivia[/]")
                 return
 
@@ -769,43 +778,42 @@ async def main():
                 clip = _pick_random_clip()
                 if clip:
                     url = f"file://{VIDEOPLAYER_PATH}?src=file://{clip}"
-                    metal.send_chat_iframe_fullscreen(url, panel=active_panel)
+                    metal.send_chat_iframe_fullscreen(url, panel=panel)
                     console.print(f"[bold cyan]Playing clip:[/] {os.path.basename(clip)}")
                 else:
-                    metal.send_chat_message("gemini", "No gameplay clips found. Add videos to `data/subway_clips/`.", panel=active_panel)
+                    metal.send_chat_message("gemini", "No gameplay clips found. Add videos to `data/subway_clips/`.", panel=panel)
                 return
 
             if _is_subway_command(user_text):
-                metal.send_chat_iframe_fullscreen(f"file://{SUBWAY_PATH}", panel=active_panel)
+                metal.send_chat_iframe_fullscreen(f"file://{SUBWAY_PATH}", panel=panel)
                 console.print("[bold cyan]Launched Subway Surfers[/]")
                 return
 
             if _is_meme_command(user_text):
                 meme_path = _pick_random_meme()
                 if meme_path:
-                    metal.send_chat_image(meme_path, panel=active_panel)
+                    metal.send_chat_image(meme_path, panel=panel)
                     console.print(f"[bold cyan]Meme:[/] {os.path.basename(meme_path)}")
                 else:
-                    metal.send_chat_message("gemini", "No memes found. Add images to `data/memes/`.", panel=active_panel)
+                    metal.send_chat_message("gemini", "No memes found. Add images to `data/memes/`.", panel=panel)
                 return
 
             if _is_close_command(user_text):
                 if panel_count > 1:
                     # Cancel and close focused panel
-                    router.cancel_panel(active_panel)
-                    task = skill_tasks.pop(active_panel, None)
+                    router.cancel_panel(panel)
+                    task = skill_tasks.pop(panel, None)
                     if task and not task.done():
                         task.cancel()
-                    router.close_panel(active_panel)
+                    router.close_panel(panel)
                     panel_count -= 1
                     metal.send_chat_close_panel()
                     # Renumber tasks
                     new_tasks = {}
                     for pid, t in skill_tasks.items():
-                        new_tasks[pid - 1 if pid > active_panel else pid] = t
+                        new_tasks[pid - 1 if pid > panel else pid] = t
                     skill_tasks = new_tasks
-                    if active_panel >= panel_count:
-                        active_panel = panel_count - 1
+                    active_panel = min(panel, panel_count - 1)
                     metal.send({"type": "chat_focus", "panel": active_panel})
                     console.print(f"[bold cyan]Closed panel ({panel_count} remaining)[/]")
                     return
@@ -831,33 +839,33 @@ async def main():
                 console.print("[green]Jarvis resumed.[/]")
                 return
 
-            # ── Gate: command approval pending on active panel — resolve yes/no ──
-            if router.has_pending_approval(active_panel):
+            # ── Gate: command approval pending on this panel — resolve yes/no ──
+            if router.has_pending_approval(panel):
                 normalized = user_text.lower().strip().rstrip(".")
                 approve_phrases = ("yes", "yeah", "yep", "sure", "go", "go ahead", "approve", "run it", "do it", "ok", "okay", "")
                 if normalized in approve_phrases or user_text == "\n" or not user_text:
-                    cmd = router.get_pending_command(active_panel)
-                    router.approve_command(True, panel=active_panel)
-                    metal.send_chat_message("tool_result", "Approved", panel=active_panel)
-                    console.print(f"  [green]Command approved (panel {active_panel}):[/] {cmd}")
+                    cmd = router.get_pending_command(panel)
+                    router.approve_command(True, panel=panel)
+                    metal.send_chat_message("tool_result", "Approved", panel=panel)
+                    console.print(f"  [green]Command approved (panel {panel}):[/] {cmd}")
                 else:
-                    router.approve_command(False, panel=active_panel)
-                    metal.send_chat_message("tool_result", "Denied", panel=active_panel)
-                    console.print(f"  [red]Command denied (panel {active_panel})[/]")
+                    router.approve_command(False, panel=panel)
+                    metal.send_chat_message("tool_result", "Denied", panel=panel)
+                    console.print(f"  [red]Command denied (panel {panel})[/]")
                 return
 
             if not user_text.strip():
                 return
 
             # Gate: ignore input while THIS panel's response is still streaming
-            panel_task = skill_tasks.get(active_panel)
+            panel_task = skill_tasks.get(panel)
             if panel_task and not panel_task.done():
-                console.print(f"[dim]Panel {active_panel} busy — ignoring input: {user_text}[/]")
-                metal.send_chat_message("gemini", "*Wait for response to finish...*", panel=active_panel)
+                console.print(f"[dim]Panel {panel} busy — ignoring input: {user_text}[/]")
+                metal.send_chat_message("gemini", "*Wait for response to finish...*", panel=panel)
                 return
 
             # Show user message in chat window (with image preview if paths detected)
-            target_panel = active_panel
+            target_panel = panel
             image_paths, display_text = _extract_image_paths(user_text)
             for img_path in image_paths:
                 metal.send_chat_image(img_path, panel=target_panel)
@@ -875,7 +883,7 @@ async def main():
                         _text, panel=_p, on_chunk=_chunk, on_tool_activity=_ta,
                     )
                     if not result or not result.strip():
-                        metal.send_chat_message("gemini", "*(Reached turn limit with no text response. Try a more specific request.)*", panel=_p)
+                        metal.send_chat_message("gemini", "*(No text response — check logs for errors.)*", panel=_p)
                         console.print(f"[yellow]Empty response after tool loop (panel {_p}) — hit iteration limit[/]")
                 except Exception as e:
                     console.print(f"[red]Followup error (panel {_p}):[/] {e}")
@@ -1082,7 +1090,7 @@ async def main():
                                 args = trigger["arguments"]
                                 user = trigger["user_text"]
                                 console.print(f"\n[bold yellow]Skill triggered:[/] {tool}")
-                                await on_skill_input("__skill_start__", tool, args, user)
+                                await on_skill_input("__skill_start__", tool, args, user, panel=active_panel)
                             elif response:
                                 console.print(f"[bold cyan]Jarvis:[/] {response}")
                                 metal.send_hud(f"JARVIS: {response}")
@@ -1107,24 +1115,27 @@ async def main():
                 try:
                     msg = json.loads(line.decode().strip())
                     log.debug(f"Metal msg: {msg.get('type')} {json.dumps({k:v for k,v in msg.items() if k != 'type'})[:120]}")
+                    if msg.get("type") == "game_event":
+                        event_log.ingest(msg)
+                        log.info(f"Game event: {msg.get('event')} {json.dumps({k:v for k,v in msg.items() if k not in ('type',)})[:200]}")
                     if msg.get("type") == "panel_focus":
+                        old_panel = active_panel
                         active_panel = msg.get("panel", 0)
+                        event_log.log_action("panel_focus", old=old_panel, new=active_panel)
                     elif msg.get("type") == "chat_input" and skill_active:
                         text = msg.get("text", "")
-                        panel_idx = msg.get("panel")
-                        if panel_idx is not None:
-                            active_panel = panel_idx
-                        await on_skill_input("__skill_chat__", pending_tool_name, "", text)
+                        panel_idx = msg.get("panel", active_panel)
+                        await on_skill_input("__skill_chat__", pending_tool_name, "", text, panel=panel_idx)
                     elif msg.get("type") == "fn_key":
                         await handle_fn_key(msg.get("pressed", False))
                     elif msg.get("type") == "hotkey":
                         if msg.get("action") == "split" and skill_active:
-                            await on_skill_input("__skill_start__", pending_tool_name, "{}", "__hotkey__")
+                            await on_skill_input("__skill_start__", pending_tool_name, "{}", "__hotkey__", panel=active_panel)
                         elif msg.get("skill") and not skill_active:
                             skill = msg["skill"]
                             console.print(f"\n[bold yellow]Hotkey:[/] {skill}")
                             try:
-                                await on_skill_input("__skill_start__", skill, "{}", "__hotkey__")
+                                await on_skill_input("__skill_start__", skill, "{}", "__hotkey__", panel=active_panel)
                             except Exception as e:
                                 console.print(f"[red]Hotkey skill error:[/] {e}")
                                 import traceback

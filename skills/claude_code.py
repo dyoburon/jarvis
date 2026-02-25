@@ -3,6 +3,7 @@
 import asyncio
 import logging
 import os
+import time
 
 from claude_agent_sdk import (
     ClaudeSDKClient,
@@ -24,6 +25,12 @@ _log.setLevel(logging.DEBUG)
 _fh = logging.FileHandler("/tmp/jarvis_claude_code.log")
 _fh.setFormatter(logging.Formatter("[%(asctime)s] %(message)s", datefmt="%H:%M:%S"))
 _log.addHandler(_fh)
+
+# Timeouts (seconds)
+_DRAIN_TIMEOUT = 15.0        # Max wait for stale ResultMessage drain
+_MSG_TIMEOUT = 120.0          # Max wait between messages (idle timeout)
+_TURN_TIMEOUT = 600.0         # Max wall-clock time for entire run() call
+_HEARTBEAT_INTERVAL = 30.0    # Log a heartbeat if waiting this long for a message
 
 # Claude Code tool → Jarvis activity category
 _TOOL_CATEGORIES = {
@@ -149,6 +156,53 @@ class ClaudeCodeSession:
         self._connected = True
         _log.debug("Claude Code session connected (model=%s, cwd=%s)", self.model, self.cwd)
 
+    async def _recv_with_timeout(self, msg_iter, timeout: float):
+        """Await next message with a timeout and heartbeat logging.
+
+        Uses asyncio.shield to prevent __anext__ cancellation on heartbeat
+        timeouts, so the underlying iterator stays intact.
+
+        Raises asyncio.TimeoutError if no message arrives within `timeout` seconds.
+        Raises StopAsyncIteration when the iterator is exhausted.
+        """
+        wait_start = time.monotonic()
+        next_heartbeat = wait_start + _HEARTBEAT_INTERVAL
+
+        # Create the __anext__ coroutine ONCE and shield it from cancellation.
+        # This way heartbeat timeout checks don't destroy the pending read.
+        coro = msg_iter.__anext__()
+        task = asyncio.ensure_future(coro)
+
+        try:
+            while True:
+                elapsed = time.monotonic() - wait_start
+                remaining = timeout - elapsed
+                if remaining <= 0:
+                    task.cancel()
+                    raise asyncio.TimeoutError(f"No message after {timeout:.0f}s")
+
+                # Wait in chunks for heartbeat logging
+                chunk_wait = min(remaining, max(0.1, next_heartbeat - time.monotonic()))
+                try:
+                    return await asyncio.wait_for(asyncio.shield(task), timeout=chunk_wait)
+                except asyncio.TimeoutError:
+                    if task.done():
+                        # Task finished (maybe with exception) — re-raise
+                        return task.result()
+                    elapsed = time.monotonic() - wait_start
+                    if elapsed >= timeout:
+                        task.cancel()
+                        raise asyncio.TimeoutError(f"No message after {timeout:.0f}s")
+                    # Heartbeat
+                    if time.monotonic() >= next_heartbeat:
+                        _log.warning("WAITING for next message — %.0fs elapsed, depth=%d",
+                                     elapsed, self._subagent_depth)
+                        next_heartbeat = time.monotonic() + _HEARTBEAT_INTERVAL
+        except BaseException:
+            if not task.done():
+                task.cancel()
+            raise
+
     async def run(self, prompt: str, on_chunk=None, on_tool_activity=None) -> str:
         """Send a prompt and stream results back via callbacks.
 
@@ -163,12 +217,21 @@ class ClaudeCodeSession:
         self._subagent_op_count = 0
         self._task_tool_ids.clear()
         full_text = ""
+        turn_start = time.monotonic()
 
-        # Drain any stale parent ResultMessage from a previous turn.
+        # Drain any stale parent ResultMessage from a previous turn (with timeout).
         if self._has_pending_result:
             _log.debug("Draining stale ResultMessage from previous turn")
             try:
-                async for msg in self._client.receive_messages():
+                drain_iter = self._client.receive_messages().__aiter__()
+                drain_deadline = time.monotonic() + _DRAIN_TIMEOUT
+                while time.monotonic() < drain_deadline:
+                    remaining = drain_deadline - time.monotonic()
+                    try:
+                        msg = await asyncio.wait_for(drain_iter.__anext__(), timeout=remaining)
+                    except (asyncio.TimeoutError, StopAsyncIteration):
+                        _log.debug("Drain ended (timeout or iterator exhausted)")
+                        break
                     _log.debug("Drained: %s", type(msg).__name__)
                     if isinstance(msg, ResultMessage):
                         is_parent = not self.session_id or msg.session_id == self.session_id
@@ -180,8 +243,8 @@ class ClaudeCodeSession:
                             break
                         _log.debug("Drained subagent ResultMessage (session=%s) — continuing",
                                    msg.session_id)
-            except (StopAsyncIteration, asyncio.TimeoutError, Exception) as e:
-                _log.debug("Drain finished: %s", e)
+            except Exception as e:
+                _log.debug("Drain exception: %s", e)
             self._has_pending_result = False
 
         _log.debug("Sending prompt: %s", prompt[:200])
@@ -192,6 +255,9 @@ class ClaudeCodeSession:
         # which breaks when subagents produce their own ResultMessage before the
         # parent conversation finishes.
         got_result = False
+        got_init = False  # Track if we've seen SystemMessage(init) for THIS turn
+        msg_count = 0
+        last_msg_type = ""
         try:
             msg_iter = self._client.receive_messages().__aiter__()
         except Exception as e:
@@ -201,12 +267,30 @@ class ClaudeCodeSession:
             return full_text
 
         while True:
+            # Check overall turn timeout
+            turn_elapsed = time.monotonic() - turn_start
+            if turn_elapsed > _TURN_TIMEOUT:
+                _log.error("TURN TIMEOUT after %.0fs, %d messages (last: %s)",
+                           turn_elapsed, msg_count, last_msg_type)
+                if on_chunk:
+                    on_chunk("\n\n*(Turn timed out — response took too long.)*")
+                break
+
             try:
-                message = await msg_iter.__anext__()
+                message = await self._recv_with_timeout(msg_iter, _MSG_TIMEOUT)
+                msg_count += 1
             except StopAsyncIteration:
+                _log.debug("Iterator exhausted after %d messages, %.1fs",
+                           msg_count, time.monotonic() - turn_start)
+                break
+            except asyncio.TimeoutError:
+                _log.error("MSG TIMEOUT after %.0fs idle, %d messages received (last: %s)",
+                           _MSG_TIMEOUT, msg_count, last_msg_type)
+                if on_chunk:
+                    on_chunk("\n\n*(Connection stalled — no response for %ds.)*" % int(_MSG_TIMEOUT))
                 break
             except asyncio.CancelledError:
-                _log.debug("Task cancelled")
+                _log.debug("Task cancelled after %d messages", msg_count)
                 break
             except Exception as e:
                 err_str = str(e)
@@ -223,8 +307,10 @@ class ClaudeCodeSession:
                         on_chunk(f"\n\n*(Error: {e})*")
                 break
 
+            last_msg_type = type(message).__name__
+
             # Log every message type for debugging
-            _log.debug("MSG type=%s repr=%s", type(message).__name__, repr(message)[:300])
+            _log.debug("MSG type=%s repr=%s", last_msg_type, repr(message)[:300])
 
             if self.cancelled:
                 _log.debug("Cancelled — breaking out of receive loop")
@@ -232,6 +318,7 @@ class ClaudeCodeSession:
 
             if isinstance(message, SystemMessage):
                 if message.subtype == "init" and hasattr(message, "data"):
+                    got_init = True
                     sid = message.data.get("session_id")
                     if sid:
                         self.session_id = sid
@@ -258,9 +345,17 @@ class ClaudeCodeSession:
                             _log.debug("Task tool started (id=%s) — depth now %d", block.id, self._subagent_depth)
                         _log.debug("Tool use: %s %s (depth=%d)", block.name, str(block.input)[:200], self._subagent_depth)
                     elif isinstance(block, TextBlock) and block.text:
-                        # Text already streamed via StreamEvent text_deltas
-                        # (include_partial_messages=True); skip to avoid double-send
-                        _log.debug("Assistant text block (already streamed): %s", block.text[:200])
+                        # Normally text is already streamed via StreamEvent text_deltas
+                        # (include_partial_messages=True). But synthetic/error messages
+                        # from the SDK (e.g. auth failures) skip StreamEvent entirely.
+                        # Forward the text if it wasn't already streamed.
+                        if block.text not in full_text:
+                            _log.debug("Assistant text block (NOT streamed, forwarding): %s", block.text[:200])
+                            full_text += block.text
+                            if on_chunk:
+                                on_chunk(block.text)
+                        else:
+                            _log.debug("Assistant text block (already streamed): %s", block.text[:200])
 
             elif isinstance(message, UserMessage):
                 if hasattr(message, "content"):
@@ -296,6 +391,19 @@ class ClaudeCodeSession:
 
             elif isinstance(message, ResultMessage):
                 is_parent = not self.session_id or message.session_id == self.session_id
+
+                # Stale ResultMessage detection: if we get a ResultMessage before
+                # seeing SystemMessage(init) for this turn, it belongs to the
+                # PREVIOUS turn (the drain missed it). Skip it instead of breaking.
+                if not got_init:
+                    _log.warning("STALE ResultMessage (before init) — skipping "
+                                 "(turns=%d, cost=$%.4f, error=%s)",
+                                 message.num_turns, message.total_cost_usd or 0, message.is_error)
+                    if message.total_cost_usd:
+                        self.total_cost += message.total_cost_usd
+                    self.total_turns += message.num_turns
+                    continue
+
                 if message.total_cost_usd:
                     self.total_cost += message.total_cost_usd
                 self.total_turns += message.num_turns
@@ -312,6 +420,10 @@ class ClaudeCodeSession:
                                self._subagent_depth, self._subagent_op_count)
                     if self._subagent_depth == 0 and on_tool_activity:
                         on_tool_activity("subagent_done", "", {"op_count": self._subagent_op_count})
+
+        total_time = time.monotonic() - turn_start
+        _log.debug("run() finished: got_result=%s, msgs=%d, text=%d chars, %.1fs",
+                   got_result, msg_count, len(full_text), total_time)
 
         # Track if ResultMessage was missed — will drain it before next query
         if not got_result:
