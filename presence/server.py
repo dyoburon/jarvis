@@ -92,7 +92,10 @@ class PresenceServer:
                 elif msg_type == "ping":
                     if user_id and user_id in self.users:
                         self.users[user_id].last_heartbeat = time.time()
-                    await ws.send(json.dumps({"type": "pong"}))
+                    await ws.send(json.dumps({
+                        "type": "pong",
+                        "online_count": len(self.users),
+                    }))
 
                 elif msg_type == "activity_update":
                     if user_id and user_id in self.users:
@@ -115,14 +118,26 @@ class PresenceServer:
                     if user_id and user_id in self.users:
                         u = self.users[user_id]
                         log.info("Invite: %s hosting %s code=%s", u.display_name, msg.get("game"), msg.get("code"))
-                        await self.broadcast({
+                        invite_msg = {
                             "type": "game_invite",
                             "user_id": user_id,
                             "display_name": u.display_name,
                             "game": msg.get("game", ""),
                             "code": msg.get("code", ""),
                             "ts": time.time(),
-                        }, exclude=user_id)
+                        }
+                        await self.broadcast(invite_msg, exclude=user_id)
+                        # Send confirmation back to the sender
+                        online_names = [
+                            other.display_name for other in self.users.values()
+                            if other.user_id != user_id
+                        ]
+                        await ws.send(json.dumps({
+                            "type": "invite_sent",
+                            "game": invite_msg["game"],
+                            "code": invite_msg["code"],
+                            "sent_to": online_names,
+                        }))
 
                 elif msg_type == "disconnect":
                     break

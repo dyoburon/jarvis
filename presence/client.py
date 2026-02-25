@@ -23,6 +23,7 @@ class PresenceClient:
         self._ws: websockets.WebSocketClientProtocol | None = None
         self._connected = False
         self._closing = False
+        self.online_count: int = 0
 
     async def update_activity(self, status: str, activity: str = None, metadata: dict = None):
         if not self._ws or not self._connected:
@@ -82,12 +83,27 @@ class PresenceClient:
                                 continue
                             msg_type = msg.get("type")
                             if msg_type == "pong":
+                                new_count = msg.get("online_count", self.online_count)
+                                if new_count != self.online_count:
+                                    self.online_count = new_count
+                                    if self.on_notification:
+                                        try:
+                                            self.on_notification("online_count", {"count": self.online_count})
+                                        except Exception:
+                                            log.exception("Notification callback error")
                                 continue
                             if msg_type == "welcome":
-                                log.info("Online users: %d", len(msg.get("users", [])))
+                                # Count includes self (+1 for the users list which excludes self)
+                                self.online_count = len(msg.get("users", [])) + 1
+                                log.info("Online users: %d", self.online_count)
+                                if self.on_notification:
+                                    try:
+                                        self.on_notification("online_count", {"count": self.online_count})
+                                    except Exception:
+                                        log.exception("Notification callback error")
                                 continue
                             # Broadcast events → notify callback
-                            if msg_type in ("user_online", "user_offline", "activity_changed", "game_invite"):
+                            if msg_type in ("user_online", "user_offline", "activity_changed", "game_invite", "invite_sent"):
                                 if self.on_notification:
                                     try:
                                         self.on_notification(msg_type, msg)

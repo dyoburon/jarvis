@@ -43,7 +43,7 @@ GEMINI_PRICING = {
 }
 
 # Presence
-PRESENCE_URL = os.getenv("PRESENCE_URL", "ws://localhost:8790")
+PRESENCE_URL = os.getenv("PRESENCE_URL", "wss://jarvis-presence-htl4ur3tvq-uc.a.run.app")
 
 SYSTEM_PROMPT = """You are Jarvis. Ultra-brief. 1-2 short sentences max. No filler.
 Dry wit when appropriate. Use tools when asked about systems. Never ramble."""

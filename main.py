@@ -249,14 +249,27 @@ async def main():
     # Shared overlay buffer (chat monitor + presence notifications)
     overlay_lines: list[str] = []
     overlay_lock = asyncio.Lock()
-    MAX_OVERLAY_LINES = 8
+    overlay_status: str = ""  # persistent top line (online count)
+    MAX_OVERLAY_LINES = 7  # leave room for status line
+
+    def _build_overlay() -> str:
+        parts = []
+        if overlay_status:
+            parts.append(overlay_status)
+        parts.extend(overlay_lines)
+        return "\n".join(parts)
 
     async def push_overlay_line(line: str):
         async with overlay_lock:
             overlay_lines.append(line)
             if len(overlay_lines) > MAX_OVERLAY_LINES:
                 del overlay_lines[: len(overlay_lines) - MAX_OVERLAY_LINES]
-            metal.send_chat_overlay("\n".join(overlay_lines))
+            metal.send_chat_overlay(_build_overlay())
+
+    def update_overlay_status(text: str):
+        nonlocal overlay_status
+        overlay_status = text
+        metal.send_chat_overlay(_build_overlay())
 
     # Presence client
     identity = load_identity()
@@ -293,8 +306,32 @@ async def main():
             asyncio.create_task(push_overlay_line(f">> {name} is hosting {game} — Code: {code}"))
             asyncio.create_task(push_overlay_line(f'>> Say "join" to play'))
             console.print(f"[bold yellow]Game invite:[/] {name} hosting {game} code={code}")
+        elif event_type == "invite_sent":
+            game = data.get("game", "")
+            code = data.get("code", "")
+            sent_to = data.get("sent_to", [])
+            if sent_to:
+                names = ", ".join(sent_to)
+                asyncio.create_task(push_overlay_line(f">> Invite sent to {names} — {game} code: {code}"))
+            else:
+                asyncio.create_task(push_overlay_line(f">> Invite sent — no one else online"))
+            console.print(f"[bold cyan]Invite sent:[/] {game} code={code} to {sent_to}")
+        elif event_type == "online_count":
+            count = data.get("count", 0)
+            update_overlay_status(f"[ {count} online ]")
 
     presence.on_notification = _handle_presence
+
+    async def _heartbeat_sound():
+        """Play a subtle sound every 30s while connected to presence."""
+        await asyncio.sleep(5)  # wait for initial connection
+        while True:
+            if presence._connected:
+                subprocess.Popen(
+                    ["afplay", "-v", "0.15", "/System/Library/Sounds/Tink.aiff"],
+                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+                )
+            await asyncio.sleep(30)
 
     console.print(
         Panel(
@@ -1764,6 +1801,7 @@ async def main():
             chat_monitor(),
             presence.run(),
             idle_monitor(),
+            _heartbeat_sound(),
         )
 
     except KeyboardInterrupt:
