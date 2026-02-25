@@ -23,16 +23,26 @@ from presence.identity import load_identity
 # Persistent log file — survives across sessions, rotates at 5MB
 LOG_PATH = os.path.join(os.path.dirname(__file__), "jarvis.log")
 _file_handler = logging.handlers.RotatingFileHandler(
-    LOG_PATH, maxBytes=5 * 1024 * 1024, backupCount=3, encoding="utf-8",
+    LOG_PATH,
+    maxBytes=5 * 1024 * 1024,
+    backupCount=3,
+    encoding="utf-8",
 )
-_file_handler.setFormatter(logging.Formatter(
-    "%(asctime)s [%(levelname)s] %(message)s", datefmt="%Y-%m-%d %H:%M:%S",
-))
+_file_handler.setFormatter(
+    logging.Formatter(
+        "%(asctime)s [%(levelname)s] %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+)
 log = logging.getLogger("jarvis")
 log.setLevel(logging.DEBUG)
 log.addHandler(_file_handler)
 from game_event_log import GameEventLog
-from skills.claude_code import _format_tool_start as _cc_format_tool_start, _format_tool_result as _cc_format_tool_result, _TOOL_CATEGORIES as _CC_TOOL_CATEGORIES
+from skills.claude_code import (
+    _format_tool_start as _cc_format_tool_start,
+    _format_tool_result as _cc_format_tool_result,
+    _TOOL_CATEGORIES as _CC_TOOL_CATEGORIES,
+)
 from skills.router import SkillRouter, _skills
 from voice.audio import MicCapture, SkillMicCapture
 from voice.whisper_client import WhisperClient
@@ -44,50 +54,56 @@ METAL_APP = os.path.join(_JARVIS_DIR, "metal-app", ".build", "debug", "JarvisBoo
 BASE_PATH = _JARVIS_DIR
 
 # Redact API keys, tokens, and secrets from any text shown in the UI
-_SECRET_RE = re.compile(r'|'.join([
-    # OpenAI / Anthropic
-    r'sk-(?:ant-)?(?:api\d+-)?[A-Za-z0-9_\-]{20,}',
-    # Google
-    r'AIza[A-Za-z0-9_\-]{30,}',
-    # GitHub
-    r'ghp_[A-Za-z0-9]{30,}',
-    r'gho_[A-Za-z0-9]{30,}',
-    r'ghs_[A-Za-z0-9]{30,}',
-    r'ghu_[A-Za-z0-9]{30,}',
-    r'github_pat_[A-Za-z0-9_]{30,}',
-    # Stripe
-    r'[spr]k_(?:live|test)_[A-Za-z0-9]{20,}',
-    # Slack
-    r'xox[bpas]-[A-Za-z0-9\-]{20,}',
-    # AWS
-    r'AKIA[A-Z0-9]{16}',
-    # Twilio
-    r'SK[0-9a-fA-F]{32}',
-    # SendGrid
-    r'SG\.[A-Za-z0-9_\-]{20,}\.[A-Za-z0-9_\-]{20,}',
-    # Vercel
-    r'vercel_[A-Za-z0-9_\-]{20,}',
-    # npm
-    r'npm_[A-Za-z0-9]{30,}',
-    # Supabase
-    r'sbp_[A-Za-z0-9]{20,}',
-    # Discord bot token
-    r'[MN][A-Za-z0-9]{23,}\.[A-Za-z0-9_\-]{6}\.[A-Za-z0-9_\-]{27,}',
-    # Mailgun
-    r'key-[A-Za-z0-9]{32}',
-    # Datadog
-    r'dd(?:api|app)[A-Za-z0-9]{32,}',
-    # JWT (covers Supabase anon/service keys too)
-    r'eyJ[A-Za-z0-9_\-]{20,}\.[A-Za-z0-9_\-]+\.[A-Za-z0-9_\-]+',
-    # Catch-all: values after common env var names
-    r'(?:API_KEY|SECRET_?(?:ACCESS_)?KEY|TOKEN|PASSWORD|APIKEY|AUTH|CREDENTIAL)S?\s*[=:]\s*["\']?([A-Za-z0-9_\-./+]{8,})["\']?',
-]))
+_SECRET_RE = re.compile(
+    r"|".join(
+        [
+            # OpenAI / Anthropic
+            r"sk-(?:ant-)?(?:api\d+-)?[A-Za-z0-9_\-]{20,}",
+            # Google
+            r"AIza[A-Za-z0-9_\-]{30,}",
+            # GitHub
+            r"ghp_[A-Za-z0-9]{30,}",
+            r"gho_[A-Za-z0-9]{30,}",
+            r"ghs_[A-Za-z0-9]{30,}",
+            r"ghu_[A-Za-z0-9]{30,}",
+            r"github_pat_[A-Za-z0-9_]{30,}",
+            # Stripe
+            r"[spr]k_(?:live|test)_[A-Za-z0-9]{20,}",
+            # Slack
+            r"xox[bpas]-[A-Za-z0-9\-]{20,}",
+            # AWS
+            r"AKIA[A-Z0-9]{16}",
+            # Twilio
+            r"SK[0-9a-fA-F]{32}",
+            # SendGrid
+            r"SG\.[A-Za-z0-9_\-]{20,}\.[A-Za-z0-9_\-]{20,}",
+            # Vercel
+            r"vercel_[A-Za-z0-9_\-]{20,}",
+            # npm
+            r"npm_[A-Za-z0-9]{30,}",
+            # Supabase
+            r"sbp_[A-Za-z0-9]{20,}",
+            # Discord bot token
+            r"[MN][A-Za-z0-9]{23,}\.[A-Za-z0-9_\-]{6}\.[A-Za-z0-9_\-]{27,}",
+            # Mailgun
+            r"key-[A-Za-z0-9]{32}",
+            # Datadog
+            r"dd(?:api|app)[A-Za-z0-9]{32,}",
+            # JWT (covers Supabase anon/service keys too)
+            r"eyJ[A-Za-z0-9_\-]{20,}\.[A-Za-z0-9_\-]+\.[A-Za-z0-9_\-]+",
+            # Catch-all: values after common env var names
+            r'(?:API_KEY|SECRET_?(?:ACCESS_)?KEY|TOKEN|PASSWORD|APIKEY|AUTH|CREDENTIAL)S?\s*[=:]\s*["\']?([A-Za-z0-9_\-./+]{8,})["\']?',
+        ]
+    )
+)
+
 
 def _redact_secrets(text: str) -> str:
     def _replace(m):
         if m.group(1):
-            return m.group(0).replace(m.group(1), '[REDACTED]')
-        return '[REDACTED]'
+            return m.group(0).replace(m.group(1), "[REDACTED]")
+        return "[REDACTED]"
+
     return _SECRET_RE.sub(_replace, text)
 
 
@@ -146,7 +162,11 @@ class MetalBridge:
         self.send({"type": "chat_start", "skill": skill_name})
 
     def send_chat_message(self, speaker: str, text: str, panel: int = None):
-        msg = {"type": "chat_message", "speaker": speaker, "text": _redact_secrets(text)}
+        msg = {
+            "type": "chat_message",
+            "speaker": speaker,
+            "text": _redact_secrets(text),
+        }
         if panel is not None:
             msg["panel"] = panel
         self.send(msg)
@@ -239,7 +259,9 @@ async def main():
 
     # Presence client
     identity = load_identity()
-    presence = PresenceClient(config.PRESENCE_URL, identity["user_id"], identity["display_name"])
+    presence = PresenceClient(
+        config.PRESENCE_URL, identity["user_id"], identity["display_name"]
+    )
     _current_game: str | None = None  # tracks which game is active for exit events
 
     def _handle_presence(event_type: str, data: dict):
@@ -252,7 +274,9 @@ async def main():
             activity = data.get("activity", "")
             status = data.get("status", "")
             if status == "in_game":
-                asyncio.create_task(push_overlay_line(f">> {name} started playing {activity}"))
+                asyncio.create_task(
+                    push_overlay_line(f">> {name} started playing {activity}")
+                )
             elif status == "in_skill":
                 asyncio.create_task(push_overlay_line(f">> {name} is using {activity}"))
             elif status == "idle":
@@ -262,15 +286,19 @@ async def main():
 
     presence.on_notification = _handle_presence
 
-    console.print(Panel(
-        "[bold cyan]JARVIS[/] — Personal AI Assistant\n"
-        "[dim]Metal display active. PTT: Left Control[/]",
-        border_style="cyan",
-    ))
+    console.print(
+        Panel(
+            "[bold cyan]JARVIS[/] — Personal AI Assistant\n"
+            "[dim]Metal display active. PTT: Left Control[/]",
+            border_style="cyan",
+        )
+    )
 
     router = SkillRouter(metal_bridge=metal)
     mic = MicCapture()
-    skill_mic = SkillMicCapture(source_rate=config.SAMPLE_RATE, target_rate=config.WHISPER_SAMPLE_RATE)
+    skill_mic = SkillMicCapture(
+        source_rate=config.SAMPLE_RATE, target_rate=config.WHISPER_SAMPLE_RATE
+    )
     whisper_client = WhisperClient()
 
     # Send mic audio levels to Metal sphere during PTT
@@ -290,7 +318,7 @@ async def main():
     def _panel_name(idx: int) -> str:
         return f"Opus 4.6 Assistant {idx + 1}"
 
-    _URL_RE = re.compile(r'^(https?://\S+|localhost:\d+\S*)$', re.IGNORECASE)
+    _URL_RE = re.compile(r"^(https?://\S+|localhost:\d+\S*)$", re.IGNORECASE)
 
     def _parse_open_url(text: str) -> str | None:
         """Detect 'open <url>' or bare localhost/http URLs. Returns URL or None."""
@@ -308,7 +336,9 @@ async def main():
             url = "http://" + url
         return url
 
-    _IMAGE_PATH_RE = re.compile(r'(/\S+\.(?:png|jpg|jpeg|gif|webp|bmp|tiff|heic))', re.IGNORECASE)
+    _IMAGE_PATH_RE = re.compile(
+        r"(/\S+\.(?:png|jpg|jpeg|gif|webp|bmp|tiff|heic))", re.IGNORECASE
+    )
 
     def _extract_image_paths(text: str) -> tuple[list[str], str]:
         """Extract image file paths from text. Returns (paths, cleaned_text)."""
@@ -317,26 +347,37 @@ async def main():
             p = m.group(1)
             if os.path.isfile(p):
                 paths.append(p)
-        cleaned = _IMAGE_PATH_RE.sub('', text).strip()
+        cleaned = _IMAGE_PATH_RE.sub("", text).strip()
         # Collapse multiple spaces
-        cleaned = re.sub(r'  +', ' ', cleaned)
+        cleaned = re.sub(r"  +", " ", cleaned)
         return paths, cleaned
 
     def _is_close_command(text: str) -> bool:
         normalized = text.lower().strip().rstrip(".")
         close_phrases = [
-            "close window", "close the window", "close chat",
-            "close the chat", "exit chat", "exit window",
-            "close this", "that's all", "done with this",
-            "go back", "never mind", "nevermind",
+            "close window",
+            "close the window",
+            "close chat",
+            "close the chat",
+            "exit chat",
+            "exit window",
+            "close this",
+            "that's all",
+            "done with this",
+            "go back",
+            "never mind",
+            "nevermind",
         ]
         return any(phrase in normalized for phrase in close_phrases)
 
     def _is_split_command(text: str) -> bool:
         normalized = text.lower().strip().rstrip(".")
         split_phrases = [
-            "new window", "spawn window", "split window",
-            "open new window", "spawn new window",
+            "new window",
+            "spawn window",
+            "split window",
+            "open new window",
+            "spawn new window",
         ]
         return any(phrase in normalized for phrase in split_phrases)
 
@@ -348,74 +389,194 @@ async def main():
     DOODLEJUMP_PATH = os.path.join(os.path.dirname(__file__), "doodlejump.html")
     ASTEROIDS_PATH = os.path.join(os.path.dirname(__file__), "asteroids.html")
     VIDEOPLAYER_PATH = os.path.join(os.path.dirname(__file__), "videoplayer.html")
+    CHAT_PATH = os.path.join(os.path.dirname(__file__), "chat.html")
+    CHAT_SERVER_PORT = 19847
+    _chat_server_url = None  # Set when server starts
+
+    def _start_chat_server():
+        """Start a local HTTP server to serve chat.html on localhost.
+
+        Serves only chat.html — rejects all other paths with 404.
+        Uses the navigated WKWebView path which has proper keyboard
+        handling, secure context (crypto.subtle), and localStorage.
+        """
+        nonlocal _chat_server_url
+        if _chat_server_url is not None:
+            return  # already running
+
+        import http.server
+        import threading
+
+        serve_dir = os.path.dirname(__file__)
+
+        class ChatHandler(http.server.SimpleHTTPRequestHandler):
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, directory=serve_dir, **kwargs)
+
+            def do_GET(self):
+                # Only serve chat.html — reject everything else
+                if self.path in ("/chat.html", "/chat.html?"):
+                    super().do_GET()
+                else:
+                    self.send_error(404)
+
+            def log_message(self, format, *args):  # noqa: A002
+                pass  # Suppress HTTP logs
+
+        server = None
+        port = CHAT_SERVER_PORT
+        for attempt in range(10):
+            try:
+                server = http.server.HTTPServer(
+                    ("127.0.0.1", port + attempt), ChatHandler
+                )
+                port = port + attempt
+                break
+            except OSError:
+                if attempt == 9:
+                    log.error("Chat server: all ports 19847-19856 in use")
+                    return
+                continue
+
+        if server is None:
+            return
+
+        _chat_server_url = f"http://127.0.0.1:{port}/chat.html"
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        log.info(f"Chat server started on port {port}")
+
     SUBWAY_CLIPS_DIR = os.path.join(os.path.dirname(__file__), "data", "subway_clips")
 
     def _is_pinball_command(text: str) -> bool:
         normalized = text.lower().strip().rstrip(".")
         pinball_phrases = [
-            "pinball", "play pinball", "launch pinball",
-            "open pinball", "start pinball",
+            "pinball",
+            "play pinball",
+            "launch pinball",
+            "open pinball",
+            "start pinball",
         ]
-        return any(phrase == normalized or normalized.startswith(phrase) for phrase in pinball_phrases)
+        return any(
+            phrase == normalized or normalized.startswith(phrase)
+            for phrase in pinball_phrases
+        )
 
     def _is_minesweeper_command(text: str) -> bool:
         normalized = text.lower().strip().rstrip(".")
         minesweeper_phrases = [
-            "minesweeper", "play minesweeper", "launch minesweeper",
-            "open minesweeper", "start minesweeper", "mine sweeper",
+            "minesweeper",
+            "play minesweeper",
+            "launch minesweeper",
+            "open minesweeper",
+            "start minesweeper",
+            "mine sweeper",
         ]
-        return any(phrase == normalized or normalized.startswith(phrase) for phrase in minesweeper_phrases)
+        return any(
+            phrase == normalized or normalized.startswith(phrase)
+            for phrase in minesweeper_phrases
+        )
 
     def _is_tetris_command(text: str) -> bool:
         normalized = text.lower().strip().rstrip(".")
         tetris_phrases = [
-            "tetris", "play tetris", "launch tetris",
-            "open tetris", "start tetris",
+            "tetris",
+            "play tetris",
+            "launch tetris",
+            "open tetris",
+            "start tetris",
         ]
-        return any(phrase == normalized or normalized.startswith(phrase) for phrase in tetris_phrases)
+        return any(
+            phrase == normalized or normalized.startswith(phrase)
+            for phrase in tetris_phrases
+        )
 
     def _is_draw_command(text: str) -> bool:
         normalized = text.lower().strip().rstrip(".")
         draw_phrases = [
-            "draw", "drawing", "open draw", "launch draw",
-            "start drawing", "whiteboard", "open whiteboard",
-            "excalidraw", "sketch", "open sketch",
+            "draw",
+            "drawing",
+            "open draw",
+            "launch draw",
+            "start drawing",
+            "whiteboard",
+            "open whiteboard",
+            "excalidraw",
+            "sketch",
+            "open sketch",
         ]
-        return any(phrase == normalized or normalized.startswith(phrase) for phrase in draw_phrases)
+        return any(
+            phrase == normalized or normalized.startswith(phrase)
+            for phrase in draw_phrases
+        )
 
     def _is_doodlejump_command(text: str) -> bool:
         normalized = text.lower().strip().rstrip(".")
         doodlejump_phrases = [
-            "doodle jump", "doodlejump", "play doodle jump", "play doodlejump",
-            "launch doodle jump", "open doodle jump", "start doodle jump",
+            "doodle jump",
+            "doodlejump",
+            "play doodle jump",
+            "play doodlejump",
+            "launch doodle jump",
+            "open doodle jump",
+            "start doodle jump",
         ]
-        return any(phrase == normalized or normalized.startswith(phrase) for phrase in doodlejump_phrases)
+        return any(
+            phrase == normalized or normalized.startswith(phrase)
+            for phrase in doodlejump_phrases
+        )
 
     def _is_asteroids_command(text: str) -> bool:
         normalized = text.lower().strip().rstrip(".")
         asteroids_phrases = [
-            "asteroids", "asteroid", "play asteroids", "play asteroid",
-            "launch asteroids", "open asteroids", "start asteroids",
+            "asteroids",
+            "asteroid",
+            "play asteroids",
+            "play asteroid",
+            "launch asteroids",
+            "open asteroids",
+            "start asteroids",
         ]
-        return any(phrase == normalized or normalized.startswith(phrase) for phrase in asteroids_phrases)
+        return any(
+            phrase == normalized or normalized.startswith(phrase)
+            for phrase in asteroids_phrases
+        )
 
     def _is_subway_command(text: str) -> bool:
         normalized = text.lower().strip().rstrip(".")
         subway_phrases = [
-            "subway", "subway surfers", "play subway surfers",
-            "launch subway surfers", "open subway surfers",
-            "start subway surfers", "play subway", "subway surf",
+            "subway",
+            "subway surfers",
+            "play subway surfers",
+            "launch subway surfers",
+            "open subway surfers",
+            "start subway surfers",
+            "play subway",
+            "subway surf",
         ]
-        return any(phrase == normalized or normalized.startswith(phrase) for phrase in subway_phrases)
+        return any(
+            phrase == normalized or normalized.startswith(phrase)
+            for phrase in subway_phrases
+        )
 
     def _is_kart_command(text: str) -> bool:
         normalized = text.lower().strip().rstrip(".")
         kart_phrases = [
-            "kart", "kart bros", "kartbros", "play kart",
-            "mario kart", "racing", "play racing",
-            "launch kart", "start kart", "open kart",
+            "kart",
+            "kart bros",
+            "kartbros",
+            "play kart",
+            "mario kart",
+            "racing",
+            "play racing",
+            "launch kart",
+            "start kart",
+            "open kart",
         ]
-        return any(phrase == normalized or normalized.startswith(phrase) for phrase in kart_phrases)
+        return any(
+            phrase == normalized or normalized.startswith(phrase)
+            for phrase in kart_phrases
+        )
 
     # 1v100 Trivia Game (deployed to Vercel)
     TRIVIA_BASE_URL = os.environ.get("TRIVIA_URL", "https://onev100.onrender.com")
@@ -423,28 +584,49 @@ async def main():
     def _is_trivia_command(text: str) -> bool:
         normalized = text.lower().strip().rstrip(".")
         trivia_phrases = [
-            "1 vs 100", "1v100", "one vs hundred", "one versus hundred",
-            "trivia", "play trivia", "launch trivia", "start trivia",
-            "trivia game", "one vs one hundred", "1 versus 100",
-            "play 1v100", "play 1 vs 100",
+            "1 vs 100",
+            "1v100",
+            "one vs hundred",
+            "one versus hundred",
+            "trivia",
+            "play trivia",
+            "launch trivia",
+            "start trivia",
+            "trivia game",
+            "one vs one hundred",
+            "1 versus 100",
+            "play 1v100",
+            "play 1 vs 100",
         ]
-        return any(phrase == normalized or normalized.startswith(phrase) for phrase in trivia_phrases)
+        return any(
+            phrase == normalized or normalized.startswith(phrase)
+            for phrase in trivia_phrases
+        )
 
     def _is_subway_video_command(text: str) -> bool:
         normalized = text.lower().strip().rstrip(".")
         phrases = [
-            "subway video", "subway surfers video", "play subway video",
-            "subway clip", "subway surfers clip", "gameplay video",
-            "play gameplay", "background gameplay",
+            "subway video",
+            "subway surfers video",
+            "play subway video",
+            "subway clip",
+            "subway surfers clip",
+            "gameplay video",
+            "play gameplay",
+            "background gameplay",
         ]
-        return any(phrase == normalized or normalized.startswith(phrase) for phrase in phrases)
+        return any(
+            phrase == normalized or normalized.startswith(phrase) for phrase in phrases
+        )
 
     def _pick_random_clip() -> str | None:
         """Pick a random gameplay clip from data/subway_clips/. Returns path or None."""
         if not os.path.isdir(SUBWAY_CLIPS_DIR):
             return None
         files = glob.glob(os.path.join(SUBWAY_CLIPS_DIR, "*"))
-        videos = [f for f in files if f.lower().endswith((".mp4", ".webm", ".mkv", ".mov"))]
+        videos = [
+            f for f in files if f.lower().endswith((".mp4", ".webm", ".mkv", ".mov"))
+        ]
         return random.choice(videos) if videos else None
 
     MEMES_DIR = os.path.join(os.path.dirname(__file__), "data", "memes")
@@ -452,31 +634,66 @@ async def main():
     def _is_meme_command(text: str) -> bool:
         normalized = text.lower().strip().rstrip(".")
         meme_phrases = [
-            "show me a meme", "meme me", "random meme",
-            "show meme", "gimme a meme", "show a meme",
+            "show me a meme",
+            "meme me",
+            "random meme",
+            "show meme",
+            "gimme a meme",
+            "show a meme",
         ]
         return any(phrase in normalized for phrase in meme_phrases)
+
+    # NOTE: Logic replicated in test_chat_command.py — keep in sync
+    def _is_chat_command(text: str) -> bool:
+        normalized = text.lower().strip().rstrip(".")
+        chat_phrases = [
+            "open chat",
+            "launch chat",
+            "start chat",
+            "livechat",
+            "live chat",
+            "open livechat",
+            "open live chat",
+            "launch livechat",
+            "launch live chat",
+            "start livechat",
+            "start live chat",
+        ]
+        return any(
+            phrase == normalized or normalized.startswith(phrase)
+            for phrase in chat_phrases
+        )
 
     def _pick_random_meme() -> str | None:
         """Pick a random meme image from data/memes/. Returns path or None."""
         if not os.path.isdir(MEMES_DIR):
             return None
         files = glob.glob(os.path.join(MEMES_DIR, "*"))
-        images = [f for f in files if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif", ".webp"))]
+        images = [
+            f
+            for f in files
+            if f.lower().endswith((".png", ".jpg", ".jpeg", ".gif", ".webp"))
+        ]
         return random.choice(images) if images else None
 
     # Tool type categories for UI color-coding
     _TOOL_CATEGORIES = {
-        "read_file": "read", "edit_file": "edit", "write_file": "write",
-        "list_files": "list", "search_files": "search", "run_command": "run",
-        "get_domain_dashboard": "data", "get_paper_dashboard": "data",
-        "get_firewall_status": "data", "get_vibetotext_stats": "data",
+        "read_file": "read",
+        "edit_file": "edit",
+        "write_file": "write",
+        "list_files": "list",
+        "search_files": "search",
+        "run_command": "run",
+        "get_domain_dashboard": "data",
+        "get_paper_dashboard": "data",
+        "get_firewall_status": "data",
+        "get_vibetotext_stats": "data",
         "get_system_overview": "data",
     }
 
     def _short_path(path: str) -> str:
         prefix = str(config.PROJECTS_DIR) + "/"
-        return path[len(prefix):] if path.startswith(prefix) else path
+        return path[len(prefix) :] if path.startswith(prefix) else path
 
     def _format_tool_start(tool_name: str, args: dict) -> tuple[str, str]:
         """Return (category, human_description) for a tool call."""
@@ -486,7 +703,11 @@ async def main():
         elif tool_name == "edit_file":
             path = _short_path(args.get("path", ""))
             old = args.get("old_text", "")
-            old_preview = (old[:50].replace("\n", " ") + "...") if len(old) > 50 else old.replace("\n", " ")
+            old_preview = (
+                (old[:50].replace("\n", " ") + "...")
+                if len(old) > 50
+                else old.replace("\n", " ")
+            )
             return category, f"Edit {path}\n  find: {old_preview}"
         elif tool_name == "write_file":
             path = _short_path(args.get("path", ""))
@@ -530,7 +751,9 @@ async def main():
             content = data.get("content", "")
             content_lines = content.split("\n")
             if len(content_lines) > 8:
-                preview = "\n".join(content_lines[:8]) + f"\n  ... ({line_count} lines total)"
+                preview = (
+                    "\n".join(content_lines[:8]) + f"\n  ... ({line_count} lines total)"
+                )
             elif content:
                 preview = content[:500]
             else:
@@ -561,6 +784,7 @@ async def main():
 
     def make_tool_activity_cb(target_panel: int):
         """Create a tool activity callback bound to a specific panel."""
+
         def on_tool_activity(event: str, tool_name: str, data: dict):
             if event == "start":
                 # Claude Code tools use PascalCase (Read, Edit, Bash, etc.)
@@ -568,7 +792,9 @@ async def main():
                     category, description = _cc_format_tool_start(tool_name, data)
                 else:
                     category, description = _format_tool_start(tool_name, data)
-                metal.send_chat_message(f"tool_{category}", description, panel=target_panel)
+                metal.send_chat_message(
+                    f"tool_{category}", description, panel=target_panel
+                )
                 console.print(f"  [yellow]{description}[/]")
             elif event == "subagent_tool":
                 # Sub-agent internal tool — update the live row in-place
@@ -582,11 +808,15 @@ async def main():
                 summary = data.get("summary", "")
                 is_error = data.get("is_error", False)
                 prefix = "ERROR: " if is_error else ""
-                metal.send_chat_message("subagent_result", f"{prefix}{summary}", panel=target_panel)
+                metal.send_chat_message(
+                    "subagent_result", f"{prefix}{summary}", panel=target_panel
+                )
                 console.print(f"    [dim]→ {prefix}{summary[:120]}[/]")
             elif event == "subagent_done":
                 op_count = data.get("op_count", 0)
-                metal.send_chat_message("subagent_done", str(op_count), panel=target_panel)
+                metal.send_chat_message(
+                    "subagent_done", str(op_count), panel=target_panel
+                )
                 console.print(f"  [dim]Subagent done ({op_count} ops)[/]")
             elif event == "result":
                 # Claude Code results have "summary" key
@@ -597,8 +827,13 @@ async def main():
                 metal.send_chat_message("tool_result", summary, panel=target_panel)
             elif event == "approval_request":
                 cmd = data.get("command", "")
-                metal.send_chat_message("approval", f"`{cmd}`\nPress **Enter** to run or say **no** to deny.", panel=target_panel)
+                metal.send_chat_message(
+                    "approval",
+                    f"`{cmd}`\nPress **Enter** to run or say **no** to deny.",
+                    panel=target_panel,
+                )
                 console.print(f"  [bold yellow]APPROVAL NEEDED:[/] {cmd}")
+
         return on_tool_activity
 
     def broadcast_status():
@@ -607,11 +842,15 @@ async def main():
         for p in range(panel_count):
             metal.send_chat_status(status, panel=p)
 
-    async def on_skill_input(event_type: str, tool_name: str, arguments: str, user_text: str, panel: int = 0):
+    async def on_skill_input(
+        event_type: str, tool_name: str, arguments: str, user_text: str, panel: int = 0
+    ):
         nonlocal skill_tasks, panel_count, active_panel
         nonlocal skill_active, pending_tool_name, _current_game
 
-        log.info(f"on_skill_input: event={event_type} tool={tool_name} text={user_text[:80] if user_text else ''}")
+        log.info(
+            f"on_skill_input: event={event_type} tool={tool_name} text={user_text[:80] if user_text else ''}"
+        )
         if event_type == "__skill_start__":
             # If already in a skill session, spawn a new panel with its own session
             if panel_count > 0 and panel_count < 5:
@@ -620,7 +859,9 @@ async def main():
                 active_panel = new_panel
                 metal.send_chat_split(_panel_name(new_panel))
                 metal.send({"type": "chat_focus", "panel": new_panel})
-                console.print(f"[bold cyan]Window spawned: {_panel_name(new_panel)} ({panel_count}/5)[/]")
+                console.print(
+                    f"[bold cyan]Window spawned: {_panel_name(new_panel)} ({panel_count}/5)[/]"
+                )
 
                 # Start an independent code session for the new panel
                 if tool_name == "code_assistant":
@@ -630,9 +871,17 @@ async def main():
                         metal.send_chat_message("gemini", text, panel=_p)
 
                     on_tool_activity = make_tool_activity_cb(target_panel)
-                    await router.start_code_session_idle(arguments, user_text, panel=target_panel)
-                    metal.send_chat_message("gemini", "**Opus 4.6 Assistant 1 ready.** Type or speak your request.", panel=target_panel)
-                    console.print(f"  [dim]Code session ready (panel {target_panel})[/]")
+                    await router.start_code_session_idle(
+                        arguments, user_text, panel=target_panel
+                    )
+                    metal.send_chat_message(
+                        "gemini",
+                        "**Opus 4.6 Assistant 1 ready.** Type or speak your request.",
+                        panel=target_panel,
+                    )
+                    console.print(
+                        f"  [dim]Code session ready (panel {target_panel})[/]"
+                    )
                 return
 
             panel_count = 1
@@ -660,18 +909,33 @@ async def main():
             on_tool_activity = make_tool_activity_cb(target_panel)
 
             if tool_name == "code_assistant":
-                await router.start_code_session_idle(arguments, user_text, panel=target_panel)
+                await router.start_code_session_idle(
+                    arguments, user_text, panel=target_panel
+                )
                 if user_text and user_text != "__hotkey__":
                     # Voice-triggered with a request — send immediately
                     metal.send_chat_message("user", user_text, panel=target_panel)
                     console.print(f"[white]Chat>[/] {user_text}")
 
-                    async def run_code_initial(_p=target_panel, _chunk=on_chunk, _ta=on_tool_activity, _text=user_text):
+                    async def run_code_initial(
+                        _p=target_panel,
+                        _chunk=on_chunk,
+                        _ta=on_tool_activity,
+                        _text=user_text,
+                    ):
                         try:
-                            result = await router.send_code_initial(_text, panel=_p, on_chunk=_chunk, on_tool_activity=_ta)
+                            result = await router.send_code_initial(
+                                _text, panel=_p, on_chunk=_chunk, on_tool_activity=_ta
+                            )
                             if not result or not result.strip():
-                                metal.send_chat_message("gemini", "*(No text response — check logs for errors.)*", panel=_p)
-                                console.print(f"[yellow]Empty response after tool loop (panel {_p}) — hit iteration limit[/]")
+                                metal.send_chat_message(
+                                    "gemini",
+                                    "*(No text response — check logs for errors.)*",
+                                    panel=_p,
+                                )
+                                console.print(
+                                    f"[yellow]Empty response after tool loop (panel {_p}) — hit iteration limit[/]"
+                                )
                         except Exception as e:
                             console.print(f"[red]Skill error (panel {_p}):[/] {e}")
                             metal.send_chat_message("gemini", f"\nError: {e}", panel=_p)
@@ -680,14 +944,25 @@ async def main():
                     skill_tasks[target_panel] = asyncio.create_task(run_code_initial())
                 else:
                     # Hotkey or no transcript — just ready for input
-                    metal.send_chat_message("gemini", "**Opus 4.6 Assistant 1 ready.** Type or speak your request.", panel=target_panel)
+                    metal.send_chat_message(
+                        "gemini",
+                        "**Opus 4.6 Assistant 1 ready.** Type or speak your request.",
+                        panel=target_panel,
+                    )
                     console.print(f"  [dim]Code session ready[/]")
             else:
-                async def run_initial(_p=target_panel, _chunk=on_chunk, _ta=on_tool_activity):
+
+                async def run_initial(
+                    _p=target_panel, _chunk=on_chunk, _ta=on_tool_activity
+                ):
                     try:
                         await router.start_skill_session(
-                            tool_name, arguments, user_text, panel=_p,
-                            on_chunk=_chunk, on_tool_activity=_ta,
+                            tool_name,
+                            arguments,
+                            user_text,
+                            panel=_p,
+                            on_chunk=_chunk,
+                            on_tool_activity=_ta,
                         )
                     except Exception as e:
                         console.print(f"[red]Skill error (panel {_p}):[/] {e}")
@@ -721,7 +996,9 @@ async def main():
                     skill_tasks = new_tasks
                     active_panel = min(panel, panel_count - 1)
                     metal.send({"type": "chat_focus", "panel": active_panel})
-                    console.print(f"[bold cyan]Closed panel ({panel_count} remaining)[/]")
+                    console.print(
+                        f"[bold cyan]Closed panel ({panel_count} remaining)[/]"
+                    )
                 else:
                     panel_count = 0
                     skill_active = False
@@ -741,13 +1018,21 @@ async def main():
                     active_panel = new_panel
                     metal.send_chat_split(_panel_name(new_panel))
                     metal.send({"type": "chat_focus", "panel": new_panel})
-                    console.print(f"[bold cyan]Window spawned: {_panel_name(new_panel)} ({panel_count}/5)[/]")
+                    console.print(
+                        f"[bold cyan]Window spawned: {_panel_name(new_panel)} ({panel_count}/5)[/]"
+                    )
 
                     # Auto-create code session for new panel
                     if pending_tool_name == "code_assistant":
                         await router.start_code_session_idle("{}", "", panel=new_panel)
-                        metal.send_chat_message("gemini", "**Opus 4.6 Assistant 1 ready.** Type or speak your request.", panel=new_panel)
-                        console.print(f"  [dim]Code session ready (panel {new_panel})[/]")
+                        metal.send_chat_message(
+                            "gemini",
+                            "**Opus 4.6 Assistant 1 ready.** Type or speak your request.",
+                            panel=new_panel,
+                        )
+                        console.print(
+                            f"  [dim]Code session ready (panel {new_panel})[/]"
+                        )
                 else:
                     console.print("[yellow]Max 5 windows reached[/]")
                 return
@@ -755,14 +1040,28 @@ async def main():
             if user_text.strip().lower() in ("logs", "debug", "show logs"):
                 try:
                     combined = ""
-                    for label, path in [("jarvis.log", LOG_PATH), ("metal.log", os.path.join(os.path.dirname(__file__), "metal.log"))]:
+                    for label, path in [
+                        ("jarvis.log", LOG_PATH),
+                        (
+                            "metal.log",
+                            os.path.join(os.path.dirname(__file__), "metal.log"),
+                        ),
+                    ]:
                         if os.path.exists(path):
                             with open(path, "r") as f:
                                 lines = f.readlines()
-                            combined += f"\n=== {label} (last 40 lines) ===\n" + "".join(lines[-40:])
+                            combined += (
+                                f"\n=== {label} (last 40 lines) ===\n"
+                                + "".join(lines[-40:])
+                            )
                     import subprocess as _sp
+
                     _sp.run(["pbcopy"], input=combined.encode(), check=True)
-                    metal.send_chat_message("system", f"**Logs copied to clipboard** ({len(combined)} chars)", panel=panel)
+                    metal.send_chat_message(
+                        "system",
+                        f"**Logs copied to clipboard** ({len(combined)} chars)",
+                        panel=panel,
+                    )
                     console.print("[bold cyan]Logs copied to clipboard[/]")
                 except Exception as e:
                     log.error(f"Failed to show logs: {e}")
@@ -783,7 +1082,9 @@ async def main():
                 return
 
             if _is_minesweeper_command(user_text):
-                metal.send_chat_iframe(f"file://{MINESWEEPER_PATH}", panel=panel, height=720)
+                metal.send_chat_iframe(
+                    f"file://{MINESWEEPER_PATH}", panel=panel, height=720
+                )
                 _current_game = "Minesweeper"
                 await presence.update_activity("in_game", "Minesweeper")
                 console.print("[bold cyan]Launched Minesweeper[/]")
@@ -804,14 +1105,18 @@ async def main():
                 return
 
             if _is_doodlejump_command(user_text):
-                metal.send_chat_iframe_fullscreen(f"file://{DOODLEJUMP_PATH}", panel=panel)
+                metal.send_chat_iframe_fullscreen(
+                    f"file://{DOODLEJUMP_PATH}", panel=panel
+                )
                 _current_game = "Doodle Jump"
                 await presence.update_activity("in_game", "Doodle Jump")
                 console.print("[bold cyan]Launched Doodle Jump[/]")
                 return
 
             if _is_asteroids_command(user_text):
-                metal.send_chat_iframe_fullscreen(f"file://{ASTEROIDS_PATH}", panel=panel)
+                metal.send_chat_iframe_fullscreen(
+                    f"file://{ASTEROIDS_PATH}", panel=panel
+                )
                 _current_game = "Asteroids"
                 await presence.update_activity("in_game", "Asteroids")
                 console.print("[bold cyan]Launched Asteroids[/]")
@@ -827,7 +1132,9 @@ async def main():
 
             if _is_trivia_command(user_text):
                 log.info(f"Trivia command (chat): '{user_text}'")
-                metal.send_chat_iframe_fullscreen(f"{TRIVIA_BASE_URL}/play", panel=panel)
+                metal.send_chat_iframe_fullscreen(
+                    f"{TRIVIA_BASE_URL}/play", panel=panel
+                )
                 _current_game = "1v100 Trivia"
                 await presence.update_activity("in_game", "1v100 Trivia")
                 console.print("[bold cyan]Launched 1v100 Trivia[/]")
@@ -838,9 +1145,15 @@ async def main():
                 if clip:
                     url = f"file://{VIDEOPLAYER_PATH}?src=file://{clip}"
                     metal.send_chat_iframe_fullscreen(url, panel=panel)
-                    console.print(f"[bold cyan]Playing clip:[/] {os.path.basename(clip)}")
+                    console.print(
+                        f"[bold cyan]Playing clip:[/] {os.path.basename(clip)}"
+                    )
                 else:
-                    metal.send_chat_message("gemini", "No gameplay clips found. Add videos to `data/subway_clips/`.", panel=panel)
+                    metal.send_chat_message(
+                        "gemini",
+                        "No gameplay clips found. Add videos to `data/subway_clips/`.",
+                        panel=panel,
+                    )
                 return
 
             if _is_subway_command(user_text):
@@ -856,7 +1169,22 @@ async def main():
                     metal.send_chat_image(meme_path, panel=panel)
                     console.print(f"[bold cyan]Meme:[/] {os.path.basename(meme_path)}")
                 else:
-                    metal.send_chat_message("gemini", "No memes found. Add images to `data/memes/`.", panel=panel)
+                    metal.send_chat_message(
+                        "gemini",
+                        "No memes found. Add images to `data/memes/`.",
+                        panel=panel,
+                    )
+                return
+
+            if _is_chat_command(user_text):
+                _start_chat_server()
+                if _chat_server_url:
+                    metal.send_chat_iframe_fullscreen(_chat_server_url, panel=panel)
+                    _current_game = "Livechat"
+                    await presence.update_activity("in_game", "Livechat")
+                    console.print("[bold cyan]Launched Livechat[/]")
+                else:
+                    console.print("[red]Failed to start chat server[/]")
                 return
 
             if _is_close_command(user_text):
@@ -876,7 +1204,9 @@ async def main():
                     skill_tasks = new_tasks
                     active_panel = min(panel, panel_count - 1)
                     metal.send({"type": "chat_focus", "panel": active_panel})
-                    console.print(f"[bold cyan]Closed panel ({panel_count} remaining)[/]")
+                    console.print(
+                        f"[bold cyan]Closed panel ({panel_count} remaining)[/]"
+                    )
                     return
 
                 console.print("[bold cyan]Closing chat window...[/]")
@@ -903,12 +1233,27 @@ async def main():
             # ── Gate: command approval pending on this panel — resolve yes/no ──
             if router.has_pending_approval(panel):
                 normalized = user_text.lower().strip().rstrip(".")
-                approve_phrases = ("yes", "yeah", "yep", "sure", "go", "go ahead", "approve", "run it", "do it", "ok", "okay", "")
+                approve_phrases = (
+                    "yes",
+                    "yeah",
+                    "yep",
+                    "sure",
+                    "go",
+                    "go ahead",
+                    "approve",
+                    "run it",
+                    "do it",
+                    "ok",
+                    "okay",
+                    "",
+                )
                 if normalized in approve_phrases or user_text == "\n" or not user_text:
                     cmd = router.get_pending_command(panel)
                     router.approve_command(True, panel=panel)
                     metal.send_chat_message("tool_result", "Approved", panel=panel)
-                    console.print(f"  [green]Command approved (panel {panel}):[/] {cmd}")
+                    console.print(
+                        f"  [green]Command approved (panel {panel}):[/] {cmd}"
+                    )
                 else:
                     router.approve_command(False, panel=panel)
                     metal.send_chat_message("tool_result", "Denied", panel=panel)
@@ -921,8 +1266,12 @@ async def main():
             # Gate: ignore input while THIS panel's response is still streaming
             panel_task = skill_tasks.get(panel)
             if panel_task and not panel_task.done():
-                console.print(f"[dim]Panel {panel} busy — ignoring input: {user_text}[/]")
-                metal.send_chat_message("gemini", "*Wait for response to finish...*", panel=panel)
+                console.print(
+                    f"[dim]Panel {panel} busy — ignoring input: {user_text}[/]"
+                )
+                metal.send_chat_message(
+                    "gemini", "*Wait for response to finish...*", panel=panel
+                )
                 return
 
             # Show user message in chat window (with image preview if paths detected)
@@ -930,7 +1279,9 @@ async def main():
             image_paths, display_text = _extract_image_paths(user_text)
             for img_path in image_paths:
                 metal.send_chat_image(img_path, panel=target_panel)
-            metal.send_chat_message("user", display_text or user_text, panel=target_panel)
+            metal.send_chat_message(
+                "user", display_text or user_text, panel=target_panel
+            )
             console.print(f"[white]Chat>[/] {user_text} [panel {target_panel}]")
 
             def on_chunk(text: str, _p=target_panel):
@@ -938,14 +1289,25 @@ async def main():
 
             _on_tool_activity = make_tool_activity_cb(target_panel)
 
-            async def run_followup(_p=target_panel, _chunk=on_chunk, _ta=_on_tool_activity, _text=user_text):
+            async def run_followup(
+                _p=target_panel, _chunk=on_chunk, _ta=_on_tool_activity, _text=user_text
+            ):
                 try:
                     result = await router.send_followup(
-                        _text, panel=_p, on_chunk=_chunk, on_tool_activity=_ta,
+                        _text,
+                        panel=_p,
+                        on_chunk=_chunk,
+                        on_tool_activity=_ta,
                     )
                     if not result or not result.strip():
-                        metal.send_chat_message("gemini", "*(No text response — check logs for errors.)*", panel=_p)
-                        console.print(f"[yellow]Empty response after tool loop (panel {_p}) — hit iteration limit[/]")
+                        metal.send_chat_message(
+                            "gemini",
+                            "*(No text response — check logs for errors.)*",
+                            panel=_p,
+                        )
+                        console.print(
+                            f"[yellow]Empty response after tool loop (panel {_p}) — hit iteration limit[/]"
+                        )
                 except Exception as e:
                     console.print(f"[red]Followup error (panel {_p}):[/] {e}")
                     metal.send_chat_message("gemini", f"\nError: {e}", panel=_p)
@@ -960,7 +1322,9 @@ async def main():
         while True:
             try:
                 async with aiohttp.ClientSession() as session:
-                    async with session.get(url, timeout=aiohttp.ClientTimeout(total=None)) as resp:
+                    async with session.get(
+                        url, timeout=aiohttp.ClientTimeout(total=None)
+                    ) as resp:
                         console.print("[dim]Chat monitor connected[/]")
                         async for line in resp.content:
                             text = line.decode("utf-8", errors="replace").strip()
@@ -997,13 +1361,23 @@ async def main():
         default_task: asyncio.Task | None = None
 
         async def handle_fn_key(pressed: bool):
-            nonlocal ptt_active, skill_active, pending_tool_name, default_task, _current_game
+            nonlocal \
+                ptt_active, \
+                skill_active, \
+                pending_tool_name, \
+                default_task, \
+                _current_game
 
             if pressed and not ptt_active:
                 if not whisper_client.is_available():
-                    console.print("[red]vibetotext socket not available — start vibetotext first[/]")
+                    console.print(
+                        "[red]vibetotext socket not available — start vibetotext first[/]"
+                    )
                     if skill_active:
-                        metal.send_chat_message("gemini", "Local transcription unavailable. Start vibetotext.")
+                        metal.send_chat_message(
+                            "gemini",
+                            "Local transcription unavailable. Start vibetotext.",
+                        )
                     else:
                         metal.send_hud("vibetotext not running")
                     return
@@ -1032,7 +1406,9 @@ async def main():
 
                 log.debug(f"PTT: {len(audio)} samples, transcribing...")
                 console.print(f"[dim]PTT: {len(audio)} samples, transcribing...[/]")
-                text = await whisper_client.transcribe(audio, sample_rate=config.WHISPER_SAMPLE_RATE)
+                text = await whisper_client.transcribe(
+                    audio, sample_rate=config.WHISPER_SAMPLE_RATE
+                )
 
                 if not text:
                     log.debug("PTT: empty transcription")
@@ -1051,7 +1427,9 @@ async def main():
                 else:
                     # Quick commands before hitting Gemini
                     if _is_pinball_command(text):
-                        metal.send_chat_iframe_fullscreen(f"file://{PINBALL_PATH}", panel=active_panel)
+                        metal.send_chat_iframe_fullscreen(
+                            f"file://{PINBALL_PATH}", panel=active_panel
+                        )
                         _current_game = "Pinball"
                         await presence.update_activity("in_game", "Pinball")
                         metal.send_state("listening")
@@ -1059,7 +1437,9 @@ async def main():
                         return
 
                     if _is_minesweeper_command(text):
-                        metal.send_chat_iframe(f"file://{MINESWEEPER_PATH}", panel=active_panel, height=720)
+                        metal.send_chat_iframe(
+                            f"file://{MINESWEEPER_PATH}", panel=active_panel, height=720
+                        )
                         _current_game = "Minesweeper"
                         await presence.update_activity("in_game", "Minesweeper")
                         metal.send_state("listening")
@@ -1067,7 +1447,9 @@ async def main():
                         return
 
                     if _is_tetris_command(text):
-                        metal.send_chat_iframe_fullscreen(f"file://{TETRIS_PATH}", panel=active_panel)
+                        metal.send_chat_iframe_fullscreen(
+                            f"file://{TETRIS_PATH}", panel=active_panel
+                        )
                         _current_game = "Tetris"
                         await presence.update_activity("in_game", "Tetris")
                         metal.send_state("listening")
@@ -1075,7 +1457,9 @@ async def main():
                         return
 
                     if _is_draw_command(text):
-                        metal.send_chat_iframe(f"file://{DRAW_PATH}", panel=active_panel, height=720)
+                        metal.send_chat_iframe(
+                            f"file://{DRAW_PATH}", panel=active_panel, height=720
+                        )
                         _current_game = "Draw"
                         await presence.update_activity("in_game", "Draw")
                         metal.send_state("listening")
@@ -1083,7 +1467,9 @@ async def main():
                         return
 
                     if _is_doodlejump_command(text):
-                        metal.send_chat_iframe_fullscreen(f"file://{DOODLEJUMP_PATH}", panel=active_panel)
+                        metal.send_chat_iframe_fullscreen(
+                            f"file://{DOODLEJUMP_PATH}", panel=active_panel
+                        )
                         _current_game = "Doodle Jump"
                         await presence.update_activity("in_game", "Doodle Jump")
                         metal.send_state("listening")
@@ -1091,7 +1477,9 @@ async def main():
                         return
 
                     if _is_asteroids_command(text):
-                        metal.send_chat_iframe_fullscreen(f"file://{ASTEROIDS_PATH}", panel=active_panel)
+                        metal.send_chat_iframe_fullscreen(
+                            f"file://{ASTEROIDS_PATH}", panel=active_panel
+                        )
                         _current_game = "Asteroids"
                         await presence.update_activity("in_game", "Asteroids")
                         metal.send_state("listening")
@@ -1103,14 +1491,18 @@ async def main():
                         if clip:
                             url = f"file://{VIDEOPLAYER_PATH}?src=file://{clip}"
                             metal.send_chat_iframe_fullscreen(url, panel=active_panel)
-                            console.print(f"[bold cyan]Playing clip:[/] {os.path.basename(clip)}")
+                            console.print(
+                                f"[bold cyan]Playing clip:[/] {os.path.basename(clip)}"
+                            )
                         else:
                             metal.send_hud("No gameplay clips found")
                         metal.send_state("listening")
                         return
 
                     if _is_subway_command(text):
-                        metal.send_chat_iframe_fullscreen(f"file://{SUBWAY_PATH}", panel=active_panel)
+                        metal.send_chat_iframe_fullscreen(
+                            f"file://{SUBWAY_PATH}", panel=active_panel
+                        )
                         _current_game = "Subway Surfers"
                         await presence.update_activity("in_game", "Subway Surfers")
                         metal.send_state("listening")
@@ -1119,7 +1511,9 @@ async def main():
 
                     if _is_kart_command(text):
                         log.info(f"Kart command detected: '{text}'")
-                        metal.send_chat_iframe_fullscreen("https://kartbros.io", panel=active_panel)
+                        metal.send_chat_iframe_fullscreen(
+                            "https://kartbros.io", panel=active_panel
+                        )
                         _current_game = "KartBros"
                         await presence.update_activity("in_game", "KartBros")
                         metal.send_state("listening")
@@ -1130,20 +1524,48 @@ async def main():
                         log.info(f"Trivia command detected: '{text}'")
                         try:
                             import httpx as _httpx
-                            resp = _httpx.post(f"{TRIVIA_BASE_URL}/api/game/create", timeout=10)
+
+                            resp = _httpx.post(
+                                f"{TRIVIA_BASE_URL}/api/game/create", timeout=10
+                            )
                             data = resp.json()
                             join_code = data.get("joinCode", "")
-                            log.info(f"Trivia game created: code={join_code}, opening {TRIVIA_BASE_URL}/play")
-                            metal.send_chat_iframe_fullscreen(f"{TRIVIA_BASE_URL}/play", panel=active_panel)
-                            console.print(f"[bold cyan]Launched 1v100 Trivia[/] — Join code: [bold orange]{join_code}[/]")
+                            log.info(
+                                f"Trivia game created: code={join_code}, opening {TRIVIA_BASE_URL}/play"
+                            )
+                            metal.send_chat_iframe_fullscreen(
+                                f"{TRIVIA_BASE_URL}/play", panel=active_panel
+                            )
+                            console.print(
+                                f"[bold cyan]Launched 1v100 Trivia[/] — Join code: [bold orange]{join_code}[/]"
+                            )
                         except Exception as e:
                             log.error(f"Trivia create failed: {e}", exc_info=True)
                             console.print(f"[red]Failed to create trivia game: {e}[/]")
-                            metal.send_chat_iframe_fullscreen(f"{TRIVIA_BASE_URL}/play", panel=active_panel)
-                            console.print("[bold cyan]Launched 1v100 Trivia (fallback)[/]")
+                            metal.send_chat_iframe_fullscreen(
+                                f"{TRIVIA_BASE_URL}/play", panel=active_panel
+                            )
+                            console.print(
+                                "[bold cyan]Launched 1v100 Trivia (fallback)[/]"
+                            )
                         _current_game = "1v100 Trivia"
                         await presence.update_activity("in_game", "1v100 Trivia")
                         metal.send_state("listening")
+                        return
+
+                    if _is_chat_command(text):
+                        log.info(f"Chat command detected: '{text}'")
+                        _start_chat_server()
+                        if _chat_server_url:
+                            metal.send_chat_iframe_fullscreen(
+                                _chat_server_url, panel=active_panel
+                            )
+                            _current_game = "Livechat"
+                            await presence.update_activity("in_game", "Livechat")
+                            metal.send_state("listening")
+                            console.print("[bold cyan]Launched Livechat[/]")
+                        else:
+                            console.print("[red]Failed to start chat server[/]")
                         return
 
                     # Default mode: send to Gemini Flash
@@ -1165,8 +1587,16 @@ async def main():
                                 tool = trigger["tool_name"]
                                 args = trigger["arguments"]
                                 user = trigger["user_text"]
-                                console.print(f"\n[bold yellow]Skill triggered:[/] {tool}")
-                                await on_skill_input("__skill_start__", tool, args, user, panel=active_panel)
+                                console.print(
+                                    f"\n[bold yellow]Skill triggered:[/] {tool}"
+                                )
+                                await on_skill_input(
+                                    "__skill_start__",
+                                    tool,
+                                    args,
+                                    user,
+                                    panel=active_panel,
+                                )
                             elif response:
                                 console.print(f"[bold cyan]Jarvis:[/] {response}")
                                 metal.send_hud(f"JARVIS: {response}")
@@ -1182,7 +1612,12 @@ async def main():
 
         async def read_metal_stdout():
             """Read typed input and fn key events from Metal WebView via stdout."""
-            nonlocal skill_active, pending_tool_name, active_panel, _last_interaction, _current_game
+            nonlocal \
+                skill_active, \
+                pending_tool_name, \
+                active_panel, \
+                _last_interaction, \
+                _current_game
             loop = asyncio.get_event_loop()
             while metal.proc and metal.proc.poll() is None:
                 line = await loop.run_in_executor(None, metal.proc.stdout.readline)
@@ -1190,10 +1625,14 @@ async def main():
                     break
                 try:
                     msg = json.loads(line.decode().strip())
-                    log.debug(f"Metal msg: {msg.get('type')} {json.dumps({k:v for k,v in msg.items() if k != 'type'})[:120]}")
+                    log.debug(
+                        f"Metal msg: {msg.get('type')} {json.dumps({k: v for k, v in msg.items() if k != 'type'})[:120]}"
+                    )
                     if msg.get("type") == "game_event":
                         event_log.ingest(msg)
-                        log.info(f"Game event: {msg.get('event')} {json.dumps({k:v for k,v in msg.items() if k not in ('type',)})[:200]}")
+                        log.info(
+                            f"Game event: {msg.get('event')} {json.dumps({k: v for k, v in msg.items() if k not in ('type',)})[:200]}"
+                        )
                         # Track game exit for presence
                         if msg.get("event") == "iframe_hide" and _current_game:
                             _current_game = None
@@ -1201,25 +1640,46 @@ async def main():
                     if msg.get("type") == "panel_focus":
                         old_panel = active_panel
                         active_panel = msg.get("panel", 0)
-                        event_log.log_action("panel_focus", old=old_panel, new=active_panel)
+                        event_log.log_action(
+                            "panel_focus", old=old_panel, new=active_panel
+                        )
                     elif msg.get("type") == "chat_input" and skill_active:
                         _last_interaction = _time.time()
                         text = msg.get("text", "")
                         panel_idx = msg.get("panel", active_panel)
-                        await on_skill_input("__skill_chat__", pending_tool_name, "", text, panel=panel_idx)
+                        await on_skill_input(
+                            "__skill_chat__",
+                            pending_tool_name,
+                            "",
+                            text,
+                            panel=panel_idx,
+                        )
                     elif msg.get("type") == "fn_key":
                         await handle_fn_key(msg.get("pressed", False))
                     elif msg.get("type") == "hotkey":
                         if msg.get("action") == "split" and skill_active:
-                            await on_skill_input("__skill_start__", pending_tool_name, "{}", "__hotkey__", panel=active_panel)
+                            await on_skill_input(
+                                "__skill_start__",
+                                pending_tool_name,
+                                "{}",
+                                "__hotkey__",
+                                panel=active_panel,
+                            )
                         elif msg.get("skill") and not skill_active:
                             skill = msg["skill"]
                             console.print(f"\n[bold yellow]Hotkey:[/] {skill}")
                             try:
-                                await on_skill_input("__skill_start__", skill, "{}", "__hotkey__", panel=active_panel)
+                                await on_skill_input(
+                                    "__skill_start__",
+                                    skill,
+                                    "{}",
+                                    "__hotkey__",
+                                    panel=active_panel,
+                                )
                             except Exception as e:
                                 console.print(f"[red]Hotkey skill error:[/] {e}")
                                 import traceback
+
                                 traceback.print_exc()
                                 skill_active = False
                                 pending_tool_name = None
@@ -1262,6 +1722,7 @@ async def main():
         log.error(f"Fatal error: {e}", exc_info=True)
         console.print(f"[red]Error:[/] {e}")
         import traceback
+
         traceback.print_exc()
     finally:
         console.print("\n[dim]Shutting down...[/]")
