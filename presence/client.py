@@ -24,6 +24,7 @@ class PresenceClient:
         self._connected = False
         self._closing = False
         self.online_count: int = 0
+        self.online_users: list[dict] = []
 
     async def update_activity(self, status: str, activity: str = None, metadata: dict = None):
         if not self._ws or not self._connected:
@@ -42,6 +43,18 @@ class PresenceClient:
             return
         try:
             await self._ws.send(json.dumps({"type": "game_invite", "game": game, "code": code}))
+        except websockets.ConnectionClosed:
+            self._connected = False
+
+    async def send_poke(self, target_user_id: str):
+        """Send a poke to a specific user."""
+        if not self._ws or not self._connected:
+            return
+        try:
+            await self._ws.send(json.dumps({
+                "type": "poke",
+                "target_user_id": target_user_id,
+            }))
         except websockets.ConnectionClosed:
             self._connected = False
 
@@ -93,8 +106,8 @@ class PresenceClient:
                                             log.exception("Notification callback error")
                                 continue
                             if msg_type == "welcome":
-                                # Count includes self (+1 for the users list which excludes self)
-                                self.online_count = len(msg.get("users", [])) + 1
+                                self.online_users = msg.get("users", [])
+                                self.online_count = len(self.online_users) + 1
                                 log.info("Online users: %d", self.online_count)
                                 if self.on_notification:
                                     try:
@@ -102,8 +115,35 @@ class PresenceClient:
                                     except Exception:
                                         log.exception("Notification callback error")
                                 continue
+                            # Track user list changes
+                            if msg_type == "user_online":
+                                uid = msg.get("user_id")
+                                self.online_users = [
+                                    u for u in self.online_users
+                                    if u.get("user_id") != uid
+                                ]
+                                self.online_users.append({
+                                    "user_id": uid,
+                                    "display_name": msg.get("display_name", "Unknown"),
+                                    "status": "online",
+                                    "activity": None,
+                                })
+                            elif msg_type == "user_offline":
+                                uid = msg.get("user_id")
+                                self.online_users = [
+                                    u for u in self.online_users
+                                    if u.get("user_id") != uid
+                                ]
+                            elif msg_type == "activity_changed":
+                                uid = msg.get("user_id")
+                                for u in self.online_users:
+                                    if u.get("user_id") == uid:
+                                        u["status"] = msg.get("status", "online")
+                                        u["activity"] = msg.get("activity")
+                                        u["display_name"] = msg.get("display_name", u["display_name"])
+                                        break
                             # Broadcast events → notify callback
-                            if msg_type in ("user_online", "user_offline", "activity_changed", "game_invite", "invite_sent"):
+                            if msg_type in ("user_online", "user_offline", "activity_changed", "game_invite", "invite_sent", "poke"):
                                 if self.on_notification:
                                     try:
                                         self.on_notification(msg_type, msg)

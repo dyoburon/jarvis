@@ -139,6 +139,22 @@ class PresenceServer:
                             "sent_to": online_names,
                         }))
 
+                elif msg_type == "poke":
+                    if user_id and user_id in self.users:
+                        target_id = msg.get("target_user_id")
+                        if target_id and target_id in self.sockets:
+                            u = self.users[user_id]
+                            log.info("Poke: %s → %s", u.display_name, target_id[:8])
+                            try:
+                                await self.sockets[target_id].send(json.dumps({
+                                    "type": "poke",
+                                    "user_id": user_id,
+                                    "display_name": u.display_name,
+                                    "ts": time.time(),
+                                }))
+                            except websockets.ConnectionClosed:
+                                pass
+
                 elif msg_type == "disconnect":
                     break
 

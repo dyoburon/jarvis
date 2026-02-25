@@ -18,7 +18,7 @@ import time as _time
 
 import config
 from presence.client import PresenceClient
-from presence.identity import load_identity
+from presence.identity import load_identity, save_display_name
 
 # Persistent log file — survives across sessions, rotates at 5MB
 LOG_PATH = os.path.join(os.path.dirname(__file__), "jarvis.log")
@@ -194,6 +194,18 @@ class MetalBridge:
     def send_chat_overlay(self, text: str):
         self.send({"type": "chat_overlay", "text": text})
 
+    def send_overlay_update(self, status: str, lines: list[str]):
+        self.send({
+            "type": "overlay_update",
+            "json": json.dumps({"status": status, "lines": lines}),
+        })
+
+    def send_overlay_user_list(self, users: list[dict]):
+        self.send({
+            "type": "overlay_user_list",
+            "json": json.dumps(users),
+        })
+
     def send_chat_image(self, path: str, panel: int = None):
         msg = {"type": "chat_image", "path": path}
         if panel is not None:
@@ -265,11 +277,13 @@ async def main():
             if len(overlay_lines) > MAX_OVERLAY_LINES:
                 del overlay_lines[: len(overlay_lines) - MAX_OVERLAY_LINES]
             metal.send_chat_overlay(_build_overlay())
+            metal.send_overlay_update(overlay_status, list(overlay_lines))
 
     def update_overlay_status(text: str):
         nonlocal overlay_status
         overlay_status = text
         metal.send_chat_overlay(_build_overlay())
+        metal.send_overlay_update(overlay_status, list(overlay_lines))
 
     # Presence client
     identity = load_identity()
@@ -283,8 +297,10 @@ async def main():
         name = data.get("display_name", "Someone")
         if event_type == "user_online":
             asyncio.create_task(push_overlay_line(f">> {name} is online"))
+            metal.send_overlay_user_list(presence.online_users)
         elif event_type == "user_offline":
             asyncio.create_task(push_overlay_line(f">> {name} went offline"))
+            metal.send_overlay_user_list(presence.online_users)
         elif event_type == "activity_changed":
             activity = data.get("activity", "")
             status = data.get("status", "")
@@ -298,6 +314,7 @@ async def main():
                 asyncio.create_task(push_overlay_line(f">> {name} went idle"))
             elif status == "online":
                 asyncio.create_task(push_overlay_line(f">> {name} is back"))
+            metal.send_overlay_user_list(presence.online_users)
         elif event_type == "game_invite":
             nonlocal _pending_invite
             game = data.get("game", "")
@@ -316,11 +333,25 @@ async def main():
             else:
                 asyncio.create_task(push_overlay_line(f">> Invite sent — no one else online"))
             console.print(f"[bold cyan]Invite sent:[/] {game} code={code} to {sent_to}")
+        elif event_type == "poke":
+            poker_name = data.get("display_name", "Someone")
+            asyncio.create_task(push_overlay_line(f">> {poker_name} poked you!"))
+            subprocess.Popen(
+                ["afplay", "-v", "0.5", "/System/Library/Sounds/Ping.aiff"],
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            )
+            console.print(f"[bold yellow]Poke![/] {poker_name} poked you")
         elif event_type == "online_count":
             count = data.get("count", 0)
             update_overlay_status(f"[ {count} online ]")
 
     presence.on_notification = _handle_presence
+
+    async def _initial_overlay_sync():
+        """Send current overlay state after WebView has loaded."""
+        await asyncio.sleep(3)
+        metal.send_overlay_update(overlay_status, list(overlay_lines))
+        metal.send_overlay_user_list(presence.online_users)
 
     async def _heartbeat_sound():
         """Play a subtle sound every 30s while connected to presence."""
@@ -1411,6 +1442,9 @@ async def main():
 
         ptt_active = False
         default_task: asyncio.Task | None = None
+        # First-run name prompt (centered input box in Metal app)
+        if not identity.get("name_set", False):
+            metal.send({"type": "name_prompt"})
 
         async def handle_fn_key(pressed: bool):
             nonlocal \
@@ -1741,6 +1775,28 @@ async def main():
                                 text,
                                 panel=panel_idx,
                             )
+                    elif msg.get("type") == "name_response":
+                        name = msg.get("name", "").strip()
+                        if name:
+                            save_display_name(name)
+                            identity["display_name"] = name
+                            identity["name_set"] = True
+                            presence.display_name = name
+                            log.info(f"Display name set: {name}")
+                            console.print(f"[bold cyan]Name set:[/] {name}")
+                            # Push current state to the overlay WebView
+                            metal.send_overlay_update(
+                                overlay_status, list(overlay_lines)
+                            )
+                    elif msg.get("type") == "overlay_action":
+                        action = msg.get("action")
+                        if action == "request_users":
+                            metal.send_overlay_user_list(presence.online_users)
+                        elif action == "poke":
+                            target_id = msg.get("target_user_id")
+                            if target_id:
+                                await presence.send_poke(target_id)
+                                log.info(f"Poke sent to {target_id[:8]}")
                     elif msg.get("type") == "fn_key":
                         await handle_fn_key(msg.get("pressed", False))
                     elif msg.get("type") == "hotkey":
@@ -1802,6 +1858,7 @@ async def main():
             presence.run(),
             idle_monitor(),
             _heartbeat_sound(),
+            _initial_overlay_sync(),
         )
 
     except KeyboardInterrupt:

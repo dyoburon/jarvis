@@ -65,6 +65,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var hudRenderer: HUDTextRenderer!
     var stdinReader: StdinReader?
     var chatWebView: ChatWebView?
+    var presenceOverlay: PresenceOverlayWebView?
+    var namePrompt: NamePromptView?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         guard let screen = NSScreen.main else {
@@ -155,6 +157,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             )
             chatWebView = ChatWebView(frame: chatFrame)
             chatWebView?.attach(to: overlayView)
+
+            // Presence overlay (right 28% — interactive online list + poke)
+            let presenceFrame = NSRect(
+                x: screen.frame.width * 0.72,
+                y: 0,
+                width: screen.frame.width * 0.28,
+                height: screen.frame.height
+            )
+            presenceOverlay = PresenceOverlayWebView(frame: presenceFrame)
+            presenceOverlay?.attach(to: overlayView)
+
+            // Clear Metal HUD top-right text — the WebView overlay replaces it
+            hudRenderer.setTopRightText("")
         }
 
         // PTT state (Option+Period) — shared across monitors
@@ -320,7 +335,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     self?.chatWebView?.updateStatus(text: text, panel: panel)
                 },
                 onChatOverlay: { [weak self] text in
-                    self?.hudRenderer.setTopRightText(text)
+                    // Only render in Metal HUD if the interactive overlay WebView isn't active
+                    if self?.presenceOverlay == nil {
+                        self?.hudRenderer.setTopRightText(text)
+                    }
                 },
                 onChatImage: { [weak self] path, panel in
                     self?.chatWebView?.appendImage(path: path, panel: panel)
@@ -336,6 +354,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 },
                 onChatInputSet: { [weak self] text, panel in
                     self?.chatWebView?.setInputText(text, panel: panel)
+                },
+                onOverlayUpdate: { [weak self] json in
+                    self?.presenceOverlay?.updateOverlay(json: json)
+                },
+                onOverlayUserList: { [weak self] json in
+                    self?.presenceOverlay?.updateUserList(json: json)
+                },
+                onNamePrompt: { [weak self] in
+                    guard let self = self,
+                          let overlayView = self.window.contentView?.subviews.last else { return }
+                    self.namePrompt = NamePromptView(parentFrame: overlayView.bounds)
+                    self.namePrompt?.show(in: overlayView)
                 },
                 onTestHideFullscreen: { [weak self] in
                     self?.chatWebView?.hideFullscreenIframe()

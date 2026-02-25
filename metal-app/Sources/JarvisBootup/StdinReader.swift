@@ -32,6 +32,9 @@ class StdinReader {
     private let onChatIframeFullscreen: (String, Int) -> Void  // url, panel
     private let onWebPanel: (String, String) -> Void       // url, title
     private let onChatInputSet: (String, Int) -> Void
+    private let onOverlayUpdate: (String) -> Void      // json string
+    private let onOverlayUserList: (String) -> Void    // json string
+    private let onNamePrompt: () -> Void
     private let onTestHideFullscreen: () -> Void
     private let onQuit: () -> Void
 
@@ -52,6 +55,9 @@ class StdinReader {
          onChatIframeFullscreen: @escaping (String, Int) -> Void,
          onWebPanel: @escaping (String, String) -> Void,
          onChatInputSet: @escaping (String, Int) -> Void,
+         onOverlayUpdate: @escaping (String) -> Void,
+         onOverlayUserList: @escaping (String) -> Void,
+         onNamePrompt: @escaping () -> Void,
          onTestHideFullscreen: @escaping () -> Void,
          onQuit: @escaping () -> Void) {
         self.onAudioLevel = onAudioLevel
@@ -71,6 +77,9 @@ class StdinReader {
         self.onChatIframeFullscreen = onChatIframeFullscreen
         self.onWebPanel = onWebPanel
         self.onChatInputSet = onChatInputSet
+        self.onOverlayUpdate = onOverlayUpdate
+        self.onOverlayUserList = onOverlayUserList
+        self.onNamePrompt = onNamePrompt
         self.onTestHideFullscreen = onTestHideFullscreen
         self.onQuit = onQuit
     }
@@ -149,6 +158,16 @@ class StdinReader {
                         let text = json["text"] as? String ?? ""
                         let panel = json["panel"] as? Int ?? -1
                         self.onChatInputSet(text, panel)
+                    case "overlay_update":
+                        if let jsonStr = json["json"] as? String {
+                            self.onOverlayUpdate(jsonStr)
+                        }
+                    case "overlay_user_list":
+                        if let jsonStr = json["json"] as? String {
+                            self.onOverlayUserList(jsonStr)
+                        }
+                    case "name_prompt":
+                        self.onNamePrompt()
                     case "test_hide_fullscreen":
                         self.onTestHideFullscreen()
                     case "quit":
