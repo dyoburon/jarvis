@@ -1884,3 +1884,155 @@
 2026-02-25T03:42:02Z [METAL] WKMessage: "__escape__" from_panel=1 activePanel=1 fullscreen=true
 2026-02-25T03:42:02Z [METAL] updateFocusIndicators: activePanel=1 panelCount=4
 2026-02-25T03:42:02Z [METAL] updateFocusIndicators: activePanel=1 panelCount=4
+2026-02-25T03:58:41Z [METAL] JarvisBootup started — build v2
+2026-02-25T03:58:45Z [METAL] applicationDidBecomeActive: fullscreen=false
+2026-02-25T03:58:45Z [METAL] updateFocusIndicators: activePanel=0 panelCount=1
+2026-02-25T03:58:46Z [METAL] updateFocusIndicators: makeFirstResponder panel=0 before=Optional(<JarvisBootup.KeyableWindow: 0x100ff4b10>) after=Optional(<WKWebView: 0x8f7668000>)
+2026-02-25T03:58:46Z [METAL] updateFocusIndicators: activePanel=1 panelCount=2
+2026-02-25T03:58:46Z [METAL] updateFocusIndicators: activePanel=1 panelCount=2
+2026-02-25T03:58:46Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x8f766a000>) after=Optional(<WKWebView: 0x8f766a000>)
+2026-02-25T03:58:46Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x8f766a000>) after=Optional(<WKWebView: 0x8f766a000>)
+2026-02-25T03:58:46Z [METAL] updateFocusIndicators: activePanel=2 panelCount=3
+2026-02-25T03:58:46Z [METAL] updateFocusIndicators: activePanel=2 panelCount=3
+2026-02-25T03:58:47Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0x8f7669400>) after=Optional(<WKWebView: 0x8f7669400>)
+2026-02-25T03:58:47Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0x8f7669400>) after=Optional(<WKWebView: 0x8f7669400>)
+2026-02-25T03:58:48Z [METAL] __focus__: from_panel=2 activePanel=2 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x8f7669400>)
+2026-02-25T03:58:48Z [METAL] __focus__: SKIPPED — already activePanel=2
+2026-02-25T03:58:53Z [METAL] WKMessage: "chat" from_panel=2 activePanel=2 fullscreen=false
+2026-02-25T03:59:29Z [METAL] __focus__: from_panel=1 activePanel=2 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x8f766a000>)
+2026-02-25T03:59:29Z [METAL] updateFocusIndicators: activePanel=1 panelCount=3
+2026-02-25T03:59:30Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x8f766a000>) after=Optional(<WKWebView: 0x8f766a000>)
+2026-02-25T03:59:34Z [METAL] PanelResizeHandle: mouseEntered frame=(918.2666666666665, 0.0, 10.0, 1080.0)
+2026-02-25T03:59:34Z [METAL] PanelResizeHandle: mouseEntered frame=(918.2666666666665, 0.0, 10.0, 1080.0)
+2026-02-25T03:59:35Z [METAL] PanelResizeHandle: mouseEntered frame=(918.2666666666665, 0.0, 10.0, 1080.0)
+2026-02-25T03:59:36Z [METAL] __focus__: from_panel=1 activePanel=1 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x8f766a000>)
+2026-02-25T03:59:36Z [METAL] __focus__: SKIPPED — already activePanel=1
+2026-02-25T04:00:44Z [METAL] applicationDidBecomeActive: fullscreen=false
+2026-02-25T04:00:45Z [METAL] __focus__: from_panel=1 activePanel=1 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x8f766a000>)
+2026-02-25T04:00:45Z [METAL] __focus__: SKIPPED — already activePanel=1
+2026-02-25T04:00:45Z [METAL] __focus__: from_panel=1 activePanel=1 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x8f766a000>)
+2026-02-25T04:00:45Z [METAL] __focus__: SKIPPED — already activePanel=1
+2026-02-25T04:00:56Z [METAL] WKMessage: "with the current project jarvis how do I start up the chat f" from_panel=1 activePanel=1 fullscreen=false
+2026-02-25T04:01:24Z [METAL] applicationDidBecomeActive: fullscreen=false
+2026-02-25T04:01:28Z [METAL] PanelResizeHandle: mouseEntered frame=(918.2666666666665, 0.0, 10.0, 1080.0)
+2026-02-25T04:01:28Z [METAL] __focus__: from_panel=2 activePanel=1 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x8f7669400>)
+2026-02-25T04:01:28Z [METAL] updateFocusIndicators: activePanel=2 panelCount=3
+2026-02-25T04:01:28Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0x8f7669400>) after=Optional(<WKWebView: 0x8f7669400>)
+2026-02-25T04:01:30Z [METAL] WKMessage: "livechat" from_panel=2 activePanel=2 fullscreen=false
+2026-02-25T04:01:30Z [METAL] showFullscreenIframe: url=http://127.0.0.1:19847/chat.html panel=2 isFile=false
+2026-02-25T04:01:30Z [METAL] showFullscreenIframe: navigating WKWebView to http://127.0.0.1:19847/chat.html
+2026-02-25T04:01:31Z [METAL] __focus__: from_panel=1 activePanel=2 fullscreen=true fullscreenPanel=2 firstResponder=Optional(<WKWebView: 0x8f766a000>)
+2026-02-25T04:01:31Z [METAL] updateFocusIndicators: activePanel=1 panelCount=3
+2026-02-25T04:01:31Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x8f766a000>) after=Optional(<WKWebView: 0x8f766a000>)
+2026-02-25T04:01:31Z [METAL] PanelResizeHandle: mouseEntered frame=(918.2666666666665, 0.0, 10.0, 1080.0)
+2026-02-25T04:01:32Z [METAL] refocusFullscreen: click on game panel 2, switching from activePanel=1
+2026-02-25T04:01:32Z [METAL] updateFocusIndicators: activePanel=2 panelCount=3
+2026-02-25T04:01:32Z [METAL] restoreGameFocus: navigated=true — injecting focus events
+2026-02-25T04:01:33Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0x8f7669400>) after=Optional(<WKWebView: 0x8f7669400>)
+2026-02-25T04:01:34Z [METAL] __focus__: from_panel=1 activePanel=2 fullscreen=true fullscreenPanel=2 firstResponder=Optional(<WKWebView: 0x8f766a000>)
+2026-02-25T04:01:34Z [METAL] updateFocusIndicators: activePanel=1 panelCount=3
+2026-02-25T04:01:34Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T04:01:34Z [METAL] __focus__: from_panel=1 activePanel=1 fullscreen=true fullscreenPanel=2 firstResponder=Optional(<WKWebView: 0x8f766a000>)
+2026-02-25T04:01:34Z [METAL] __focus__: SKIPPED — already activePanel=1
+2026-02-25T04:01:34Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x8f766a000>) after=Optional(<WKWebView: 0x8f766a000>)
+2026-02-25T04:01:34Z [METAL] PanelResizeHandle: mouseEntered frame=(918.2666666666665, 0.0, 10.0, 1080.0)
+2026-02-25T04:01:34Z [METAL] refocusFullscreen: click on game panel 2, switching from activePanel=1
+2026-02-25T04:01:34Z [METAL] updateFocusIndicators: activePanel=2 panelCount=3
+2026-02-25T04:01:34Z [METAL] restoreGameFocus: navigated=true — injecting focus events
+2026-02-25T04:01:35Z [METAL] __focus__: from_panel=1 activePanel=2 fullscreen=true fullscreenPanel=2 firstResponder=Optional(<WKWebView: 0x8f766a000>)
+2026-02-25T04:01:35Z [METAL] updateFocusIndicators: activePanel=1 panelCount=3
+2026-02-25T04:01:35Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0x8f766a000>) after=Optional(<WKWebView: 0x8f7669400>)
+2026-02-25T04:01:35Z [METAL] refocusFullscreen: click on game panel 2, switching from activePanel=1
+2026-02-25T04:01:35Z [METAL] updateFocusIndicators: activePanel=2 panelCount=3
+2026-02-25T04:01:35Z [METAL] restoreGameFocus: navigated=true — injecting focus events
+2026-02-25T04:01:35Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x8f7669400>) after=Optional(<WKWebView: 0x8f766a000>)
+2026-02-25T04:01:36Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0x8f766a000>) after=Optional(<WKWebView: 0x8f7669400>)
+2026-02-25T04:01:37Z [METAL] forwardKeyToNavigated: keydown keyCode=17 char=t
+2026-02-25T04:01:37Z [METAL] forwardKeyToNavigated: keydown keyCode=14 char=e
+2026-02-25T04:01:37Z [METAL] forwardKeyToNavigated: keydown keyCode=1 char=s
+2026-02-25T04:01:37Z [METAL] forwardKeyToNavigated: keydown keyCode=17 char=t
+2026-02-25T04:01:37Z [METAL] forwardKeyToNavigated: keydown keyCode=36 char=
+2026-02-25T04:01:39Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T04:01:39Z [METAL] forwardKeyToNavigated: keydown keyCode=15 char=r
+2026-02-25T04:01:39Z [METAL] forwardKeyToNavigated: keydown keyCode=14 char=e
+2026-02-25T04:01:39Z [METAL] forwardKeyToNavigated: keydown keyCode=49 char= 
+2026-02-25T04:01:40Z [METAL] forwardKeyToNavigated: keydown keyCode=16 char=y
+2026-02-25T04:01:40Z [METAL] forwardKeyToNavigated: keydown keyCode=31 char=o
+2026-02-25T04:01:40Z [METAL] forwardKeyToNavigated: keydown keyCode=51 char=
+2026-02-25T04:01:41Z [METAL] forwardKeyToNavigated: keydown keyCode=51 char=
+2026-02-25T04:01:41Z [METAL] forwardKeyToNavigated: keydown keyCode=51 char=
+2026-02-25T04:01:41Z [METAL] forwardKeyToNavigated: keydown keyCode=51 char=
+2026-02-25T04:01:41Z [METAL] forwardKeyToNavigated: keydown keyCode=51 char=
+2026-02-25T04:01:48Z [METAL] __focus__: from_panel=0 activePanel=2 fullscreen=true fullscreenPanel=2 firstResponder=Optional(<WKWebView: 0x8f7668000>)
+2026-02-25T04:01:48Z [METAL] updateFocusIndicators: activePanel=0 panelCount=3
+2026-02-25T04:01:48Z [METAL] updateFocusIndicators: makeFirstResponder panel=0 before=Optional(<WKWebView: 0x8f7668000>) after=Optional(<WKWebView: 0x8f7668000>)
+2026-02-25T04:01:49Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T04:01:49Z [METAL] __focus__: from_panel=1 activePanel=0 fullscreen=true fullscreenPanel=2 firstResponder=Optional(<WKWebView: 0x8f766a000>)
+2026-02-25T04:01:49Z [METAL] updateFocusIndicators: activePanel=1 panelCount=3
+2026-02-25T04:01:49Z [METAL] PanelResizeHandle: mouseEntered frame=(918.2666666666665, 0.0, 10.0, 1080.0)
+2026-02-25T04:01:49Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x8f766a000>) after=Optional(<WKWebView: 0x8f766a000>)
+2026-02-25T04:01:50Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T04:01:50Z [METAL] __focus__: from_panel=0 activePanel=1 fullscreen=true fullscreenPanel=2 firstResponder=Optional(<WKWebView: 0x8f7668000>)
+2026-02-25T04:01:50Z [METAL] updateFocusIndicators: activePanel=0 panelCount=3
+2026-02-25T04:01:50Z [METAL] updateFocusIndicators: makeFirstResponder panel=0 before=Optional(<WKWebView: 0x8f7668000>) after=Optional(<WKWebView: 0x8f7668000>)
+2026-02-25T04:01:51Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T04:01:51Z [METAL] __focus__: from_panel=0 activePanel=0 fullscreen=true fullscreenPanel=2 firstResponder=Optional(<WKWebView: 0x8f7668000>)
+2026-02-25T04:01:51Z [METAL] __focus__: SKIPPED — already activePanel=0
+2026-02-25T04:01:52Z [METAL] PanelResizeHandle: mouseEntered frame=(454.13333333333327, 0.0, 10.0, 1080.0)
+2026-02-25T04:01:53Z [METAL] updateFocusIndicators: activePanel=3 panelCount=4
+2026-02-25T04:01:53Z [METAL] updateFocusIndicators: activePanel=3 panelCount=4
+2026-02-25T04:01:54Z [METAL] updateFocusIndicators: makeFirstResponder panel=3 before=Optional(<WKWebView: 0x8f7cf1000>) after=Optional(<WKWebView: 0x8f7cf1000>)
+2026-02-25T04:01:54Z [METAL] updateFocusIndicators: makeFirstResponder panel=3 before=Optional(<WKWebView: 0x8f7cf1000>) after=Optional(<WKWebView: 0x8f7cf1000>)
+2026-02-25T04:01:54Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T04:01:54Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T04:01:54Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0x8f7cf3c00>) after=Optional(<WKWebView: 0x8f7cf3c00>)
+2026-02-25T04:01:54Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0x8f7cf3c00>) after=Optional(<WKWebView: 0x8f7cf3c00>)
+2026-02-25T04:01:55Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T04:01:55Z [METAL] __focus__: from_panel=4 activePanel=4 fullscreen=true fullscreenPanel=2 firstResponder=Optional(<WKWebView: 0x8f7cf3c00>)
+2026-02-25T04:01:55Z [METAL] __focus__: SKIPPED — already activePanel=4
+2026-02-25T04:01:55Z [METAL] refocusFullscreen: click on game panel 2, switching from activePanel=4
+2026-02-25T04:01:55Z [METAL] updateFocusIndicators: activePanel=2 panelCount=5
+2026-02-25T04:01:55Z [METAL] restoreGameFocus: navigated=true — injecting focus events
+2026-02-25T04:01:56Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0x8f7669400>) after=Optional(<WKWebView: 0x8f7669400>)
+2026-02-25T04:01:56Z [METAL] forwardKeyToNavigated: keydown keyCode=51 char=
+2026-02-25T04:01:57Z [METAL] forwardKeyToNavigated: keydown keyCode=51 char=
+2026-02-25T04:01:57Z [METAL] forwardKeyToNavigated: keydown keyCode=1 char=s
+2026-02-25T04:01:58Z [METAL] forwardKeyToNavigated: keydown keyCode=13 char=w
+2026-02-25T04:01:58Z [METAL] forwardKeyToNavigated: keydown keyCode=14 char=e
+2026-02-25T04:01:58Z [METAL] forwardKeyToNavigated: keydown keyCode=14 char=e
+2026-02-25T04:01:58Z [METAL] forwardKeyToNavigated: keydown keyCode=17 char=t
+2026-02-25T04:01:58Z [METAL] forwardKeyToNavigated: keydown keyCode=36 char=
+2026-02-25T04:02:02Z [METAL] keyDown: Escape → hideFullscreenIframe
+2026-02-25T04:02:02Z [METAL] hideFullscreenIframe: navigated=true panel=2
+2026-02-25T04:02:03Z [METAL] __focus__: from_panel=2 activePanel=2 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x8f7669400>)
+2026-02-25T04:02:03Z [METAL] __focus__: SKIPPED — already activePanel=2
+2026-02-25T04:02:05Z [METAL] WKMessage: "livechat" from_panel=2 activePanel=2 fullscreen=false
+2026-02-25T04:02:05Z [METAL] showFullscreenIframe: url=http://127.0.0.1:19847/chat.html panel=2 isFile=false
+2026-02-25T04:02:05Z [METAL] showFullscreenIframe: navigating WKWebView to http://127.0.0.1:19847/chat.html
+2026-02-25T04:02:06Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T04:02:06Z [METAL] forwardKeyToNavigated: keydown keyCode=16 char=y
+2026-02-25T04:02:07Z [METAL] forwardKeyToNavigated: keydown keyCode=51 char=
+2026-02-25T04:02:07Z [METAL] forwardKeyToNavigated: keydown keyCode=51 char=
+2026-02-25T04:02:07Z [METAL] forwardKeyToNavigated: keydown keyCode=51 char=
+2026-02-25T04:02:07Z [METAL] forwardKeyToNavigated: keydown keyCode=51 char=
+2026-02-25T04:02:07Z [METAL] forwardKeyToNavigated: keydown keyCode=51 char=
+2026-02-25T04:02:08Z [METAL] forwardKeyToNavigated: keydown keyCode=51 char=
+2026-02-25T04:02:08Z [METAL] forwardKeyToNavigated: keydown keyCode=51 char=
+2026-02-25T04:02:08Z [METAL] forwardKeyToNavigated: keydown keyCode=51 char=
+2026-02-25T04:02:08Z [METAL] forwardKeyToNavigated: keydown keyCode=51 char=
+2026-02-25T04:02:08Z [METAL] forwardKeyToNavigated: keydown keyCode=51 char=
+2026-02-25T04:02:08Z [METAL] forwardKeyToNavigated: keydown keyCode=51 char=
+2026-02-25T04:02:08Z [METAL] forwardKeyToNavigated: keydown keyCode=51 char=
+2026-02-25T04:02:09Z [METAL] forwardKeyToNavigated: keydown keyCode=51 char=
+2026-02-25T04:02:09Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T04:02:09Z [METAL] forwardKeyToNavigated: keydown keyCode=16 char=y
+2026-02-25T04:02:09Z [METAL] forwardKeyToNavigated: keydown keyCode=31 char=o
+2026-02-25T04:02:09Z [METAL] forwardKeyToNavigated: keydown keyCode=36 char=
+2026-02-25T04:02:28Z [METAL] keyDown: Escape → hideFullscreenIframe
+2026-02-25T04:02:28Z [METAL] hideFullscreenIframe: navigated=true panel=2
+2026-02-25T04:02:29Z [METAL] __focus__: from_panel=1 activePanel=2 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x8f766a000>)
+2026-02-25T04:02:29Z [METAL] updateFocusIndicators: activePanel=1 panelCount=5
+2026-02-25T04:02:29Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x8f766a000>) after=Optional(<WKWebView: 0x8f766a000>)
+2026-02-25T04:02:29Z [METAL] WKMessage: "__escape__" from_panel=1 activePanel=1 fullscreen=false
+2026-02-25T04:02:29Z [METAL] updateFocusIndicators: activePanel=1 panelCount=4
+2026-02-25T04:02:29Z [METAL] updateFocusIndicators: activePanel=1 panelCount=4

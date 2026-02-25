@@ -43,7 +43,7 @@ from skills.claude_code import (
     _format_tool_result as _cc_format_tool_result,
     _TOOL_CATEGORIES as _CC_TOOL_CATEGORIES,
 )
-from skills.router import SkillRouter, _skills
+from skills.router import SkillRouter
 from voice.audio import MicCapture, SkillMicCapture
 from voice.whisper_client import WhisperClient
 from voice.whisper_server import WhisperServer
