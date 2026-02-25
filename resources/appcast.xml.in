@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  appcast.xml.in - Sparkle auto-update feed template
+  
+  This is a template file. The actual appcast.xml is generated during
+  the release process with version, download URL, and signature filled in.
+  
+  Variables (replaced by GitHub Actions):
+    ${VERSION}           - Version number (e.g., "1.2.0")
+    ${DOWNLOAD_URL}      - URL to download the DMG
+    ${DMG_LENGTH}        - DMG file size in bytes
+    ${ED_SIGNATURE}      - Sparkle EdDSA signature
+    ${RELEASE_NOTES}     - HTML release notes
+    ${PUB_DATE}          - Publication date (RFC 2822 format)
+-->
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>Jarvis Updates</title>
+    <link>https://github.com/YOUR_USERNAME/jarvis/releases</link>
+    <language>en</language>
+    
+    <!-- Latest Release -->
+    <item>
+      <title>Version ${VERSION}</title>
+      <pubDate>${PUB_DATE}</pubDate>
+      <sparkle:version>${VERSION}</sparkle:version>
+      <sparkle:shortVersionString>${VERSION}</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>12.0</sparkle:minimumSystemVersion>
+      
+      <description><![CDATA[
+        ${RELEASE_NOTES}
+      ]]></description>
+      
+      <enclosure 
+        url="${DOWNLOAD_URL}"
+        sparkle:edSignature="${ED_SIGNATURE}"
+        length="${DMG_LENGTH}"
+        type="application/octet-stream"/>
+    </item>
+    
+    <!-- Example of a previous release (commented out) -->
+    <!--
+    <item>
+      <title>Version 1.1.0</title>
+      <pubDate>Mon, 24 Feb 2026 00:00:00 +0000</pubDate>
+      <sparkle:version>1.1.0</sparkle:version>
+      <sparkle:shortVersionString>1.1.0</sparkle:shortVersionString>
+      <sparkle:minimumSystemVersion>12.0</sparkle:minimumSystemVersion>
+      
+      <description><![CDATA[
+        <h2>What's New</h2>
+        <ul>
+          <li>Theme system with 8 built-in themes</li>
+          <li>Remappable keyboard shortcuts</li>
+          <li>Session history persistence</li>
+        </ul>
+      ]]></description>
+      
+      <enclosure 
+        url="https://github.com/YOUR_USERNAME/jarvis/releases/download/v1.1.0/Jarvis-1.1.0.dmg"
+        sparkle:edSignature="BASE64_EDDSA_SIGNATURE_HERE"
+        length="12345678"
+        type="application/octet-stream"/>
+    </item>
+    -->
+    
+  </channel>
+</rss>

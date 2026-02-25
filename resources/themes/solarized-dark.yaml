@@ -1,0 +1,46 @@
+# =============================================================================
+# SOLARIZED DARK - Precision color theme
+# =============================================================================
+# Based on Solarized: https://ethanschoonover.com/solarized/
+# =============================================================================
+
+name: solarized-dark
+display_name: "Solarized Dark"
+description: "Precision color theme for dark environments"
+
+colors:
+  primary: "#268bd2"
+  secondary: "#cb4b16"
+  background: "#002b36"
+  panel_bg: "rgba(0,43,54,0.95)"
+  text: "#839496"
+  text_muted: "#586e75"
+  border: "rgba(38,139,210,0.15)"
+  border_focused: "rgba(38,139,210,0.5)"
+  
+  user_text: "rgba(38,139,210,0.8)"
+  tool_read: "rgba(42,161,152,0.9)"
+  tool_edit: "rgba(203,75,22,0.9)"
+  tool_write: "rgba(203,75,22,0.9)"
+  tool_run: "rgba(133,153,0,0.9)"
+  tool_search: "rgba(108,113,196,0.9)"
+  
+  success: "#859900"
+  warning: "#b58900"
+  error: "#dc322f"
+
+font:
+  family: "Menlo"
+  size: 13
+  title_size: 15
+  line_height: 1.6
+
+visualizer:
+  orb:
+    color: "#268bd2"
+    secondary_color: "#2aa198"
+
+background:
+  hex_grid:
+    color: "#268bd2"
+    opacity: 0.05

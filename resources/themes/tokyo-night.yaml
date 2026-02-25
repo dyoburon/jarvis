@@ -1,0 +1,46 @@
+# =============================================================================
+# TOKYO NIGHT - Clean, dark theme
+# =============================================================================
+# A clean, dark theme inspired by Tokyo Night.
+# =============================================================================
+
+name: tokyo-night
+display_name: "Tokyo Night"
+description: "Clean, dark theme inspired by Tokyo at night"
+
+colors:
+  primary: "#7aa2f7"
+  secondary: "#bb9af7"
+  background: "#1a1b26"
+  panel_bg: "rgba(26,27,38,0.95)"
+  text: "#c0caf5"
+  text_muted: "#565f89"
+  border: "rgba(122,162,247,0.15)"
+  border_focused: "rgba(122,162,247,0.5)"
+  
+  user_text: "rgba(122,162,247,0.8)"
+  tool_read: "rgba(122,162,247,0.9)"
+  tool_edit: "rgba(247,118,142,0.9)"
+  tool_write: "rgba(247,118,142,0.9)"
+  tool_run: "rgba(158,206,106,0.9)"
+  tool_search: "rgba(187,154,247,0.9)"
+  
+  success: "#9ece6a"
+  warning: "#e0af68"
+  error: "#f7768e"
+
+font:
+  family: "Menlo"
+  size: 13
+  title_size: 15
+  line_height: 1.6
+
+visualizer:
+  orb:
+    color: "#7aa2f7"
+    secondary_color: "#565f89"
+
+background:
+  hex_grid:
+    color: "#7aa2f7"
+    opacity: 0.05

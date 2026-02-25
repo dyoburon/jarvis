@@ -1,0 +1,46 @@
+# =============================================================================
+# GRUVBOX DARK - Retro groove theme
+# =============================================================================
+# Based on Gruvbox: https://github.com/morhetz/gruvbox
+# =============================================================================
+
+name: gruvbox-dark
+display_name: "Gruvbox Dark"
+description: "Retro groove color palette"
+
+colors:
+  primary: "#fe8019"
+  secondary: "#83a598"
+  background: "#282828"
+  panel_bg: "rgba(40,40,40,0.95)"
+  text: "#ebdbb2"
+  text_muted: "#928374"
+  border: "rgba(254,128,25,0.15)"
+  border_focused: "rgba(254,128,25,0.5)"
+  
+  user_text: "rgba(254,128,25,0.8)"
+  tool_read: "rgba(131,165,152,0.9)"
+  tool_edit: "rgba(254,128,25,0.9)"
+  tool_write: "rgba(254,128,25,0.9)"
+  tool_run: "rgba(184,187,38,0.9)"
+  tool_search: "rgba(211,134,155,0.9)"
+  
+  success: "#b8bb26"
+  warning: "#fabd2f"
+  error: "#fb4934"
+
+font:
+  family: "Menlo"
+  size: 13
+  title_size: 15
+  line_height: 1.6
+
+visualizer:
+  orb:
+    color: "#fe8019"
+    secondary_color: "#83a598"
+
+background:
+  hex_grid:
+    color: "#fe8019"
+    opacity: 0.06

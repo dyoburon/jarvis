@@ -30,7 +30,19 @@ class Renderer: NSObject, MTKViewDelegate {
     var uniforms = Uniforms()
     var timeline: Timeline?
 
-    // Pipeline states for each render pass
+    // MARK: - Manager References
+    
+    /// Visualizer manager - controls orb/particle/waveform visualization
+    var visualizerManager: VisualizerManager {
+        return VisualizerManager.shared
+    }
+    
+    /// Background manager - controls hex_grid/solid/image/video background
+    var backgroundManager: BackgroundManager {
+        return BackgroundManager.shared
+    }
+
+    // Pipeline States for each render pass
     let spherePipeline: MTLRenderPipelineState
     let blurHPipeline: MTLRenderPipelineState
     let blurVPipeline: MTLRenderPipelineState
@@ -153,8 +165,24 @@ class Renderer: NSObject, MTKViewDelegate {
     }
 
     func draw(in view: MTKView) {
+        // Calculate delta time for managers
+        let deltaTime: Float = 1.0 / 60.0  // Assume 60fps
+        
+        // Update background manager
+        backgroundManager.update(deltaTime: deltaTime)
+        
+        // Update visualizer manager (pass audio level from uniforms)
+        visualizerManager.update(deltaTime: deltaTime)
+        visualizerManager.updateAudioLevel(uniforms.audioLevel)
+        
         // Update timeline (drives all animation)
         timeline?.update(uniforms: &uniforms)
+        
+        // Apply visualizer properties to uniforms
+        applyVisualizerToUniforms()
+        
+        // Apply background properties to uniforms
+        applyBackgroundToUniforms()
 
         // Build MVP matrix for sphere mesh
         rotation += 0.006
@@ -237,6 +265,60 @@ class Renderer: NSObject, MTKViewDelegate {
 
         cmdBuf.present(drawable)
         cmdBuf.commit()
+    }
+    
+    // MARK: - Manager Integration
+    
+    /// Apply visualizer manager properties to uniforms
+    private func applyVisualizerToUniforms() {
+        let viz = visualizerManager.activeVisualizer
+        let config = ConfigManager.shared.visualizer
+        
+        guard config.enabled else {
+            // Visualizer disabled - hide orb
+            uniforms.powerLevel = 0
+            return
+        }
+        
+        // Apply visualizer position and scale
+        uniforms.orbCenterX = viz.position.x
+        uniforms.orbCenterY = viz.position.y
+        uniforms.orbScale = viz.scale
+        
+        // Apply intensity
+        // Note: powerLevel is controlled by Timeline for state-specific behavior
+        // intensity affects the glow/bloom
+        uniforms.intensity *= viz.intensity
+    }
+    
+    /// Apply background manager properties to uniforms
+    private func applyBackgroundToUniforms() {
+        let bg = backgroundManager.activeBackground
+        
+        // For hex grid, we DON'T override bgOpacity - Timeline controls scene visibility
+        // The hex_grid.opacity config is the pattern intensity, applied via hexGridOpacity property
+        // For other backgrounds, we set opacity based on background type
+        
+        if bg is NullBackground {
+            uniforms.bgOpacity = 0
+            metalLog("Renderer: NullBackground - opacity=0")
+        } else if !(bg is HexGridBackground) {
+            // For non-hex backgrounds, use the background's opacity
+            uniforms.bgOpacity = bg.opacity
+            metalLog("Renderer: \(type(of: bg)) - opacity=\(uniforms.bgOpacity)")
+        }
+        // For HexGridBackground, keep the Timeline's bgOpacity value
+    }
+    
+    /// Apply configuration to managers (called when config loads)
+    func applyConfig() {
+        let vizConfig = ConfigManager.shared.visualizer
+        let bgConfig = ConfigManager.shared.background
+        
+        visualizerManager.updateConfig(vizConfig)
+        backgroundManager.updateConfig(bgConfig)
+        
+        metalLog("Renderer: Applied config - visualizer.type=\(vizConfig.type), background.mode=\(bgConfig.mode)")
     }
 
     // MARK: - Sphere mesh generation (matches vibetotext)

@@ -1,0 +1,46 @@
+# =============================================================================
+# JARVIS LIGHT - Light Theme
+# =============================================================================
+# A light variant of the Jarvis theme for bright environments.
+# =============================================================================
+
+name: jarvis-light
+display_name: "Jarvis Light"
+description: "A light variant for bright environments"
+
+colors:
+  primary: "#0088aa"
+  secondary: "#ff6b00"
+  background: "#f5f5f5"
+  panel_bg: "rgba(255,255,255,0.95)"
+  text: "#1a1a1a"
+  text_muted: "#666666"
+  border: "rgba(0,136,170,0.2)"
+  border_focused: "rgba(0,136,170,0.6)"
+  
+  user_text: "rgba(0,100,150,0.85)"
+  tool_read: "rgba(0,100,200,0.9)"
+  tool_edit: "rgba(200,100,0,0.9)"
+  tool_write: "rgba(200,100,0,0.9)"
+  tool_run: "rgba(0,150,50,0.9)"
+  tool_search: "rgba(120,50,180,0.9)"
+  
+  success: "#00aa55"
+  warning: "#ff6b00"
+  error: "#dd3333"
+
+font:
+  family: "Menlo"
+  size: 13
+  title_size: 15
+  line_height: 1.6
+
+visualizer:
+  orb:
+    color: "#0088aa"
+    secondary_color: "#006688"
+
+background:
+  hex_grid:
+    color: "#0088aa"
+    opacity: 0.05

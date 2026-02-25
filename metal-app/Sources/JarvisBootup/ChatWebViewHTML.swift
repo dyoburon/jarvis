@@ -4,6 +4,10 @@ extension ChatWebView {
     static func buildHTML(title: String) -> String {
         let escapedTitle = title.replacingOccurrences(of: "\\", with: "\\\\")
             .replacingOccurrences(of: "\"", with: "\\\"")
+
+        // Get theme CSS variables from ThemeManager
+        let themeCSS = ThemeManager.shared.generateCSSVariables(for: ConfigManager.shared.theme.name)
+
         return """
         <!DOCTYPE html>
         <html>
@@ -11,32 +15,35 @@ extension ChatWebView {
         <meta charset="utf-8">
         <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/marked@15/marked.min.js"></script>
+        <style id="jarvis-theme-vars">
+        \(themeCSS)
+        </style>
         <style>
             * { margin: 0; padding: 0; box-sizing: border-box; }
             body {
-                background: rgba(0, 0, 0, 0.93);
-                color: #00d4ff;
-                font-family: Menlo, Monaco, 'Courier New', monospace;
-                font-size: 13px;
-                line-height: 1.6;
+                background: var(--color-panel-bg);
+                color: var(--color-primary);
+                font-family: var(--font-family);
+                font-size: var(--font-size);
+                line-height: var(--line-height);
                 display: flex;
                 flex-direction: column;
                 height: 100vh;
                 overflow: hidden;
-                border: 1px solid rgba(0, 212, 255, 0.08);
+                border: 1px solid var(--color-border);
                 transition: border-color 0.2s ease;
             }
             body.focused {
-                border-color: rgba(0, 212, 255, 0.5);
-                box-shadow: inset 0 0 12px rgba(0, 212, 255, 0.08);
+                border-color: var(--color-border-focused);
+                box-shadow: inset 0 0 12px color-mix(in srgb, var(--color-primary) 8%, transparent);
             }
             #title-bar {
                 padding: 14px 20px 8px;
-                font-size: 15px;
+                font-size: var(--font-title-size);
                 font-weight: bold;
-                color: #00d4ff;
-                text-shadow: 0 0 8px rgba(0, 212, 255, 0.35);
-                border-bottom: 1px solid rgba(0, 212, 255, 0.12);
+                color: var(--color-primary);
+                text-shadow: 0 0 8px color-mix(in srgb, var(--color-primary) 35%, transparent);
+                border-bottom: 1px solid var(--color-border);
                 flex-shrink: 0;
             }
             #messages {
@@ -46,30 +53,32 @@ extension ChatWebView {
             }
             #messages::-webkit-scrollbar { width: 3px; }
             #messages::-webkit-scrollbar-track { background: transparent; }
-            #messages::-webkit-scrollbar-thumb { background: rgba(0, 212, 255, 0.15); border-radius: 2px; }
+            #messages::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--color-primary) 15%, transparent); border-radius: 2px; }
 
             .msg { margin-bottom: 6px; word-wrap: break-word; }
-            .msg.gemini { color: #f0ece4; }
+            .msg.gemini { color: var(--color-text); }
             .msg.gemini h1, .msg.gemini h2, .msg.gemini h3 {
-                font-size: 14px; margin: 10px 0 4px; color: #f0ece4;
-                text-shadow: 0 0 6px rgba(240,236,228,0.15);
+                font-size: 14px; margin: 10px 0 4px; color: var(--color-text);
+                text-shadow: 0 0 6px color-mix(in srgb, var(--color-text) 15%, transparent);
             }
             .msg.gemini h1 { font-size: 15px; }
             .msg.gemini p { margin: 4px 0; }
             .msg.gemini ul, .msg.gemini ol { margin: 4px 0 4px 20px; }
             .msg.gemini li { margin: 2px 0; }
-            .msg.gemini strong { color: #faf6ee; }
+            .msg.gemini strong { color: var(--color-text); filter: brightness(1.1); }
             .msg.gemini code {
-                background: rgba(0,212,255,0.08); padding: 1px 4px; border-radius: 2px;
+                background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+                padding: 1px 4px; border-radius: 2px;
                 font-size: 12px;
             }
             .msg.gemini pre {
-                background: rgba(0,212,255,0.05); padding: 8px; border-radius: 3px;
+                background: color-mix(in srgb, var(--color-primary) 5%, transparent);
+                padding: 8px; border-radius: 3px;
                 margin: 6px 0; overflow-x: auto;
             }
             .msg.gemini pre code { background: none; padding: 0; }
             .msg.user {
-                color: rgba(140, 190, 220, 0.65);
+                color: var(--color-user-text);
                 padding: 4px 0;
             }
             .msg.user::before { content: '> '; opacity: 0.4; }
@@ -81,7 +90,7 @@ extension ChatWebView {
                 max-width: 100%;
                 max-height: 300px;
                 border-radius: 4px;
-                border: 1px solid rgba(0, 212, 255, 0.15);
+                border: 1px solid var(--color-border);
                 display: block;
             }
             .msg.iframe-container {
@@ -90,7 +99,7 @@ extension ChatWebView {
             }
             .msg.iframe-container iframe {
                 width: 100%;
-                border: 1px solid rgba(0, 212, 255, 0.15);
+                border: 1px solid var(--color-border);
                 border-radius: 4px;
                 background: #111;
                 display: block;
@@ -111,14 +120,14 @@ extension ChatWebView {
                 font-size: 11px;
                 margin-right: 4px;
             }
-            .msg.tool_read  { color: rgba(100, 180, 255, 0.9); border-color: rgba(100, 180, 255, 0.4); }
-            .msg.tool_edit  { color: rgba(255, 180, 80, 0.9);  border-color: rgba(255, 180, 80, 0.4); }
-            .msg.tool_write { color: rgba(255, 180, 80, 0.9);  border-color: rgba(255, 180, 80, 0.4); }
-            .msg.tool_run   { color: rgba(80, 220, 120, 0.9);  border-color: rgba(80, 220, 120, 0.4); }
-            .msg.tool_search{ color: rgba(200, 150, 255, 0.9); border-color: rgba(200, 150, 255, 0.4); }
-            .msg.tool_list  { color: rgba(0, 212, 255, 0.85);  border-color: rgba(0, 212, 255, 0.35); }
-            .msg.tool_data  { color: rgba(0, 212, 200, 0.85);  border-color: rgba(0, 212, 200, 0.35); }
-            .msg.tool_tool  { color: rgba(255, 200, 50, 0.85); border-color: rgba(255, 200, 50, 0.35); }
+            .msg.tool_read  { color: var(--color-tool-read); border-color: color-mix(in srgb, var(--color-tool-read) 40%, transparent); }
+            .msg.tool_edit  { color: var(--color-tool-edit); border-color: color-mix(in srgb, var(--color-tool-edit) 40%, transparent); }
+            .msg.tool_write { color: var(--color-tool-write); border-color: color-mix(in srgb, var(--color-tool-write) 40%, transparent); }
+            .msg.tool_run   { color: var(--color-tool-run); border-color: color-mix(in srgb, var(--color-tool-run) 40%, transparent); }
+            .msg.tool_search{ color: var(--color-tool-search); border-color: color-mix(in srgb, var(--color-tool-search) 40%, transparent); }
+            .msg.tool_list  { color: var(--color-primary); border-color: color-mix(in srgb, var(--color-primary) 35%, transparent); }
+            .msg.tool_data  { color: color-mix(in srgb, var(--color-primary) 85%, cyan); border-color: color-mix(in srgb, var(--color-primary) 35%, transparent); }
+            .msg.tool_tool  { color: #ffc832; border-color: rgba(255, 200, 50, 0.35); }
             @keyframes subagent-pulse {
                 0%, 100% { opacity: 1; border-color: rgba(255, 200, 50, 0.35); }
                 50% { opacity: 0.65; border-color: rgba(255, 200, 50, 0.85); }
@@ -181,32 +190,32 @@ extension ChatWebView {
             .chart-container {
                 margin: 10px 0;
                 padding: 14px;
-                background: rgba(0, 212, 255, 0.03);
-                border: 1px solid rgba(0, 212, 255, 0.1);
+                background: color-mix(in srgb, var(--color-primary) 3%, transparent);
+                border: 1px solid color-mix(in srgb, var(--color-primary) 10%, transparent);
                 border-radius: 4px;
             }
-            .chart-container svg text { fill: #00d4ff; font-family: Menlo, monospace; font-size: 11px; }
-            .chart-container svg .bar { fill: rgba(0, 212, 255, 0.55); }
-            .chart-container svg .bar:hover { fill: rgba(0, 212, 255, 0.8); }
-            .chart-container svg .line-path { fill: none; stroke: #00d4ff; stroke-width: 2; }
-            .chart-container svg .dot { fill: #00d4ff; }
-            .chart-container svg .axis line, .chart-container svg .axis path { stroke: rgba(0, 212, 255, 0.2); }
-            .chart-title { font-size: 13px; font-weight: bold; margin-bottom: 6px; color: #00d4ff; }
+            .chart-container svg text { fill: var(--color-primary); font-family: var(--font-family); font-size: 11px; }
+            .chart-container svg .bar { fill: color-mix(in srgb, var(--color-primary) 55%, transparent); }
+            .chart-container svg .bar:hover { fill: color-mix(in srgb, var(--color-primary) 80%, transparent); }
+            .chart-container svg .line-path { fill: none; stroke: var(--color-primary); stroke-width: 2; }
+            .chart-container svg .dot { fill: var(--color-primary); }
+            .chart-container svg .axis line, .chart-container svg .axis path { stroke: color-mix(in srgb, var(--color-primary) 20%, transparent); }
+            .chart-title { font-size: 13px; font-weight: bold; margin-bottom: 6px; color: var(--color-primary); }
 
             #input-bar {
                 display: flex;
                 padding: 6px 20px 10px;
-                border-top: 1px solid rgba(0, 212, 255, 0.12);
+                border-top: 1px solid var(--color-border);
                 flex-shrink: 0;
             }
             #input-bar textarea {
                 flex: 1;
-                background: rgba(0, 212, 255, 0.05);
-                border: 1px solid rgba(0, 212, 255, 0.15);
+                background: color-mix(in srgb, var(--color-primary) 5%, transparent);
+                border: 1px solid var(--color-border);
                 border-radius: 3px;
-                color: #00d4ff;
-                font-family: Menlo, Monaco, monospace;
-                font-size: 13px;
+                color: var(--color-primary);
+                font-family: var(--font-family);
+                font-size: var(--font-size);
                 padding: 7px 10px;
                 outline: none;
                 resize: none;
@@ -215,19 +224,19 @@ extension ChatWebView {
                 max-height: 300px;
                 line-height: 1.4;
             }
-            #input-bar textarea::placeholder { color: rgba(0, 212, 255, 0.2); }
-            #input-bar textarea:focus { border-color: rgba(0, 212, 255, 0.4); }
+            #input-bar textarea::placeholder { color: color-mix(in srgb, var(--color-primary) 20%, transparent); }
+            #input-bar textarea:focus { border-color: color-mix(in srgb, var(--color-primary) 40%, transparent); }
             #status-bar {
                 padding: 4px 20px 0;
                 font-size: 10px;
-                color: rgba(0, 212, 255, 0.35);
+                color: color-mix(in srgb, var(--color-primary) 35%, transparent);
                 flex-shrink: 0;
-                font-family: Menlo, Monaco, monospace;
+                font-family: var(--font-family);
             }
             #image-preview {
                 display: none;
                 padding: 8px 20px;
-                border-top: 1px solid rgba(0, 212, 255, 0.12);
+                border-top: 1px solid var(--color-border);
                 flex-shrink: 0;
                 position: relative;
             }
@@ -235,20 +244,20 @@ extension ChatWebView {
                 max-height: 200px;
                 max-width: 100%;
                 border-radius: 4px;
-                border: 1px solid rgba(0, 212, 255, 0.2);
+                border: 1px solid color-mix(in srgb, var(--color-primary) 20%, transparent);
                 display: block;
             }
             #image-preview .close-btn {
                 position: absolute;
                 top: 4px;
                 right: 24px;
-                color: rgba(0, 212, 255, 0.5);
+                color: color-mix(in srgb, var(--color-primary) 50%, transparent);
                 cursor: pointer;
                 font-size: 16px;
                 line-height: 1;
             }
             #image-preview .close-btn:hover {
-                color: rgba(0, 212, 255, 0.9);
+                color: var(--color-primary);
             }
             #chat-overlay {
                 position: fixed;
@@ -257,8 +266,8 @@ extension ChatWebView {
                 max-width: 280px;
                 font-size: 11px;
                 line-height: 1.4;
-                color: rgba(0, 212, 255, 0.4);
-                font-family: Menlo, Monaco, monospace;
+                color: color-mix(in srgb, var(--color-primary) 40%, transparent);
+                font-family: var(--font-family);
                 white-space: pre-wrap;
                 pointer-events: none;
                 z-index: 100;

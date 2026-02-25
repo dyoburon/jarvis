@@ -1,0 +1,46 @@
+# =============================================================================
+# DRACULA - Dark theme with purple accents
+# =============================================================================
+# Based on the Dracula theme: https://draculatheme.com/
+# =============================================================================
+
+name: dracula
+display_name: "Dracula"
+description: "Dark theme with purple accents"
+
+colors:
+  primary: "#bd93f9"
+  secondary: "#ff79c6"
+  background: "#282a36"
+  panel_bg: "rgba(40,42,54,0.95)"
+  text: "#f8f8f2"
+  text_muted: "#6272a4"
+  border: "rgba(189,147,249,0.15)"
+  border_focused: "rgba(189,147,249,0.5)"
+  
+  user_text: "rgba(189,147,249,0.8)"
+  tool_read: "rgba(139,233,253,0.9)"
+  tool_edit: "rgba(255,121,198,0.9)"
+  tool_write: "rgba(255,121,198,0.9)"
+  tool_run: "rgba(80,250,123,0.9)"
+  tool_search: "rgba(255,184,108,0.9)"
+  
+  success: "#50fa7b"
+  warning: "#ffb86c"
+  error: "#ff5555"
+
+font:
+  family: "Menlo"
+  size: 13
+  title_size: 15
+  line_height: 1.6
+
+visualizer:
+  orb:
+    color: "#bd93f9"
+    secondary_color: "#6272a4"
+
+background:
+  hex_grid:
+    color: "#bd93f9"
+    opacity: 0.06

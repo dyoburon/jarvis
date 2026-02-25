@@ -1,0 +1,46 @@
+# =============================================================================
+# CATPPUCCIN MOCHA - Soothing pastel theme
+# =============================================================================
+# Based on Catppuccin: https://github.com/catppuccin/catppuccin
+# =============================================================================
+
+name: catppuccin-mocha
+display_name: "Catppuccin Mocha"
+description: "Soothing pastel theme for dark mode"
+
+colors:
+  primary: "#cba6f7"
+  secondary: "#f38ba8"
+  background: "#1e1e2e"
+  panel_bg: "rgba(30,30,46,0.95)"
+  text: "#cdd6f4"
+  text_muted: "#a6adc8"
+  border: "rgba(203,166,247,0.15)"
+  border_focused: "rgba(203,166,247,0.5)"
+  
+  user_text: "rgba(203,166,247,0.8)"
+  tool_read: "rgba(137,180,250,0.9)"
+  tool_edit: "rgba(243,139,168,0.9)"
+  tool_write: "rgba(243,139,168,0.9)"
+  tool_run: "rgba(166,227,161,0.9)"
+  tool_search: "rgba(249,226,175,0.9)"
+  
+  success: "#a6e3a1"
+  warning: "#f9e2af"
+  error: "#f38ba8"
+
+font:
+  family: "Menlo"
+  size: 13
+  title_size: 15
+  line_height: 1.6
+
+visualizer:
+  orb:
+    color: "#cba6f7"
+    secondary_color: "#89b4fa"
+
+background:
+  hex_grid:
+    color: "#cba6f7"
+    opacity: 0.05

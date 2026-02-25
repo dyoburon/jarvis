@@ -20,6 +20,9 @@ import config
 from presence.client import PresenceClient
 from presence.identity import load_identity, save_display_name
 
+# New config system (Phase 2)
+from jarvis.config.loader import load_config, config_to_json
+
 # Persistent log file — survives across sessions, rotates at 5MB
 LOG_PATH = os.path.join(os.path.dirname(__file__), "jarvis.log")
 _file_handler = logging.handlers.RotatingFileHandler(
@@ -249,12 +252,23 @@ class MetalBridge:
 
 async def main():
     log.info("=== Jarvis starting ===")
+
+    # Load configuration (Phase 2)
+    jarvis_config = load_config()
+    log.info(f"Config loaded from ~/.config/jarvis/config.yaml")
+
     if not config.GOOGLE_API_KEY:
         console.print("[yellow]GOOGLE_API_KEY not set — Gemini skills disabled[/]")
 
     # Launch Metal display
     metal = MetalBridge()
     metal.launch()
+
+    # Send config to Swift (Phase 2)
+    config_json = config_to_json(jarvis_config)
+    metal.send({"type": "config", "payload": json.loads(config_json)})
+    log.info("Config sent to Swift")
+
     event_log = GameEventLog()
     metal.on_game_action = lambda action, **kw: event_log.log_action(action, **kw)
 
@@ -1728,106 +1742,110 @@ async def main():
                 _last_interaction, \
                 _current_game
             loop = asyncio.get_event_loop()
-            while metal.proc and metal.proc.poll() is None:
-                line = await loop.run_in_executor(None, metal.proc.stdout.readline)
-                if not line:
-                    break
-                try:
-                    msg = json.loads(line.decode().strip())
-                    log.debug(
-                        f"Metal msg: {msg.get('type')} {json.dumps({k: v for k, v in msg.items() if k != 'type'})[:120]}"
-                    )
-                    if msg.get("type") == "game_event":
-                        event_log.ingest(msg)
-                        log.info(
-                            f"Game event: {msg.get('event')} {json.dumps({k: v for k, v in msg.items() if k not in ('type',)})[:200]}"
+            try:
+                while metal.proc and metal.proc.poll() is None:
+                    line = await loop.run_in_executor(None, metal.proc.stdout.readline)
+                    if not line:
+                        break
+                    try:
+                        msg = json.loads(line.decode().strip())
+                        log.debug(
+                            f"Metal msg: {msg.get('type')} {json.dumps({k: v for k, v in msg.items() if k != 'type'})[:120]}"
                         )
-                        # Track game exit for presence
-                        if msg.get("event") == "iframe_hide" and _current_game:
-                            _current_game = None
-                            await presence.update_activity("online")
-                    if msg.get("type") == "panel_focus":
-                        old_panel = active_panel
-                        active_panel = msg.get("panel", 0)
-                        event_log.log_action(
-                            "panel_focus", old=old_panel, new=active_panel
-                        )
-                    elif msg.get("type") == "chat_input":
-                        _last_interaction = _time.time()
-                        text = msg.get("text", "")
-                        # Intercept invite messages from the game overlay
-                        if text.startswith("__invite__"):
-                            code = text[len("__invite__"):]
-                            if _current_game and code:
-                                await presence.send_invite(_current_game, code)
-                                log.info(
-                                    f"Sent game invite: {_current_game} code={code}"
+                        if msg.get("type") == "game_event":
+                            event_log.ingest(msg)
+                            log.info(
+                                f"Game event: {msg.get('event')} {json.dumps({k: v for k, v in msg.items() if k not in ('type',)})[:200]}"
+                            )
+                            # Track game exit for presence
+                            if msg.get("event") == "iframe_hide" and _current_game:
+                                _current_game = None
+                                await presence.update_activity("online")
+                        if msg.get("type") == "panel_focus":
+                            old_panel = active_panel
+                            active_panel = msg.get("panel", 0)
+                            event_log.log_action(
+                                "panel_focus", old=old_panel, new=active_panel
+                            )
+                        elif msg.get("type") == "chat_input":
+                            _last_interaction = _time.time()
+                            text = msg.get("text", "")
+                            # Intercept invite messages from the game overlay
+                            if text.startswith("__invite__"):
+                                code = text[len("__invite__"):]
+                                if _current_game and code:
+                                    await presence.send_invite(_current_game, code)
+                                    log.info(
+                                        f"Sent game invite: {_current_game} code={code}"
+                                    )
+                                    console.print(
+                                        f"[bold cyan]Invite sent:[/] {_current_game} code={code}"
+                                    )
+                            elif skill_active:
+                                panel_idx = msg.get("panel", active_panel)
+                                await on_skill_input(
+                                    "__skill_chat__",
+                                    pending_tool_name,
+                                    "",
+                                    text,
+                                    panel=panel_idx,
                                 )
-                                console.print(
-                                    f"[bold cyan]Invite sent:[/] {_current_game} code={code}"
+                        elif msg.get("type") == "name_response":
+                            name = msg.get("name", "").strip()
+                            if name:
+                                save_display_name(name)
+                                identity["display_name"] = name
+                                identity["name_set"] = True
+                                presence.display_name = name
+                                log.info(f"Display name set: {name}")
+                                console.print(f"[bold cyan]Name set:[/] {name}")
+                                # Push current state to the overlay WebView
+                                metal.send_overlay_update(
+                                    overlay_status, list(overlay_lines)
                                 )
-                        elif skill_active:
-                            panel_idx = msg.get("panel", active_panel)
-                            await on_skill_input(
-                                "__skill_chat__",
-                                pending_tool_name,
-                                "",
-                                text,
-                                panel=panel_idx,
-                            )
-                    elif msg.get("type") == "name_response":
-                        name = msg.get("name", "").strip()
-                        if name:
-                            save_display_name(name)
-                            identity["display_name"] = name
-                            identity["name_set"] = True
-                            presence.display_name = name
-                            log.info(f"Display name set: {name}")
-                            console.print(f"[bold cyan]Name set:[/] {name}")
-                            # Push current state to the overlay WebView
-                            metal.send_overlay_update(
-                                overlay_status, list(overlay_lines)
-                            )
-                    elif msg.get("type") == "overlay_action":
-                        action = msg.get("action")
-                        if action == "request_users":
-                            metal.send_overlay_user_list(presence.online_users)
-                        elif action == "poke":
-                            target_id = msg.get("target_user_id")
-                            if target_id:
-                                await presence.send_poke(target_id)
-                                log.info(f"Poke sent to {target_id[:8]}")
-                    elif msg.get("type") == "fn_key":
-                        await handle_fn_key(msg.get("pressed", False))
-                    elif msg.get("type") == "hotkey":
-                        if msg.get("action") == "split" and skill_active:
-                            await on_skill_input(
-                                "__skill_start__",
-                                pending_tool_name,
-                                "{}",
-                                "__hotkey__",
-                                panel=active_panel,
-                            )
-                        elif msg.get("skill") and not skill_active:
-                            skill = msg["skill"]
-                            console.print(f"\n[bold yellow]Hotkey:[/] {skill}")
-                            try:
+                        elif msg.get("type") == "overlay_action":
+                            action = msg.get("action")
+                            if action == "request_users":
+                                metal.send_overlay_user_list(presence.online_users)
+                            elif action == "poke":
+                                target_id = msg.get("target_user_id")
+                                if target_id:
+                                    await presence.send_poke(target_id)
+                                    log.info(f"Poke sent to {target_id[:8]}")
+                        elif msg.get("type") == "fn_key":
+                            await handle_fn_key(msg.get("pressed", False))
+                        elif msg.get("type") == "hotkey":
+                            if msg.get("action") == "split" and skill_active:
                                 await on_skill_input(
                                     "__skill_start__",
-                                    skill,
+                                    pending_tool_name,
                                     "{}",
                                     "__hotkey__",
                                     panel=active_panel,
                                 )
-                            except Exception as e:
-                                console.print(f"[red]Hotkey skill error:[/] {e}")
-                                import traceback
+                            elif msg.get("skill") and not skill_active:
+                                skill = msg["skill"]
+                                console.print(f"\n[bold yellow]Hotkey:[/] {skill}")
+                                try:
+                                    await on_skill_input(
+                                        "__skill_start__",
+                                        skill,
+                                        "{}",
+                                        "__hotkey__",
+                                        panel=active_panel,
+                                    )
+                                except Exception as e:
+                                    console.print(f"[red]Hotkey skill error:[/] {e}")
+                                    import traceback
 
-                                traceback.print_exc()
-                                skill_active = False
-                                pending_tool_name = None
-                except (json.JSONDecodeError, UnicodeDecodeError):
-                    pass
+                                    traceback.print_exc()
+                                    skill_active = False
+                                    pending_tool_name = None
+                    except (json.JSONDecodeError, UnicodeDecodeError):
+                        pass
+            except asyncio.CancelledError:
+                log.debug("read_metal_stdout cancelled - shutting down")
+                raise
 
         # Idle detection for presence
         async def idle_monitor():
@@ -1863,6 +1881,8 @@ async def main():
 
     except KeyboardInterrupt:
         log.info("Shutting down (KeyboardInterrupt)")
+    except asyncio.CancelledError:
+        log.info("Shutting down (tasks cancelled)")
     except Exception as e:
         log.error(f"Fatal error: {e}", exc_info=True)
         console.print(f"[red]Error:[/] {e}")

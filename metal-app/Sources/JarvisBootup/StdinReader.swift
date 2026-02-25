@@ -4,6 +4,7 @@ import Foundation
 /// Used in --jarvis mode to receive commands from the Python process.
 ///
 /// Protocol (one JSON object per line):
+///   {"type":"config","payload":{...}}          // Full config from Python
 ///   {"type":"audio","level":0.45}
 ///   {"type":"state","value":"listening"}
 ///   {"type":"state","value":"speaking"}
@@ -37,6 +38,7 @@ class StdinReader {
     private let onNamePrompt: () -> Void
     private let onTestHideFullscreen: () -> Void
     private let onQuit: () -> Void
+    private let onConfig: (String) -> Void  // JSON config string
 
     init(onAudioLevel: @escaping (Float) -> Void,
          onState: @escaping (String, String?) -> Void,
@@ -59,7 +61,8 @@ class StdinReader {
          onOverlayUserList: @escaping (String) -> Void,
          onNamePrompt: @escaping () -> Void,
          onTestHideFullscreen: @escaping () -> Void,
-         onQuit: @escaping () -> Void) {
+         onQuit: @escaping () -> Void,
+         onConfig: @escaping (String) -> Void = { _ in }) {
         self.onAudioLevel = onAudioLevel
         self.onState = onState
         self.onHudText = onHudText
@@ -82,6 +85,7 @@ class StdinReader {
         self.onNamePrompt = onNamePrompt
         self.onTestHideFullscreen = onTestHideFullscreen
         self.onQuit = onQuit
+        self.onConfig = onConfig
     }
 
     func start() {
@@ -96,6 +100,13 @@ class StdinReader {
 
                 DispatchQueue.main.async {
                     switch type {
+                    case "config":
+                        // Full config from Python - pass to ConfigManager
+                        if let payload = json["payload"] as? [String: Any],
+                           let configData = try? JSONSerialization.data(withJSONObject: payload),
+                           let configJson = String(data: configData, encoding: .utf8) {
+                            self.onConfig(configJson)
+                        }
                     case "audio":
                         if let level = json["level"] as? Double {
                             self.onAudioLevel(Float(level))

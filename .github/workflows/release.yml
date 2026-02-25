@@ -1,0 +1,244 @@
+# =============================================================================
+# release.yml - GitHub Actions Release Workflow for Jarvis
+# =============================================================================
+#
+# This workflow builds, signs, and publishes Jarvis releases.
+#
+# Triggers:
+#   - Push of version tag (e.g., v1.0.0)
+#   - Manual workflow dispatch
+#
+# Requirements (GitHub Secrets):
+#   - SPARKLE_PRIVATE_KEY: EdDSA private key for Sparkle signing
+#   - APPLE_ID: Apple ID for notarization (optional)
+#   - APPLE_PASSWORD: App-specific password (optional)
+#   - TEAM_ID: Apple Developer Team ID (optional)
+#   - CODE_SIGN_IDENTITY: Certificate name (optional)
+#
+# Outputs:
+#   - Built DMG uploaded to GitHub Releases
+#   - Updated appcast.xml
+#
+# =============================================================================
+
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 1.0.0)'
+        required: true
+        type: string
+
+env:
+  APP_NAME: Jarvis
+  SCHEME: JarvisBootup
+
+jobs:
+  build:
+    name: Build and Release
+    runs-on: macos-14
+    
+    steps:
+      # ---------------------------------------------------------------------
+      # Checkout
+      # ---------------------------------------------------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      # ---------------------------------------------------------------------
+      # Setup
+      # ---------------------------------------------------------------------
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Get version
+        id: version
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/v}"
+          fi
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Building version: $VERSION"
+      
+      # ---------------------------------------------------------------------
+      # Build Swift App
+      # ---------------------------------------------------------------------
+      - name: Build Swift (Release)
+        run: |
+          cd metal-app
+          swift build -c release
+      
+      # ---------------------------------------------------------------------
+      # Create App Bundle
+      # ---------------------------------------------------------------------
+      - name: Create app bundle
+        run: |
+          ./package.sh --release
+        env:
+          JARVIS_VERSION: ${{ steps.version.outputs.version }}
+      
+      # ---------------------------------------------------------------------
+      # Generate Sparkle Signature
+      # ---------------------------------------------------------------------
+      - name: Install Sparkle tools
+        run: |
+          brew install --cask sparkle || true
+      
+      - name: Generate Sparkle signature
+        id: sparkle
+        run: |
+          DMG_PATH="build/${APP_NAME}-${{ steps.version.outputs.version }}.dmg"
+          
+          # Get DMG size
+          DMG_SIZE=$(stat -f%z "$DMG_PATH")
+          echo "dmg_size=$DMG_SIZE" >> $GITHUB_OUTPUT
+          
+          # Generate EdDSA signature (requires Sparkle's sign_update tool)
+          if [[ -n "${{ secrets.SPARKLE_PRIVATE_KEY }}" ]]; then
+            # Use sign_update from Sparkle
+            SIGNATURE=$(sign_update "$DMG_PATH" 2>/dev/null || echo "")
+            if [[ -z "$SIGNATURE" ]]; then
+              # Fallback: manual signing with openssl
+              echo "${{ secrets.SPARKLE_PRIVATE_KEY }}" > /tmp/sparkle_private.pem
+              SIGNATURE=$(openssl dgst -sha512 -sign /tmp/sparkle_private.pem "$DMG_PATH" | base64)
+              rm /tmp/sparkle_private.pem
+            fi
+            echo "ed_signature=$SIGNATURE" >> $GITHUB_OUTPUT
+          else
+            echo "ed_signature=UNSIGNED" >> $GITHUB_OUTPUT
+            echo "::warning::No Sparkle private key - update will be unsigned"
+          fi
+      
+      # ---------------------------------------------------------------------
+      # Generate Appcast
+      # ---------------------------------------------------------------------
+      - name: Generate appcast.xml
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          DMG_SIZE="${{ steps.sparkle.outputs.dmg_size }}"
+          SIGNATURE="${{ steps.sparkle.outputs.ed_signature }}"
+          PUB_DATE=$(date -R)
+          DOWNLOAD_URL="https://github.com/${{ github.repository }}/releases/download/v${VERSION}/${APP_NAME}-${VERSION}.dmg"
+          
+          # Generate release notes from CHANGELOG or commit messages
+          if [[ -f "CHANGELOG.md" ]]; then
+            RELEASE_NOTES=$(sed -n "/^## \[${VERSION}\]/,/^## \[/p" CHANGELOG.md | sed '1d;$d' | head -50)
+          else
+            RELEASE_NOTES="<p>Release ${VERSION}</p>"
+          fi
+          
+          # Escape for XML
+          RELEASE_NOTES=$(echo "$RELEASE_NOTES" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g')
+          
+          # Generate appcast
+          cat > build/appcast.xml << EOF
+          <?xml version="1.0" encoding="utf-8"?>
+          <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+            <channel>
+              <title>${APP_NAME} Updates</title>
+              <link>https://github.com/${{ github.repository }}/releases</link>
+              <language>en</language>
+              <item>
+                <title>Version ${VERSION}</title>
+                <pubDate>${PUB_DATE}</pubDate>
+                <sparkle:version>${VERSION}</sparkle:version>
+                <sparkle:shortVersionString>${VERSION}</sparkle:shortVersionString>
+                <sparkle:minimumSystemVersion>12.0</sparkle:minimumSystemVersion>
+                <description><![CDATA[
+                  ${RELEASE_NOTES}
+                ]]></description>
+                <enclosure 
+                  url="${DOWNLOAD_URL}"
+                  sparkle:edSignature="${SIGNATURE}"
+                  length="${DMG_SIZE}"
+                  type="application/octet-stream"/>
+              </item>
+            </channel>
+          </rss>
+          EOF
+          
+          echo "Generated appcast.xml"
+          cat build/appcast.xml
+      
+      # ---------------------------------------------------------------------
+      # Notarization (Optional)
+      # ---------------------------------------------------------------------
+      - name: Notarize DMG
+        if: env.APPLE_ID != '' && env.APPLE_PASSWORD != '' && env.TEAM_ID != ''
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          TEAM_ID: ${{ secrets.TEAM_ID }}
+        run: |
+          DMG_PATH="build/${APP_NAME}-${{ steps.version.outputs.version }}.dmg"
+          
+          # Submit for notarization
+          SUBMIT_OUTPUT=$(xcrun notarytool submit "$DMG_PATH" \
+            --apple-id "$APPLE_ID" \
+            --password "$APPLE_PASSWORD" \
+            --team-id "$TEAM_ID" \
+            --wait 2>&1)
+          
+          if echo "$SUBMIT_OUTPUT" | grep -q "status: Accepted"; then
+            echo "Notarization accepted"
+            xcrun stapler staple "$DMG_PATH"
+          else
+            echo "::warning::Notarization failed or skipped"
+          fi
+      
+      # ---------------------------------------------------------------------
+      # Create GitHub Release
+      # ---------------------------------------------------------------------
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: ${{ env.APP_NAME }} v${{ steps.version.outputs.version }}
+          tag_name: v${{ steps.version.outputs.version }}
+          generate_release_notes: true
+          files: |
+            build/${{ env.APP_NAME }}-${{ steps.version.outputs.version }}.dmg
+            build/appcast.xml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      # ---------------------------------------------------------------------
+      # Upload Appcast to Hosting (Optional)
+      # ---------------------------------------------------------------------
+      - name: Upload appcast to hosting
+        if: env.APPCAST_HOST != ''
+        env:
+          APPCAST_HOST: ${{ secrets.APPCAST_HOST }}
+          APPCAST_PATH: ${{ secrets.APPCAST_PATH }}
+          APPCAST_SSH_KEY: ${{ secrets.APPCAST_SSH_KEY }}
+        run: |
+          # Upload appcast.xml to your hosting
+          # This is a placeholder - customize for your hosting (S3, GitHub Pages, etc.)
+          echo "Appcast upload not configured"
+      
+      # ---------------------------------------------------------------------
+      # Summary
+      # ---------------------------------------------------------------------
+      - name: Summary
+        run: |
+          echo "## Release Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version**: ${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **DMG**: build/${APP_NAME}-${{ steps.version.outputs.version }}.dmg" >> $GITHUB_STEP_SUMMARY
+          echo "- **DMG Size**: ${{ steps.sparkle.outputs.dmg_size }} bytes" >> $GITHUB_STEP_SUMMARY
+          echo "- **Signature**: ${{ steps.sparkle.outputs.ed_signature }}" >> $GITHUB_STEP_SUMMARY
