@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>JARVIS Livechat</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #0a0a0a;
+  --panel-bg: #0d1117;
+  --primary: #00e5ff;
+  --accent: #ff6b00;
+  --success: #00ff88;
+  --danger: #ff4444;
+  --muted: #888;
+  --border: #1a2a3a;
+  --border-lit: #2a4a5a;
+  --glow-cyan: rgba(0, 229, 255, 0.5);
+  --glow-orange: rgba(255, 107, 0, 0.5);
+  --glow-green: rgba(0, 255, 136, 0.5);
+}
+
+body {
+  background: var(--bg);
+  font-family: 'Courier New', monospace;
+  color: var(--primary);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* ================================================================ */
+/* HEADER                                                           */
+/* ================================================================ */
+
+#header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel-bg);
+  min-height: 44px;
+  flex-shrink: 0;
+}
+
+#header h1 {
+  font-size: 14px;
+  font-weight: bold;
+  text-shadow: 0 0 10px var(--glow-cyan);
+  letter-spacing: 1px;
+}
+
+#header-meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 11px;
+}
+
+#status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--muted);
+  display: inline-block;
+  margin-right: 4px;
+  transition: background 0.3s;
+}
+
+#status-dot.connected {
+  background: var(--success);
+  box-shadow: 0 0 6px var(--glow-green);
+}
+
+#status-dot.connecting {
+  background: var(--accent);
+  box-shadow: 0 0 6px var(--glow-orange);
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+#user-count {
+  color: var(--muted);
+}
+
+/* ================================================================ */
+/* MESSAGES                                                         */
+/* ================================================================ */
+
+#messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+#messages::-webkit-scrollbar { width: 4px; }
+#messages::-webkit-scrollbar-track { background: var(--bg); }
+#messages::-webkit-scrollbar-thumb { background: var(--border-lit); border-radius: 2px; }
+
+.msg {
+  display: flex;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.msg-time {
+  color: var(--muted);
+  font-size: 10px;
+  flex-shrink: 0;
+  min-width: 42px;
+  padding-top: 2px;
+}
+
+.msg-nick {
+  font-weight: bold;
+  flex-shrink: 0;
+  cursor: default;
+}
+
+.msg-text {
+  color: #ccc;
+}
+
+.msg-system {
+  color: var(--muted);
+  font-size: 11px;
+  font-style: italic;
+  padding: 2px 0;
+}
+
+.msg-system.join { color: var(--success); }
+.msg-system.leave { color: var(--accent); }
+.msg-blocked {
+  color: var(--danger);
+  font-size: 11px;
+  font-style: italic;
+  opacity: 0.6;
+}
+
+#empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  color: var(--muted);
+  font-size: 13px;
+  gap: 8px;
+  padding: 40px;
+  text-align: center;
+}
+
+#empty-state .icon {
+  font-size: 32px;
+  opacity: 0.4;
+}
+
+/* ================================================================ */
+/* INPUT BAR                                                        */
+/* ================================================================ */
+
+#input-bar {
+  display: flex;
+  gap: 8px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--panel-bg);
+  flex-shrink: 0;
+}
+
+#msg-input {
+  flex: 1;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: #ccc;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  padding: 8px 12px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+#msg-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 8px rgba(0, 229, 255, 0.15);
+}
+
+#msg-input::placeholder { color: #555; }
+
+#send-btn {
+  background: transparent;
+  border: 1px solid var(--primary);
+  border-radius: 4px;
+  color: var(--primary);
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-shadow: 0 0 8px var(--glow-cyan);
+}
+
+#send-btn:hover {
+  background: rgba(0, 229, 255, 0.1);
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.2);
+}
+
+#send-btn:active {
+  background: rgba(0, 229, 255, 0.2);
+}
+
+#send-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+#char-count {
+  color: var(--muted);
+  font-size: 10px;
+  align-self: center;
+  min-width: 36px;
+  text-align: right;
+}
+
+#char-count.warn { color: var(--accent); }
+#char-count.over { color: var(--danger); }
+
+/* ================================================================ */
+/* NICKNAME OVERLAY                                                 */
+/* ================================================================ */
+
+#nick-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+#nick-overlay.hidden { display: none; }
+
+#nick-panel {
+  background: var(--panel-bg);
+  border: 1px solid var(--border-lit);
+  border-radius: 8px;
+  padding: 32px;
+  width: 320px;
+  box-shadow: 0 0 40px rgba(0, 229, 255, 0.15);
+  text-align: center;
+}
+
+#nick-panel h2 {
+  font-size: 16px;
+  margin-bottom: 6px;
+  text-shadow: 0 0 10px var(--glow-cyan);
+}
+
+#nick-panel p {
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 20px;
+}
+
+#nick-input {
+  width: 100%;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: #ccc;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  padding: 10px 12px;
+  outline: none;
+  text-align: center;
+  margin-bottom: 16px;
+}
+
+#nick-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 8px rgba(0, 229, 255, 0.15);
+}
+
+#nick-join-btn {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--primary);
+  border-radius: 4px;
+  color: var(--primary);
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  font-weight: bold;
+  padding: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-shadow: 0 0 8px var(--glow-cyan);
+}
+
+#nick-join-btn:hover {
+  background: rgba(0, 229, 255, 0.1);
+  box-shadow: 0 0 16px rgba(0, 229, 255, 0.3);
+}
+
+/* ================================================================ */
+/* RATE LIMIT FEEDBACK                                              */
+/* ================================================================ */
+
+#rate-feedback {
+  position: fixed;
+  top: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 68, 68, 0.15);
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  font-size: 11px;
+  padding: 6px 16px;
+  border-radius: 4px;
+  z-index: 50;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+#rate-feedback.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<!-- ============================================================== -->
+<!-- HEADER                                                         -->
+<!-- ============================================================== -->
+
+<div id="header">
+  <h1>JARVIS LIVECHAT</h1>
+  <div id="header-meta">
+    <span><span id="status-dot"></span><span id="status-text">offline</span></span>
+    <span id="user-count">0 online</span>
+  </div>
+</div>
+
+<!-- ============================================================== -->
+<!-- MESSAGES                                                       -->
+<!-- ============================================================== -->
+
+<div id="messages">
+  <div id="empty-state">
+    <div class="icon">&#9881;</div>
+    <div>No messages yet.</div>
+    <div>Say something to get started.</div>
+  </div>
+</div>
+
+<!-- ============================================================== -->
+<!-- INPUT BAR                                                      -->
+<!-- ============================================================== -->
+
+<div id="input-bar">
+  <input id="msg-input" type="text" placeholder="Type a message..." maxlength="500" autocomplete="off" disabled>
+  <span id="char-count">0/500</span>
+  <button id="send-btn" disabled>SEND</button>
+</div>
+
+<!-- ============================================================== -->
+<!-- RATE LIMIT FEEDBACK                                            -->
+<!-- ============================================================== -->
+
+<div id="rate-feedback">Slow down! Rate limit reached.</div>
+
+<!-- ============================================================== -->
+<!-- NICKNAME OVERLAY                                               -->
+<!-- ============================================================== -->
+
+<div id="nick-overlay">
+  <div id="nick-panel">
+    <h2>ENTER CHAT</h2>
+    <p>Choose a nickname to join the room.</p>
+    <input id="nick-input" type="text" placeholder="Agent-XXXX" maxlength="20" autocomplete="off">
+    <button id="nick-join-btn">JOIN</button>
+  </div>
+</div>
+
+<!-- ============================================================== -->
+<!-- SUPABASE CDN                                                   -->
+<!-- ============================================================== -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.97.0/dist/umd/supabase.min.js"
+        integrity="sha384-1+ItoWbWcmVSm+Y+dJaUt4SEWNA21/jxef+Z0TSHHVy/dEUxEUEnZ1bHn6GT5hj+"
+        crossorigin="anonymous"></script>
+
+<script>
+'use strict';
+
+// =================================================================
+// CONFIG
+// =================================================================
+
+const CONFIG = {
+  // Supabase — publishable anon key + URL.
+  // These are PUBLISHABLE keys by design (like Stripe publishable keys).
+  SUPABASE_URL: 'https://ojmqzagktzkualzgpcbq.supabase.co',
+  SUPABASE_KEY: 'sb_publishable_QCrdBOJAQ1kNKo62numKvA_ndKB07v-',
+
+  ROOM: 'jarvis-livechat',
+  MAX_MSG_LEN: 500,
+  RATE_LIMIT_COUNT: 5,      // max messages per window
+  RATE_LIMIT_WINDOW: 10000, // window in ms (10 seconds)
+  SPAM_REPEAT_LIMIT: 3,     // block after N identical consecutive messages
+  SPAM_CHAR_RATIO: 0.8,     // block if >80% of message is same character
+  MIN_MSG_LEN: 1,
+};
+
+// =================================================================
+// AUTOMOD
+// =================================================================
+
+class AutoMod {
+  constructor() {
+    this._banWords = new Set([
+      // Default ban list — add/remove via addBanWord/removeBanWord
+      'slur_placeholder',
+    ]);
+
+    // Pre-compiled regexes for ban words (rebuilt on add/remove)
+    this._banRegexes = [];
+    this._rebuildRegexes();
+
+    // Rate limit tracking: userId -> [timestamps]
+    this._rateBuckets = new Map();
+
+    // Spam tracking: userId -> [recent messages]
+    this._spamHistory = new Map();
+
+    // Periodic cleanup of stale Map entries (every 60s)
+    this._cleanupInterval = setInterval(() => this._cleanup(), 60000);
+  }
+
+  /** Add a word to the ban list (case-insensitive). */
+  addBanWord(word) {
+    if (typeof word === 'string' && word.length > 0) {
+      this._banWords.add(word.toLowerCase().trim());
+      this._rebuildRegexes();
+    }
+  }
+
+  /** Remove a word from the ban list. */
+  removeBanWord(word) {
+    this._banWords.delete(String(word).toLowerCase().trim());
+    this._rebuildRegexes();
+  }
+
+  /** Rebuild pre-compiled regexes from ban word set. */
+  _rebuildRegexes() {
+    this._banRegexes = [];
+    for (const word of this._banWords) {
+      this._banRegexes.push(
+        new RegExp('\\b' + this._escapeRegex(word) + '\\b', 'i')
+      );
+    }
+  }
+
+  /**
+   * Check message against ban list.
+   * Returns { ok: true } or { ok: false, reason: string }.
+   */
+  checkKeywords(text) {
+    const lower = text.toLowerCase();
+    for (const re of this._banRegexes) {
+      if (re.test(lower)) {
+        return { ok: false, reason: 'blocked_keyword' };
+      }
+    }
+    return { ok: true };
+  }
+
+  /**
+   * Sliding window rate limiter.
+   * Returns true if message is allowed, false if rate limited.
+   */
+  checkRateLimit(userId, now) {
+    if (!now) now = Date.now();
+    let bucket = this._rateBuckets.get(userId);
+    if (!bucket) {
+      bucket = [];
+      this._rateBuckets.set(userId, bucket);
+    }
+
+    // Prune timestamps outside the window
+    const cutoff = now - CONFIG.RATE_LIMIT_WINDOW;
+    while (bucket.length > 0 && bucket[0] <= cutoff) {
+      bucket.shift();
+    }
+
+    if (bucket.length >= CONFIG.RATE_LIMIT_COUNT) {
+      return false; // rate limited
+    }
+
+    bucket.push(now);
+    return true;
+  }
+
+  /**
+   * Check for spam patterns:
+   * 1. Repeated identical messages
+   * 2. Single character repeated (e.g. "aaaaaaaaaa")
+   * Returns { ok: true } or { ok: false, reason: string }.
+   */
+  checkSpam(text, userId) {
+    // Check repeated character ratio
+    if (text.length > 5) {
+      const charCounts = {};
+      for (const ch of text) {
+        charCounts[ch] = (charCounts[ch] || 0) + 1;
+      }
+      const maxCount = Math.max(...Object.values(charCounts));
+      if (maxCount / text.length >= CONFIG.SPAM_CHAR_RATIO) {
+        return { ok: false, reason: 'spam_repeated_chars' };
+      }
+    }
+
+    // Check repeated identical messages from same user
+    let history = this._spamHistory.get(userId);
+    if (!history) {
+      history = [];
+      this._spamHistory.set(userId, history);
+    }
+
+    const normalized = text.toLowerCase().trim();
+    history.push(normalized);
+    // Keep only last N messages
+    if (history.length > CONFIG.SPAM_REPEAT_LIMIT + 1) {
+      history.shift();
+    }
+
+    // Check if last N messages are identical
+    if (history.length >= CONFIG.SPAM_REPEAT_LIMIT) {
+      const last = history.slice(-CONFIG.SPAM_REPEAT_LIMIT);
+      if (last.every(m => m === last[0])) {
+        return { ok: false, reason: 'spam_repeated_message' };
+      }
+    }
+
+    return { ok: true };
+  }
+
+  /**
+   * Full filter pipeline. Returns { ok, reason }.
+   */
+  filter(text, userId) {
+    if (typeof text !== 'string' || text.trim().length === 0) {
+      return { ok: false, reason: 'empty' };
+    }
+
+    const kw = this.checkKeywords(text);
+    if (!kw.ok) return kw;
+
+    const sp = this.checkSpam(text, userId);
+    if (!sp.ok) return sp;
+
+    return { ok: true };
+  }
+
+  /** Remove stale entries from rate buckets and spam history. */
+  _cleanup() {
+    const now = Date.now();
+    const cutoff = now - CONFIG.RATE_LIMIT_WINDOW * 6; // 60s of staleness
+
+    for (const [userId, bucket] of this._rateBuckets) {
+      // Remove if all timestamps are stale
+      if (bucket.length === 0 || bucket[bucket.length - 1] < cutoff) {
+        this._rateBuckets.delete(userId);
+      }
+    }
+
+    // Cap spam history to 200 users max
+    if (this._spamHistory.size > 200) {
+      const excess = this._spamHistory.size - 200;
+      const iter = this._spamHistory.keys();
+      for (let i = 0; i < excess; i++) {
+        this._spamHistory.delete(iter.next().value);
+      }
+    }
+  }
+
+  /** Stop cleanup interval. */
+  destroy() {
+    if (this._cleanupInterval) {
+      clearInterval(this._cleanupInterval);
+      this._cleanupInterval = null;
+    }
+  }
+
+  _escapeRegex(str) {
+    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+}
+
+// =================================================================
+// CRYPTO — E2E ENCRYPTION (AES-GCM + PBKDF2) with plaintext fallback
+// =================================================================
+
+const Crypto = {
+  _key: null,
+  _encoder: new TextEncoder(),
+  _decoder: new TextDecoder(),
+  _plaintextMode: false,
+
+  /** True if crypto.subtle is available (requires secure context). */
+  get isAvailable() {
+    return !!(window.crypto && window.crypto.subtle);
+  },
+
+  /** Derive AES-GCM-256 key from room name via PBKDF2. */
+  async deriveKey(roomName) {
+    if (!this.isAvailable) {
+      this._plaintextMode = true;
+      return; // Graceful fallback — encryption disabled
+    }
+    const salt = this._encoder.encode('jarvis-livechat-salt-v1');
+    const keyMaterial = await crypto.subtle.importKey(
+      'raw',
+      this._encoder.encode(roomName),
+      'PBKDF2',
+      false,
+      ['deriveKey']
+    );
+    this._key = await crypto.subtle.deriveKey(
+      { name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' },
+      keyMaterial,
+      { name: 'AES-GCM', length: 256 },
+      false,
+      ['encrypt', 'decrypt']
+    );
+  },
+
+  /** Encrypt plaintext. Returns { iv, ct } as base64 strings, or { plain } in fallback. */
+  async encrypt(plaintext) {
+    if (this._plaintextMode) {
+      return { plain: btoa(unescape(encodeURIComponent(plaintext))) };
+    }
+    if (!this._key) throw new Error('Key not derived');
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const ct = await crypto.subtle.encrypt(
+      { name: 'AES-GCM', iv },
+      this._key,
+      this._encoder.encode(plaintext)
+    );
+    return {
+      iv: this._toBase64(iv),
+      ct: this._toBase64(new Uint8Array(ct)),
+    };
+  },
+
+  /** Decrypt { iv, ct } or { plain } payload. Returns plaintext string. */
+  async decrypt(ivB64, ctB64) {
+    if (this._plaintextMode || !this._key) {
+      // Can't decrypt — caller should check for .plain field instead
+      throw new Error('Decryption unavailable');
+    }
+    const iv = this._fromBase64(ivB64);
+    const ct = this._fromBase64(ctB64);
+    const plain = await crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv },
+      this._key,
+      ct
+    );
+    return this._decoder.decode(plain);
+  },
+
+  /** Decode a plaintext (base64-encoded) payload. */
+  decodePlain(b64) {
+    return decodeURIComponent(escape(atob(b64)));
+  },
+
+  _toBase64(bytes) {
+    let binary = '';
+    for (const b of bytes) binary += String.fromCharCode(b);
+    return btoa(binary);
+  },
+
+  _fromBase64(b64) {
+    const binary = atob(b64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return bytes;
+  },
+};
+
+// =================================================================
+// UI HELPERS
+// =================================================================
+
+const $ = (sel) => document.querySelector(sel);
+
+const UI = {
+  messagesEl: null,
+  emptyState: null,
+  msgInput: null,
+  sendBtn: null,
+  charCount: null,
+  statusDot: null,
+  statusText: null,
+  userCount: null,
+  rateFeedback: null,
+  nickOverlay: null,
+  nickInput: null,
+  _rateFeedbackTimeout: null,
+
+  init() {
+    this.messagesEl = $('#messages');
+    this.emptyState = $('#empty-state');
+    this.msgInput = $('#msg-input');
+    this.sendBtn = $('#send-btn');
+    this.charCount = $('#char-count');
+    this.statusDot = $('#status-dot');
+    this.statusText = $('#status-text');
+    this.userCount = $('#user-count');
+    this.rateFeedback = $('#rate-feedback');
+    this.nickOverlay = $('#nick-overlay');
+    this.nickInput = $('#nick-input');
+  },
+
+  setStatus(state) {
+    this.statusDot.className = state; // 'connected', 'connecting', or ''
+    this.statusText.textContent = state || 'offline';
+  },
+
+  setUserCount(n) {
+    this.userCount.textContent = n + ' online';
+  },
+
+  enableInput() {
+    this.msgInput.disabled = false;
+    this.sendBtn.disabled = false;
+    this.msgInput.focus();
+  },
+
+  disableInput() {
+    this.msgInput.disabled = true;
+    this.sendBtn.disabled = true;
+  },
+
+  hideNickOverlay() {
+    this.nickOverlay.classList.add('hidden');
+  },
+
+  addMessage(nick, text, time, nickColor) {
+    this._hideEmpty();
+    const row = document.createElement('div');
+    row.className = 'msg';
+
+    const timeEl = document.createElement('span');
+    timeEl.className = 'msg-time';
+    timeEl.textContent = time;
+
+    const nickEl = document.createElement('span');
+    nickEl.className = 'msg-nick';
+    nickEl.textContent = nick + ':';
+    nickEl.style.color = nickColor || var_primary();
+
+    const textEl = document.createElement('span');
+    textEl.className = 'msg-text';
+    textEl.textContent = text; // textContent = XSS safe
+
+    row.appendChild(timeEl);
+    row.appendChild(nickEl);
+    row.appendChild(textEl);
+    this.messagesEl.appendChild(row);
+    this._scrollToBottom();
+  },
+
+  addSystemMessage(text, type) {
+    this._hideEmpty();
+    const row = document.createElement('div');
+    row.className = 'msg-system' + (type ? ' ' + type : '');
+    row.textContent = text; // textContent = XSS safe
+    this.messagesEl.appendChild(row);
+    this._scrollToBottom();
+  },
+
+  addBlockedNotice(reason) {
+    const row = document.createElement('div');
+    row.className = 'msg-blocked';
+    row.textContent = '[message filtered: ' + reason + ']';
+    this.messagesEl.appendChild(row);
+    this._scrollToBottom();
+  },
+
+  showRateLimitFeedback() {
+    this.rateFeedback.classList.add('show');
+    clearTimeout(this._rateFeedbackTimeout);
+    this._rateFeedbackTimeout = setTimeout(() => {
+      this.rateFeedback.classList.remove('show');
+    }, 2000);
+  },
+
+  updateCharCount(len) {
+    this.charCount.textContent = len + '/' + CONFIG.MAX_MSG_LEN;
+    this.charCount.className = '';
+    if (len > CONFIG.MAX_MSG_LEN * 0.9) this.charCount.className = 'warn';
+    if (len >= CONFIG.MAX_MSG_LEN) this.charCount.className = 'over';
+  },
+
+  _hideEmpty() {
+    if (this.emptyState) {
+      this.emptyState.remove();
+      this.emptyState = null;
+    }
+  },
+
+  _scrollToBottom() {
+    // Cap DOM nodes to prevent unbounded growth
+    const MAX_MESSAGES = 500;
+    while (this.messagesEl.children.length > MAX_MESSAGES) {
+      this.messagesEl.removeChild(this.messagesEl.firstChild);
+    }
+    this.messagesEl.scrollTop = this.messagesEl.scrollHeight;
+  },
+};
+
+function var_primary() { return '#00e5ff'; }
+
+/** Generate a deterministic color from a string (for nick colors). */
+function nickColor(nick) {
+  let hash = 0;
+  for (let i = 0; i < nick.length; i++) {
+    hash = nick.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const colors = [
+    '#00e5ff', '#ff6b00', '#00ff88', '#ff44aa',
+    '#44aaff', '#ffdd00', '#aa66ff', '#66ffcc',
+  ];
+  return colors[Math.abs(hash) % colors.length];
+}
+
+/** Format timestamp to HH:MM. */
+function formatTime(ts) {
+  const d = new Date(ts);
+  return d.getHours().toString().padStart(2, '0') + ':' +
+         d.getMinutes().toString().padStart(2, '0');
+}
+
+// =================================================================
+// CHAT APP
+// =================================================================
+
+const Chat = {
+  userId: null,
+  nick: null,
+  channel: null,
+  client: null,
+  automod: null,
+  _senderRateBucket: [],
+
+  async start(nickname) {
+    // Guard: Supabase CDN must have loaded
+    if (typeof supabase === 'undefined' || !supabase.createClient) {
+      UI.addSystemMessage(
+        'Error: Supabase library failed to load. Check your connection.',
+        'leave'
+      );
+      return;
+    }
+
+    // Generate userId — fallback if crypto.randomUUID unavailable (non-secure context)
+    this.userId = (window.crypto && crypto.randomUUID)
+      ? crypto.randomUUID()
+      : 'user-' + Date.now() + '-' + Math.floor(Math.random() * 1e9);
+    this.nick = nickname.trim().slice(0, 20);
+    this.automod = new AutoMod();
+
+    // Derive encryption key (gracefully degrades to plaintext if crypto.subtle unavailable)
+    await Crypto.deriveKey(CONFIG.ROOM);
+    if (Crypto._plaintextMode) {
+      UI.addSystemMessage(
+        'Note: E2E encryption unavailable (non-secure context). Messages are base64-encoded only.',
+        'leave'
+      );
+    }
+
+    // Initialize Supabase client
+    const { createClient } = supabase;
+    this.client = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY, {
+      realtime: { params: { eventsPerSecond: 10 } },
+    });
+
+    UI.setStatus('connecting');
+    UI.hideNickOverlay();
+
+    // Create channel with self-send disabled (we render our own messages locally)
+    this.channel = this.client.channel(CONFIG.ROOM, {
+      config: {
+        broadcast: { self: false, ack: true },
+        presence: { key: this.userId },
+      },
+    });
+
+    // Listen for broadcast messages
+    this.channel.on('broadcast', { event: 'message' }, (payload) => {
+      this._onReceive(payload.payload);
+    });
+
+    // Listen for presence events
+    this.channel.on('presence', { event: 'sync' }, () => {
+      const state = this.channel.presenceState();
+      const count = Object.keys(state).length;
+      UI.setUserCount(count);
+    });
+
+    this.channel.on('presence', { event: 'join' }, ({ key, newPresences }) => {
+      if (key !== this.userId && newPresences.length > 0) {
+        const joiner = newPresences[0].nick || 'Unknown';
+        UI.addSystemMessage(joiner + ' joined', 'join');
+      }
+    });
+
+    this.channel.on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
+      if (leftPresences.length > 0) {
+        const leaver = leftPresences[0].nick || 'Unknown';
+        UI.addSystemMessage(leaver + ' left', 'leave');
+      }
+    });
+
+    // Subscribe and track presence
+    this._reconnectAttempts = 0;
+    this.channel.subscribe(async (status) => {
+      if (status === 'SUBSCRIBED') {
+        UI.setStatus('connected');
+        UI.enableInput();
+        this._reconnectAttempts = 0;
+        await this.channel.track({
+          nick: this.nick,
+          online_at: new Date().toISOString(),
+        });
+        UI.addSystemMessage('Connected as ' + this.nick, 'join');
+      } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+        UI.setStatus('');
+        UI.disableInput();
+        UI.addSystemMessage('Disconnected from server.', 'leave');
+        this._scheduleReconnect();
+      }
+    });
+  },
+
+  /** Reconnect with exponential backoff (handles 24h Supabase limit). */
+  _scheduleReconnect() {
+    const MAX_ATTEMPTS = 8;
+    if (this._reconnectAttempts >= MAX_ATTEMPTS) {
+      UI.addSystemMessage('Max reconnect attempts reached. Reload the page.', 'leave');
+      return;
+    }
+    this._reconnectAttempts++;
+    const baseDelay = 2000;
+    const maxDelay = 30000;
+    const delay = Math.min(baseDelay * Math.pow(2, this._reconnectAttempts - 1), maxDelay);
+    // Add jitter (±25%)
+    const jitter = delay * (0.75 + Math.random() * 0.5);
+
+    UI.addSystemMessage(
+      'Reconnecting in ' + Math.round(jitter / 1000) + 's (attempt ' +
+      this._reconnectAttempts + '/' + MAX_ATTEMPTS + ')...'
+    );
+
+    this._reconnectTimeout = setTimeout(async () => {
+      UI.setStatus('connecting');
+      try {
+        // Remove old channel and re-subscribe
+        if (this.channel) {
+          this.client.removeChannel(this.channel);
+        }
+        this.channel = this.client.channel(CONFIG.ROOM, {
+          config: {
+            broadcast: { self: false, ack: true },
+            presence: { key: this.userId },
+          },
+        });
+        this.channel.on('broadcast', { event: 'message' }, (payload) => {
+          this._onReceive(payload.payload);
+        });
+        this.channel.on('presence', { event: 'sync' }, () => {
+          const state = this.channel.presenceState();
+          UI.setUserCount(Object.keys(state).length);
+        });
+        this.channel.on('presence', { event: 'join' }, ({ key, newPresences }) => {
+          if (key !== this.userId && newPresences.length > 0) {
+            UI.addSystemMessage(newPresences[0].nick || 'Unknown' + ' joined', 'join');
+          }
+        });
+        this.channel.on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
+          if (leftPresences.length > 0) {
+            UI.addSystemMessage(leftPresences[0].nick || 'Unknown' + ' left', 'leave');
+          }
+        });
+        this.channel.subscribe(async (status) => {
+          if (status === 'SUBSCRIBED') {
+            UI.setStatus('connected');
+            UI.enableInput();
+            this._reconnectAttempts = 0;
+            await this.channel.track({
+              nick: this.nick,
+              online_at: new Date().toISOString(),
+            });
+            UI.addSystemMessage('Reconnected.', 'join');
+          } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+            UI.setStatus('');
+            UI.disableInput();
+            this._scheduleReconnect();
+          }
+        });
+      } catch (err) {
+        UI.addSystemMessage('Reconnect failed.', 'leave');
+        this._scheduleReconnect();
+      }
+    }, jitter);
+  },
+
+  async send(text) {
+    text = text.trim();
+    if (text.length === 0 || text.length > CONFIG.MAX_MSG_LEN) return;
+
+    // Sender-side rate limit
+    if (!this._checkSenderRateLimit()) {
+      UI.showRateLimitFeedback();
+      return;
+    }
+
+    // Sender-side automod (prevent sending banned content)
+    const filterResult = this.automod.filter(text, this.userId);
+    if (!filterResult.ok) {
+      UI.addBlockedNotice('Your message was blocked: ' + filterResult.reason);
+      return;
+    }
+
+    // Encrypt the message (or base64-encode in plaintext mode)
+    let encrypted;
+    try {
+      encrypted = await Crypto.encrypt(text);
+    } catch (err) {
+      UI.addSystemMessage('Encryption error. Message not sent.');
+      return;
+    }
+
+    const ts = Date.now();
+    const msgId = (window.crypto && crypto.randomUUID)
+      ? crypto.randomUUID()
+      : 'msg-' + Date.now() + '-' + Math.floor(Math.random() * 1e9);
+    const payload = {
+      id: msgId,
+      userId: this.userId,
+      nick: this.nick,
+      ts: ts,
+    };
+    // Attach encrypted fields or plaintext field
+    if (encrypted.plain !== undefined) {
+      payload.plain = encrypted.plain;
+    } else {
+      payload.iv = encrypted.iv;
+      payload.ct = encrypted.ct;
+    }
+
+    // Send via broadcast
+    const resp = await this.channel.send({
+      type: 'broadcast',
+      event: 'message',
+      payload: payload,
+    });
+
+    // Render locally (self-send is off, so we show our own message)
+    UI.addMessage(this.nick, text, formatTime(ts), nickColor(this.nick));
+    UI.msgInput.value = '';
+    UI.updateCharCount(0);
+  },
+
+  async _onReceive(payload) {
+    if (!payload) return;
+
+    // Must have either encrypted (iv+ct) or plaintext (plain) fields
+    const hasEncrypted = payload.iv && payload.ct;
+    const hasPlain = typeof payload.plain === 'string';
+    if (!hasEncrypted && !hasPlain) return;
+
+    // Ignore our own messages (shouldn't arrive with self:false, but guard)
+    if (payload.userId === this.userId) return;
+
+    // Decrypt or decode
+    let plaintext;
+    try {
+      if (hasPlain) {
+        plaintext = Crypto.decodePlain(payload.plain);
+      } else {
+        plaintext = await Crypto.decrypt(payload.iv, payload.ct);
+      }
+    } catch (err) {
+      // Decryption failed — likely different key or corrupt message
+      return;
+    }
+
+    // Receiver-side automod filter
+    const filterResult = this.automod.filter(plaintext, payload.userId);
+    if (!filterResult.ok) {
+      // Silently drop — don't even show a blocked notice for others' messages
+      return;
+    }
+
+    // Receiver-side rate limit check (use local time, never trust sender timestamp)
+    if (!this.automod.checkRateLimit(payload.userId, Date.now())) {
+      return; // rate limited sender
+    }
+
+    // Display the message
+    const nick = (typeof payload.nick === 'string')
+      ? payload.nick.slice(0, 20)
+      : 'Unknown';
+    const time = formatTime(payload.ts || Date.now());
+    UI.addMessage(nick, plaintext, time, nickColor(nick));
+  },
+
+  /** Sender-side rate limit (local only). */
+  _checkSenderRateLimit() {
+    const now = Date.now();
+    const cutoff = now - CONFIG.RATE_LIMIT_WINDOW;
+    this._senderRateBucket = this._senderRateBucket.filter(t => t > cutoff);
+    if (this._senderRateBucket.length >= CONFIG.RATE_LIMIT_COUNT) {
+      return false;
+    }
+    this._senderRateBucket.push(now);
+    return true;
+  },
+
+  /** Cleanup on page unload. */
+  destroy() {
+    if (this._reconnectTimeout) {
+      clearTimeout(this._reconnectTimeout);
+      this._reconnectTimeout = null;
+    }
+    if (this.automod) {
+      this.automod.destroy();
+    }
+    if (this.channel) {
+      this.channel.untrack();
+      this.client.removeChannel(this.channel);
+    }
+  },
+};
+
+// =================================================================
+// GLOBAL ERROR HANDLERS
+// =================================================================
+
+window.onerror = function(msg, src, line, col, err) {
+  // Prevent unhandled errors from crashing the chat silently
+  if (typeof UI !== 'undefined' && UI.messagesEl) {
+    UI.addSystemMessage('An error occurred. Chat may be unstable.', 'leave');
+  }
+  return false; // Allow default browser error logging
+};
+
+window.addEventListener('unhandledrejection', function(event) {
+  if (typeof UI !== 'undefined' && UI.messagesEl) {
+    UI.addSystemMessage('A connection error occurred.', 'leave');
+  }
+});
+
+// =================================================================
+// EVENT WIRING
+// =================================================================
+
+document.addEventListener('DOMContentLoaded', () => {
+  UI.init();
+
+  // Generate random default nickname
+  const randomSuffix = Math.floor(Math.random() * 9000 + 1000);
+  UI.nickInput.value = 'Agent-' + randomSuffix;
+
+  // Nickname entry
+  const joinChat = () => {
+    const nick = UI.nickInput.value.trim();
+    if (nick.length < 1 || nick.length > 20) return;
+    Chat.start(nick);
+  };
+
+  $('#nick-join-btn').addEventListener('click', joinChat);
+  UI.nickInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') joinChat();
+  });
+
+  // Message sending
+  const sendMessage = () => {
+    const text = UI.msgInput.value;
+    if (text.trim().length > 0) {
+      Chat.send(text);
+    }
+  };
+
+  $('#send-btn').addEventListener('click', sendMessage);
+  UI.msgInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  // Character count
+  UI.msgInput.addEventListener('input', () => {
+    UI.updateCharCount(UI.msgInput.value.length);
+  });
+
+  // Cleanup on unload
+  window.addEventListener('beforeunload', () => {
+    Chat.destroy();
+  });
+
+  // Focus nickname input
+  UI.nickInput.focus();
+  UI.nickInput.select();
+});
+</script>
+</body>
+</html>
