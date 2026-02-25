@@ -14,7 +14,11 @@ import aiohttp
 from rich.console import Console
 from rich.panel import Panel
 
+import time as _time
+
 import config
+from presence.client import PresenceClient
+from presence.identity import load_identity
 
 # Persistent log file — survives across sessions, rotates at 5MB
 LOG_PATH = os.path.join(os.path.dirname(__file__), "jarvis.log")
@@ -35,8 +39,9 @@ from voice.whisper_client import WhisperClient
 
 console = Console()
 
-METAL_APP = "/Users/dylan/Desktop/projects/jarvis/metal-app/.build/debug/JarvisBootup"
-BASE_PATH = "/Users/dylan/Desktop/projects/jarvis"
+_JARVIS_DIR = os.path.dirname(os.path.abspath(__file__))
+METAL_APP = os.path.join(_JARVIS_DIR, "metal-app", ".build", "debug", "JarvisBootup")
+BASE_PATH = _JARVIS_DIR
 
 # Redact API keys, tokens, and secrets from any text shown in the UI
 _SECRET_RE = re.compile(r'|'.join([
@@ -219,6 +224,43 @@ async def main():
     metal.launch()
     event_log = GameEventLog()
     metal.on_game_action = lambda action, **kw: event_log.log_action(action, **kw)
+
+    # Shared overlay buffer (chat monitor + presence notifications)
+    overlay_lines: list[str] = []
+    overlay_lock = asyncio.Lock()
+    MAX_OVERLAY_LINES = 8
+
+    async def push_overlay_line(line: str):
+        async with overlay_lock:
+            overlay_lines.append(line)
+            if len(overlay_lines) > MAX_OVERLAY_LINES:
+                del overlay_lines[: len(overlay_lines) - MAX_OVERLAY_LINES]
+            metal.send_chat_overlay("\n".join(overlay_lines))
+
+    # Presence client
+    identity = load_identity()
+    presence = PresenceClient(config.PRESENCE_URL, identity["user_id"], identity["display_name"])
+    _current_game: str | None = None  # tracks which game is active for exit events
+
+    def _handle_presence(event_type: str, data: dict):
+        name = data.get("display_name", "Someone")
+        if event_type == "user_online":
+            asyncio.create_task(push_overlay_line(f">> {name} is online"))
+        elif event_type == "user_offline":
+            asyncio.create_task(push_overlay_line(f">> {name} went offline"))
+        elif event_type == "activity_changed":
+            activity = data.get("activity", "")
+            status = data.get("status", "")
+            if status == "in_game":
+                asyncio.create_task(push_overlay_line(f">> {name} started playing {activity}"))
+            elif status == "in_skill":
+                asyncio.create_task(push_overlay_line(f">> {name} is using {activity}"))
+            elif status == "idle":
+                asyncio.create_task(push_overlay_line(f">> {name} went idle"))
+            elif status == "online":
+                asyncio.create_task(push_overlay_line(f">> {name} is back"))
+
+    presence.on_notification = _handle_presence
 
     console.print(Panel(
         "[bold cyan]JARVIS[/] — Personal AI Assistant\n"
@@ -433,7 +475,7 @@ async def main():
     }
 
     def _short_path(path: str) -> str:
-        prefix = "/Users/dylan/Desktop/projects/"
+        prefix = str(config.PROJECTS_DIR) + "/"
         return path[len(prefix):] if path.startswith(prefix) else path
 
     def _format_tool_start(tool_name: str, args: dict) -> tuple[str, str]:
@@ -567,7 +609,7 @@ async def main():
 
     async def on_skill_input(event_type: str, tool_name: str, arguments: str, user_text: str, panel: int = 0):
         nonlocal skill_tasks, panel_count, active_panel
-        nonlocal skill_active, pending_tool_name
+        nonlocal skill_active, pending_tool_name, _current_game
 
         log.info(f"on_skill_input: event={event_type} tool={tool_name} text={user_text[:80] if user_text else ''}")
         if event_type == "__skill_start__":
@@ -607,6 +649,7 @@ async def main():
                 skill_name = skill.name if skill else tool_name
 
             metal.send_chat_start(skill_name)
+            await presence.update_activity("in_skill", skill_name)
             console.print(f"\n[bold cyan]Chat window opened:[/] {skill_name}")
 
             target_panel = 0  # First panel is always 0
@@ -686,6 +729,7 @@ async def main():
                     skill_tasks.clear()
                     router.close_session()
                     metal.send_chat_end()
+                    await presence.update_activity("online")
                     console.print("[green]All windows closed. Shutting down.[/]")
                     metal.quit()
                 return
@@ -733,43 +777,59 @@ async def main():
 
             if _is_pinball_command(user_text):
                 metal.send_chat_iframe_fullscreen(f"file://{PINBALL_PATH}", panel=panel)
+                _current_game = "Pinball"
+                await presence.update_activity("in_game", "Pinball")
                 console.print("[bold cyan]Launched Pinball[/]")
                 return
 
             if _is_minesweeper_command(user_text):
                 metal.send_chat_iframe(f"file://{MINESWEEPER_PATH}", panel=panel, height=720)
+                _current_game = "Minesweeper"
+                await presence.update_activity("in_game", "Minesweeper")
                 console.print("[bold cyan]Launched Minesweeper[/]")
                 return
 
             if _is_tetris_command(user_text):
                 metal.send_chat_iframe_fullscreen(f"file://{TETRIS_PATH}", panel=panel)
+                _current_game = "Tetris"
+                await presence.update_activity("in_game", "Tetris")
                 console.print("[bold cyan]Launched Tetris[/]")
                 return
 
             if _is_draw_command(user_text):
                 metal.send_chat_iframe(f"file://{DRAW_PATH}", panel=panel, height=720)
+                _current_game = "Draw"
+                await presence.update_activity("in_game", "Draw")
                 console.print("[bold cyan]Launched Draw[/]")
                 return
 
             if _is_doodlejump_command(user_text):
                 metal.send_chat_iframe_fullscreen(f"file://{DOODLEJUMP_PATH}", panel=panel)
+                _current_game = "Doodle Jump"
+                await presence.update_activity("in_game", "Doodle Jump")
                 console.print("[bold cyan]Launched Doodle Jump[/]")
                 return
 
             if _is_asteroids_command(user_text):
                 metal.send_chat_iframe_fullscreen(f"file://{ASTEROIDS_PATH}", panel=panel)
+                _current_game = "Asteroids"
+                await presence.update_activity("in_game", "Asteroids")
                 console.print("[bold cyan]Launched Asteroids[/]")
                 return
 
             if _is_kart_command(user_text):
                 log.info(f"Kart command (chat): '{user_text}'")
                 metal.send_chat_iframe_fullscreen("https://kartbros.io", panel=panel)
+                _current_game = "KartBros"
+                await presence.update_activity("in_game", "KartBros")
                 console.print("[bold cyan]Launched KartBros[/]")
                 return
 
             if _is_trivia_command(user_text):
                 log.info(f"Trivia command (chat): '{user_text}'")
                 metal.send_chat_iframe_fullscreen(f"{TRIVIA_BASE_URL}/play", panel=panel)
+                _current_game = "1v100 Trivia"
+                await presence.update_activity("in_game", "1v100 Trivia")
                 console.print("[bold cyan]Launched 1v100 Trivia[/]")
                 return
 
@@ -785,6 +845,8 @@ async def main():
 
             if _is_subway_command(user_text):
                 metal.send_chat_iframe_fullscreen(f"file://{SUBWAY_PATH}", panel=panel)
+                _current_game = "Subway Surfers"
+                await presence.update_activity("in_game", "Subway Surfers")
                 console.print("[bold cyan]Launched Subway Surfers[/]")
                 return
 
@@ -893,8 +955,6 @@ async def main():
 
     async def chat_monitor():
         """Connects to Great Firewall SSE and shows chat in Metal overlay."""
-        chat_buffer: list[str] = []
-        max_lines = 8
         url = f"{config.FIREWALL_API}/stream/events"
 
         while True:
@@ -911,10 +971,7 @@ async def main():
                                 username = data.get("username", "")
                                 msg = data.get("text", "")
                                 if username and msg:
-                                    chat_buffer.append(f"{username}: {msg}")
-                                    if len(chat_buffer) > max_lines:
-                                        chat_buffer = chat_buffer[-max_lines:]
-                                    metal.send_chat_overlay("\n".join(chat_buffer))
+                                    await push_overlay_line(f"{username}: {msg}")
                             except (json.JSONDecodeError, KeyError):
                                 pass
             except (aiohttp.ClientError, asyncio.TimeoutError, OSError):
@@ -929,6 +986,8 @@ async def main():
                 console.print("[dim]Metal display closed. Shutting down.[/]")
                 os._exit(0)
 
+    _last_interaction = _time.time()
+
     try:
         mic.start()
         metal.send_state("listening")
@@ -938,7 +997,7 @@ async def main():
         default_task: asyncio.Task | None = None
 
         async def handle_fn_key(pressed: bool):
-            nonlocal ptt_active, skill_active, pending_tool_name, default_task
+            nonlocal ptt_active, skill_active, pending_tool_name, default_task, _current_game
 
             if pressed and not ptt_active:
                 if not whisper_client.is_available():
@@ -993,36 +1052,48 @@ async def main():
                     # Quick commands before hitting Gemini
                     if _is_pinball_command(text):
                         metal.send_chat_iframe_fullscreen(f"file://{PINBALL_PATH}", panel=active_panel)
+                        _current_game = "Pinball"
+                        await presence.update_activity("in_game", "Pinball")
                         metal.send_state("listening")
                         console.print("[bold cyan]Launched Pinball[/]")
                         return
 
                     if _is_minesweeper_command(text):
                         metal.send_chat_iframe(f"file://{MINESWEEPER_PATH}", panel=active_panel, height=720)
+                        _current_game = "Minesweeper"
+                        await presence.update_activity("in_game", "Minesweeper")
                         metal.send_state("listening")
                         console.print("[bold cyan]Launched Minesweeper[/]")
                         return
 
                     if _is_tetris_command(text):
                         metal.send_chat_iframe_fullscreen(f"file://{TETRIS_PATH}", panel=active_panel)
+                        _current_game = "Tetris"
+                        await presence.update_activity("in_game", "Tetris")
                         metal.send_state("listening")
                         console.print("[bold cyan]Launched Tetris[/]")
                         return
 
                     if _is_draw_command(text):
                         metal.send_chat_iframe(f"file://{DRAW_PATH}", panel=active_panel, height=720)
+                        _current_game = "Draw"
+                        await presence.update_activity("in_game", "Draw")
                         metal.send_state("listening")
                         console.print("[bold cyan]Launched Draw[/]")
                         return
 
                     if _is_doodlejump_command(text):
                         metal.send_chat_iframe_fullscreen(f"file://{DOODLEJUMP_PATH}", panel=active_panel)
+                        _current_game = "Doodle Jump"
+                        await presence.update_activity("in_game", "Doodle Jump")
                         metal.send_state("listening")
                         console.print("[bold cyan]Launched Doodle Jump[/]")
                         return
 
                     if _is_asteroids_command(text):
                         metal.send_chat_iframe_fullscreen(f"file://{ASTEROIDS_PATH}", panel=active_panel)
+                        _current_game = "Asteroids"
+                        await presence.update_activity("in_game", "Asteroids")
                         metal.send_state("listening")
                         console.print("[bold cyan]Launched Asteroids[/]")
                         return
@@ -1040,6 +1111,8 @@ async def main():
 
                     if _is_subway_command(text):
                         metal.send_chat_iframe_fullscreen(f"file://{SUBWAY_PATH}", panel=active_panel)
+                        _current_game = "Subway Surfers"
+                        await presence.update_activity("in_game", "Subway Surfers")
                         metal.send_state("listening")
                         console.print("[bold cyan]Launched Subway Surfers[/]")
                         return
@@ -1047,6 +1120,8 @@ async def main():
                     if _is_kart_command(text):
                         log.info(f"Kart command detected: '{text}'")
                         metal.send_chat_iframe_fullscreen("https://kartbros.io", panel=active_panel)
+                        _current_game = "KartBros"
+                        await presence.update_activity("in_game", "KartBros")
                         metal.send_state("listening")
                         console.print("[bold cyan]Launched KartBros[/]")
                         return
@@ -1066,6 +1141,8 @@ async def main():
                             console.print(f"[red]Failed to create trivia game: {e}[/]")
                             metal.send_chat_iframe_fullscreen(f"{TRIVIA_BASE_URL}/play", panel=active_panel)
                             console.print("[bold cyan]Launched 1v100 Trivia (fallback)[/]")
+                        _current_game = "1v100 Trivia"
+                        await presence.update_activity("in_game", "1v100 Trivia")
                         metal.send_state("listening")
                         return
 
@@ -1105,7 +1182,7 @@ async def main():
 
         async def read_metal_stdout():
             """Read typed input and fn key events from Metal WebView via stdout."""
-            nonlocal skill_active, pending_tool_name, active_panel
+            nonlocal skill_active, pending_tool_name, active_panel, _last_interaction, _current_game
             loop = asyncio.get_event_loop()
             while metal.proc and metal.proc.poll() is None:
                 line = await loop.run_in_executor(None, metal.proc.stdout.readline)
@@ -1117,11 +1194,16 @@ async def main():
                     if msg.get("type") == "game_event":
                         event_log.ingest(msg)
                         log.info(f"Game event: {msg.get('event')} {json.dumps({k:v for k,v in msg.items() if k not in ('type',)})[:200]}")
+                        # Track game exit for presence
+                        if msg.get("event") == "iframe_hide" and _current_game:
+                            _current_game = None
+                            await presence.update_activity("online")
                     if msg.get("type") == "panel_focus":
                         old_panel = active_panel
                         active_panel = msg.get("panel", 0)
                         event_log.log_action("panel_focus", old=old_panel, new=active_panel)
                     elif msg.get("type") == "chat_input" and skill_active:
+                        _last_interaction = _time.time()
                         text = msg.get("text", "")
                         panel_idx = msg.get("panel", active_panel)
                         await on_skill_input("__skill_chat__", pending_tool_name, "", text, panel=panel_idx)
@@ -1144,10 +1226,34 @@ async def main():
                 except (json.JSONDecodeError, UnicodeDecodeError):
                     pass
 
+        # Idle detection for presence
+        async def idle_monitor():
+            nonlocal _last_interaction
+            _idle_reported = False
+            while True:
+                await asyncio.sleep(60)
+                if _time.time() - _last_interaction > 300 and not _idle_reported:
+                    await presence.update_activity("idle")
+                    _idle_reported = True
+                elif _time.time() - _last_interaction <= 300 and _idle_reported:
+                    _idle_reported = False
+
+        # Patch interaction tracking into PTT and chat input
+        _orig_handle_fn_key = handle_fn_key
+
+        async def _tracked_fn_key(pressed):
+            nonlocal _last_interaction
+            _last_interaction = _time.time()
+            await _orig_handle_fn_key(pressed)
+
+        handle_fn_key = _tracked_fn_key
+
         await asyncio.gather(
             watchdog(),
             read_metal_stdout(),
             chat_monitor(),
+            presence.run(),
+            idle_monitor(),
         )
 
     except KeyboardInterrupt:
@@ -1159,6 +1265,7 @@ async def main():
         traceback.print_exc()
     finally:
         console.print("\n[dim]Shutting down...[/]")
+        await presence.disconnect()
         mic.stop()
         metal.quit()
 

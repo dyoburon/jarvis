@@ -24,7 +24,8 @@ SAMPLE_RATE = 24000
 CHANNELS = 1
 
 # Project paths
-PROJECTS_DIR = Path("/Users/dylan/Desktop/projects")
+JARVIS_DIR = Path(__file__).parent.resolve()
+PROJECTS_DIR = JARVIS_DIR.parent
 
 # Domain Drop Hunter
 DOMAIN_HUNTER_DB = PROJECTS_DIR / "domain-drop-hunter/data/domains.db"
@@ -48,6 +49,9 @@ GEMINI_PRICING = {
     "gemini-3-flash-preview": {"input": 0.50, "output": 3.00},
     "gemini-3.1-pro-preview": {"input": 2.00, "output": 12.00},
 }
+
+# Presence
+PRESENCE_URL = os.getenv("PRESENCE_URL", "ws://localhost:8790")
 
 SYSTEM_PROMPT = """You are Jarvis. Ultra-brief. 1-2 short sentences max. No filler.
 Dry wit when appropriate. Use tools when asked about systems. Never ramble."""

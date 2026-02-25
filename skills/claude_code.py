@@ -54,7 +54,7 @@ JARVIS_SYSTEM_PROMPT = (
 def _format_tool_start(tool_name: str, tool_input: dict) -> tuple[str, str]:
     """Return (category, human_description) for a Claude Code tool call."""
     category = _TOOL_CATEGORIES.get(tool_name, "tool")
-    prefix = "/Users/dylan/Desktop/projects/"
+    prefix = str(config.PROJECTS_DIR) + "/"
 
     def short(path: str) -> str:
         return path[len(prefix):] if path.startswith(prefix) else path

@@ -10,7 +10,7 @@ CLAUDECODE= claude auth login
 
 # Pull new token from macOS Keychain → claudeAiOauth.accessToken
 OAUTH_TOKEN=$(security find-generic-password -s "Claude Code-credentials" -w 2>/dev/null \
-    | python3.12 -c "import sys,json; print(json.load(sys.stdin)['claudeAiOauth']['accessToken'])")
+    | python3 -c "import sys,json; print(json.load(sys.stdin)['claudeAiOauth']['accessToken'])")
 
 if [ -z "$OAUTH_TOKEN" ]; then
     echo "Could not extract OAuth token from Keychain"

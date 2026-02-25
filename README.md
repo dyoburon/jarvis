@@ -34,7 +34,7 @@ The Python backend (`main.py`) launches the Metal app as a subprocess and commun
 ### Prerequisites
 
 - macOS 13+
-- Python 3.12
+- Python 3.10+
 - Swift 5.9+
 - Claude Max subscription (for Claude Code / Agent SDK features)
 - Google Gemini API key (optional — enables Gemini-powered voice routing and skills)
@@ -44,7 +44,7 @@ The Python backend (`main.py`) launches the Metal app as a subprocess and commun
 ```bash
 # Python dependencies
 cd jarvis
-python3.12 -m venv .venv
+python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 

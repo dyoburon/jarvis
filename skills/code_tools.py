@@ -4,7 +4,8 @@ via function calling and returns a dict suitable for FunctionResponse."""
 import asyncio
 from pathlib import Path
 
-PROJECTS_DIR = Path("/Users/dylan/Desktop/projects")
+import config as _config
+PROJECTS_DIR = _config.PROJECTS_DIR
 MAX_OUTPUT_CHARS = 12_000
 COMMAND_TIMEOUT = 30
 

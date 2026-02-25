@@ -1462,3 +1462,344 @@
 2026-02-25T01:51:15Z [METAL] WKMessage: "__escape__" from_panel=1 activePanel=1 fullscreen=false
 2026-02-25T01:51:15Z [METAL] updateFocusIndicators: activePanel=1 panelCount=3
 2026-02-25T01:51:15Z [METAL] updateFocusIndicators: activePanel=1 panelCount=3
+2026-02-25T02:14:36Z [METAL] JarvisBootup started — build v2
+2026-02-25T02:14:37Z [METAL] applicationDidBecomeActive: fullscreen=false
+2026-02-25T02:14:38Z [METAL] updateFocusIndicators: activePanel=0 panelCount=1
+2026-02-25T02:14:38Z [METAL] updateFocusIndicators: makeFirstResponder panel=0 before=Optional(<WKWebView: 0xb6b1e5000>) after=Optional(<WKWebView: 0xb6b1e5000>)
+2026-02-25T02:14:39Z [METAL] updateFocusIndicators: activePanel=1 panelCount=2
+2026-02-25T02:14:39Z [METAL] updateFocusIndicators: activePanel=1 panelCount=2
+2026-02-25T02:14:39Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0xb6b1e5800>) after=Optional(<WKWebView: 0xb6b1e5800>)
+2026-02-25T02:14:39Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0xb6b1e5800>) after=Optional(<WKWebView: 0xb6b1e5800>)
+2026-02-25T02:15:17Z [METAL] applicationDidBecomeActive: fullscreen=false
+2026-02-25T02:15:18Z [METAL] __focus__: from_panel=1 activePanel=1 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0xb6b1e5800>)
+2026-02-25T02:15:18Z [METAL] __focus__: SKIPPED — already activePanel=1
+2026-02-25T02:15:19Z [METAL] updateFocusIndicators: activePanel=2 panelCount=3
+2026-02-25T02:15:19Z [METAL] updateFocusIndicators: activePanel=2 panelCount=3
+2026-02-25T02:15:20Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0xb6b1e7000>) after=Optional(<WKWebView: 0xb6b1e7000>)
+2026-02-25T02:15:20Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0xb6b1e7000>) after=Optional(<WKWebView: 0xb6b1e7000>)
+2026-02-25T02:15:20Z [METAL] updateFocusIndicators: activePanel=3 panelCount=4
+2026-02-25T02:15:20Z [METAL] updateFocusIndicators: activePanel=3 panelCount=4
+2026-02-25T02:15:20Z [METAL] updateFocusIndicators: makeFirstResponder panel=3 before=Optional(<WKWebView: 0xb6b1e7c00>) after=Optional(<WKWebView: 0xb6b1e7c00>)
+2026-02-25T02:15:20Z [METAL] updateFocusIndicators: makeFirstResponder panel=3 before=Optional(<WKWebView: 0xb6b1e7c00>) after=Optional(<WKWebView: 0xb6b1e7c00>)
+2026-02-25T02:15:20Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T02:15:20Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T02:15:21Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0xb6bd88800>) after=Optional(<WKWebView: 0xb6bd88800>)
+2026-02-25T02:15:21Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0xb6bd88800>) after=Optional(<WKWebView: 0xb6bd88800>)
+2026-02-25T02:15:21Z [METAL] __focus__: from_panel=2 activePanel=4 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0xb6b1e7000>)
+2026-02-25T02:15:21Z [METAL] updateFocusIndicators: activePanel=2 panelCount=5
+2026-02-25T02:15:22Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0xb6b1e7000>) after=Optional(<WKWebView: 0xb6b1e7000>)
+2026-02-25T02:15:46Z [METAL] __focus__: from_panel=2 activePanel=2 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0xb6b1e7000>)
+2026-02-25T02:15:46Z [METAL] __focus__: SKIPPED — already activePanel=2
+2026-02-25T02:15:47Z [METAL] WKMessage: "asteroid" from_panel=2 activePanel=2 fullscreen=false
+2026-02-25T02:15:47Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=2 isFile=true
+2026-02-25T02:15:47Z [METAL] WKMessage: "__iframe_loaded__" from_panel=2 activePanel=2 fullscreen=true
+2026-02-25T02:15:58Z [METAL] __focus__: from_panel=1 activePanel=2 fullscreen=true fullscreenPanel=2 firstResponder=Optional(<WKWebView: 0xb6b1e5800>)
+2026-02-25T02:15:58Z [METAL] updateFocusIndicators: activePanel=1 panelCount=5
+2026-02-25T02:15:58Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0xb6b1e5800>) after=Optional(<WKWebView: 0xb6b1e5800>)
+2026-02-25T02:16:01Z [METAL] refocusFullscreen: click on game panel 2, switching from activePanel=1
+2026-02-25T02:16:01Z [METAL] updateFocusIndicators: activePanel=2 panelCount=5
+2026-02-25T02:16:01Z [METAL] restoreGameFocus: navigated=false — injecting focus events
+2026-02-25T02:16:01Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0xb6b1e7000>) after=Optional(<WKWebView: 0xb6b1e7000>)
+2026-02-25T02:16:04Z [METAL] __focus__: from_panel=1 activePanel=2 fullscreen=true fullscreenPanel=2 firstResponder=Optional(<WKWebView: 0xb6b1e5800>)
+2026-02-25T02:16:04Z [METAL] updateFocusIndicators: activePanel=1 panelCount=5
+2026-02-25T02:16:04Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0xb6b1e5800>) after=Optional(<WKWebView: 0xb6b1e5800>)
+2026-02-25T02:16:07Z [METAL] refocusFullscreen: click on game panel 2, switching from activePanel=1
+2026-02-25T02:16:07Z [METAL] updateFocusIndicators: activePanel=2 panelCount=5
+2026-02-25T02:16:07Z [METAL] restoreGameFocus: navigated=false — injecting focus events
+2026-02-25T02:16:08Z [METAL] keyDown: Escape → hideFullscreenIframe
+2026-02-25T02:16:08Z [METAL] hideFullscreenIframe: navigated=false panel=2
+2026-02-25T02:16:08Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0xb6b1e7000>) after=Optional(<WKWebView: 0xb6b1e7000>)
+2026-02-25T02:16:08Z [METAL] __focus__: from_panel=2 activePanel=2 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0xb6b1e7000>)
+2026-02-25T02:16:08Z [METAL] __focus__: SKIPPED — already activePanel=2
+2026-02-25T02:16:12Z [METAL] WKMessage: "open localhost:3000" from_panel=2 activePanel=2 fullscreen=false
+2026-02-25T02:16:12Z [METAL] showFullscreenIframe: url=http://localhost:3000 panel=2 isFile=false
+2026-02-25T02:16:12Z [METAL] showFullscreenIframe: navigating WKWebView to http://localhost:3000
+2026-02-25T02:16:13Z [METAL] keyDown: Escape → hideFullscreenIframe
+2026-02-25T02:16:13Z [METAL] hideFullscreenIframe: navigated=true panel=2
+2026-02-25T02:16:14Z [METAL] __focus__: from_panel=2 activePanel=2 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0xb6b1e7000>)
+2026-02-25T02:16:14Z [METAL] __focus__: SKIPPED — already activePanel=2
+2026-02-25T02:16:17Z [METAL] WKMessage: "open localhost:3000" from_panel=2 activePanel=2 fullscreen=false
+2026-02-25T02:16:17Z [METAL] showFullscreenIframe: url=http://localhost:3000 panel=2 isFile=false
+2026-02-25T02:16:17Z [METAL] showFullscreenIframe: navigating WKWebView to http://localhost:3000
+2026-02-25T02:16:21Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T02:16:21Z [METAL] forwardKeyToNavigated: keydown keyCode=1 char=s
+2026-02-25T02:16:22Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T02:16:22Z [METAL] forwardKeyToNavigated: keydown keyCode=1 char=s
+2026-02-25T02:16:22Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T02:16:22Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T02:16:22Z [METAL] forwardKeyToNavigated: keydown keyCode=1 char=s
+2026-02-25T02:16:22Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T02:16:22Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T02:16:22Z [METAL] forwardKeyToNavigated: keydown keyCode=1 char=s
+2026-02-25T02:16:22Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T02:16:23Z [METAL] forwardKeyToNavigated: keydown keyCode=1 char=s
+2026-02-25T02:16:23Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T02:16:23Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T02:16:23Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T02:16:23Z [METAL] forwardKeyToNavigated: keydown keyCode=1 char=s
+2026-02-25T02:16:24Z [METAL] forwardKeyToNavigated: keydown keyCode=19 char=@
+2026-02-25T02:16:24Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T02:16:24Z [METAL] forwardKeyToNavigated: keydown keyCode=1 char=s
+2026-02-25T02:16:24Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T02:16:24Z [METAL] forwardKeyToNavigated: keydown keyCode=1 char=s
+2026-02-25T02:16:24Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T02:16:24Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T02:16:25Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T02:16:25Z [METAL] forwardKeyToNavigated: keydown keyCode=47 char=.
+2026-02-25T02:16:25Z [METAL] forwardKeyToNavigated: keydown keyCode=8 char=c
+2026-02-25T02:16:25Z [METAL] forwardKeyToNavigated: keydown keyCode=31 char=o
+2026-02-25T02:16:25Z [METAL] forwardKeyToNavigated: keydown keyCode=46 char=m
+2026-02-25T02:16:28Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T02:16:28Z [METAL] forwardKeyToNavigated: keydown keyCode=1 char=s
+2026-02-25T02:16:28Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T02:16:28Z [METAL] forwardKeyToNavigated: keydown keyCode=1 char=s
+2026-02-25T02:16:28Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T02:16:28Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T02:16:28Z [METAL] forwardKeyToNavigated: keydown keyCode=1 char=s
+2026-02-25T02:16:28Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T02:17:02Z [METAL] __focus__: from_panel=1 activePanel=2 fullscreen=true fullscreenPanel=2 firstResponder=Optional(<WKWebView: 0xb6b1e5800>)
+2026-02-25T02:17:02Z [METAL] updateFocusIndicators: activePanel=1 panelCount=5
+2026-02-25T02:17:03Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0xb6b1e5800>) after=Optional(<WKWebView: 0xb6b1e5800>)
+2026-02-25T02:17:03Z [METAL] refocusFullscreen: click on game panel 2, switching from activePanel=1
+2026-02-25T02:17:03Z [METAL] updateFocusIndicators: activePanel=2 panelCount=5
+2026-02-25T02:17:03Z [METAL] restoreGameFocus: navigated=true — injecting focus events
+2026-02-25T02:17:03Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0xb6b1e7000>) after=Optional(<WKWebView: 0xb6b1e7000>)
+2026-02-25T02:17:07Z [METAL] keyDown: Escape → hideFullscreenIframe
+2026-02-25T02:17:07Z [METAL] hideFullscreenIframe: navigated=true panel=2
+2026-02-25T02:17:07Z [METAL] __focus__: from_panel=2 activePanel=2 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0xb6b1e7000>)
+2026-02-25T02:17:07Z [METAL] __focus__: SKIPPED — already activePanel=2
+2026-02-25T02:17:08Z [METAL] __focus__: from_panel=2 activePanel=2 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0xb6b1e7000>)
+2026-02-25T02:17:08Z [METAL] __focus__: SKIPPED — already activePanel=2
+2026-02-25T02:17:08Z [METAL] __focus__: from_panel=1 activePanel=2 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0xb6b1e5800>)
+2026-02-25T02:17:08Z [METAL] updateFocusIndicators: activePanel=1 panelCount=5
+2026-02-25T02:17:09Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0xb6b1e5800>) after=Optional(<WKWebView: 0xb6b1e5800>)
+2026-02-25T02:17:09Z [METAL] __focus__: from_panel=2 activePanel=1 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0xb6b1e7000>)
+2026-02-25T02:17:09Z [METAL] updateFocusIndicators: activePanel=2 panelCount=5
+2026-02-25T02:17:09Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0xb6b1e7000>) after=Optional(<WKWebView: 0xb6b1e7000>)
+2026-02-25T02:17:09Z [METAL] __focus__: from_panel=1 activePanel=2 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0xb6b1e5800>)
+2026-02-25T02:17:09Z [METAL] updateFocusIndicators: activePanel=1 panelCount=5
+2026-02-25T02:17:10Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0xb6b1e5800>) after=Optional(<WKWebView: 0xb6b1e5800>)
+2026-02-25T02:17:15Z [METAL] __focus__: from_panel=1 activePanel=1 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0xb6b1e5800>)
+2026-02-25T02:17:15Z [METAL] __focus__: SKIPPED — already activePanel=1
+2026-02-25T02:17:16Z [METAL] __focus__: from_panel=4 activePanel=1 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0xb6bd88800>)
+2026-02-25T02:17:16Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T02:17:17Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0xb6bd88800>) after=Optional(<WKWebView: 0xb6bd88800>)
+2026-02-25T02:17:22Z [METAL] WKMessage: "open tyasdsadas.com" from_panel=4 activePanel=4 fullscreen=false
+2026-02-25T02:17:23Z [METAL] __focus__: from_panel=4 activePanel=4 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0xb6bd88800>)
+2026-02-25T02:17:23Z [METAL] __focus__: SKIPPED — already activePanel=4
+2026-02-25T02:17:24Z [METAL] __focus__: from_panel=4 activePanel=4 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0xb6bd88800>)
+2026-02-25T02:17:24Z [METAL] __focus__: SKIPPED — already activePanel=4
+2026-02-25T02:17:24Z [METAL] __focus__: from_panel=2 activePanel=4 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0xb6b1e7000>)
+2026-02-25T02:17:24Z [METAL] updateFocusIndicators: activePanel=2 panelCount=5
+2026-02-25T02:17:25Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0xb6b1e7000>) after=Optional(<WKWebView: 0xb6b1e7000>)
+2026-02-25T02:17:27Z [METAL] __focus__: from_panel=4 activePanel=2 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0xb6bd88800>)
+2026-02-25T02:17:27Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T02:17:28Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0xb6bd88800>) after=Optional(<WKWebView: 0xb6bd88800>)
+2026-02-25T02:17:31Z [METAL] applicationDidBecomeActive: fullscreen=false
+2026-02-25T02:18:51Z [METAL] applicationDidBecomeActive: fullscreen=false
+2026-02-25T02:18:53Z [METAL] __focus__: from_panel=1 activePanel=4 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0xb6b1e5800>)
+2026-02-25T02:18:53Z [METAL] updateFocusIndicators: activePanel=1 panelCount=5
+2026-02-25T02:18:53Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0xb6b1e5800>) after=Optional(<WKWebView: 0xb6b1e5800>)
+2026-02-25T02:18:54Z [METAL] WKMessage: "__escape__" from_panel=1 activePanel=1 fullscreen=false
+2026-02-25T02:18:54Z [METAL] updateFocusIndicators: activePanel=1 panelCount=4
+2026-02-25T02:18:54Z [METAL] updateFocusIndicators: activePanel=1 panelCount=4
+2026-02-25T02:32:06Z [METAL] JarvisBootup started — build v2
+2026-02-25T02:32:08Z [METAL] applicationDidBecomeActive: fullscreen=false
+2026-02-25T02:32:09Z [METAL] updateFocusIndicators: activePanel=0 panelCount=1
+2026-02-25T02:32:09Z [METAL] updateFocusIndicators: makeFirstResponder panel=0 before=Optional(<JarvisBootup.KeyableWindow: 0x100ecc380>) after=Optional(<WKWebView: 0xaf95ed000>)
+2026-02-25T02:32:10Z [METAL] updateFocusIndicators: activePanel=1 panelCount=2
+2026-02-25T02:32:10Z [METAL] updateFocusIndicators: activePanel=1 panelCount=2
+2026-02-25T02:32:10Z [METAL] updateFocusIndicators: activePanel=2 panelCount=3
+2026-02-25T02:32:10Z [METAL] updateFocusIndicators: activePanel=2 panelCount=3
+2026-02-25T02:32:10Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0xaf95ed800>) after=Optional(<WKWebView: 0xaf95ed800>)
+2026-02-25T02:32:10Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0xaf95ed800>) after=Optional(<WKWebView: 0xaf95ed800>)
+2026-02-25T02:32:11Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0xaf95eec00>) after=Optional(<WKWebView: 0xaf95eec00>)
+2026-02-25T02:32:11Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0xaf95eec00>) after=Optional(<WKWebView: 0xaf95eec00>)
+2026-02-25T02:32:11Z [METAL] updateFocusIndicators: activePanel=3 panelCount=4
+2026-02-25T02:32:11Z [METAL] updateFocusIndicators: activePanel=3 panelCount=4
+2026-02-25T02:32:11Z [METAL] updateFocusIndicators: makeFirstResponder panel=3 before=Optional(<WKWebView: 0xaf95ef800>) after=Optional(<WKWebView: 0xaf95ef800>)
+2026-02-25T02:32:11Z [METAL] updateFocusIndicators: makeFirstResponder panel=3 before=Optional(<WKWebView: 0xaf95ef800>) after=Optional(<WKWebView: 0xaf95ef800>)
+2026-02-25T02:32:12Z [METAL] __focus__: from_panel=2 activePanel=3 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0xaf95eec00>)
+2026-02-25T02:32:12Z [METAL] updateFocusIndicators: activePanel=2 panelCount=4
+2026-02-25T02:32:13Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0xaf95eec00>) after=Optional(<WKWebView: 0xaf95eec00>)
+2026-02-25T02:32:13Z [METAL] __focus__: from_panel=2 activePanel=2 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0xaf95eec00>)
+2026-02-25T02:32:13Z [METAL] __focus__: SKIPPED — already activePanel=2
+2026-02-25T02:32:16Z [METAL] __focus__: from_panel=2 activePanel=2 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0xaf95eec00>)
+2026-02-25T02:32:16Z [METAL] __focus__: SKIPPED — already activePanel=2
+2026-02-25T02:32:18Z [METAL] __focus__: from_panel=3 activePanel=2 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0xaf95ef800>)
+2026-02-25T02:32:18Z [METAL] updateFocusIndicators: activePanel=3 panelCount=4
+2026-02-25T02:32:18Z [METAL] updateFocusIndicators: makeFirstResponder panel=3 before=Optional(<WKWebView: 0xaf95ef800>) after=Optional(<WKWebView: 0xaf95ef800>)
+2026-02-25T02:32:20Z [METAL] WKMessage: "asteroid" from_panel=3 activePanel=3 fullscreen=false
+2026-02-25T02:32:20Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=3 isFile=true
+2026-02-25T02:32:20Z [METAL] WKMessage: "__iframe_loaded__" from_panel=3 activePanel=3 fullscreen=true
+2026-02-25T02:32:22Z [METAL] __focus__: from_panel=1 activePanel=3 fullscreen=true fullscreenPanel=3 firstResponder=Optional(<WKWebView: 0xaf95ed800>)
+2026-02-25T02:32:22Z [METAL] updateFocusIndicators: activePanel=1 panelCount=4
+2026-02-25T02:32:22Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0xaf95ed800>) after=Optional(<WKWebView: 0xaf95ed800>)
+2026-02-25T02:32:23Z [METAL] WKMessage: "sdasdsa" from_panel=1 activePanel=1 fullscreen=true
+2026-02-25T02:32:25Z [METAL] refocusFullscreen: click on game panel 3, switching from activePanel=1
+2026-02-25T02:32:25Z [METAL] updateFocusIndicators: activePanel=3 panelCount=4
+2026-02-25T02:32:25Z [METAL] restoreGameFocus: navigated=false — injecting focus events
+2026-02-25T02:32:25Z [METAL] updateFocusIndicators: makeFirstResponder panel=3 before=Optional(<WKWebView: 0xaf95ef800>) after=Optional(<WKWebView: 0xaf95ef800>)
+2026-02-25T02:32:29Z [METAL] __focus__: from_panel=2 activePanel=3 fullscreen=true fullscreenPanel=3 firstResponder=Optional(<WKWebView: 0xaf95eec00>)
+2026-02-25T02:32:29Z [METAL] updateFocusIndicators: activePanel=2 panelCount=4
+2026-02-25T02:32:29Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0xaf95eec00>) after=Optional(<WKWebView: 0xaf95eec00>)
+2026-02-25T02:32:37Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T02:32:37Z [METAL] __focus__: from_panel=2 activePanel=2 fullscreen=true fullscreenPanel=3 firstResponder=Optional(<WKWebView: 0xaf95eec00>)
+2026-02-25T02:32:37Z [METAL] __focus__: SKIPPED — already activePanel=2
+2026-02-25T02:32:42Z [METAL] refocusFullscreen: click on game panel 3, switching from activePanel=2
+2026-02-25T02:32:42Z [METAL] updateFocusIndicators: activePanel=3 panelCount=4
+2026-02-25T02:32:42Z [METAL] restoreGameFocus: navigated=false — injecting focus events
+2026-02-25T02:32:43Z [METAL] updateFocusIndicators: makeFirstResponder panel=3 before=Optional(<WKWebView: 0xaf95ef800>) after=Optional(<WKWebView: 0xaf95ef800>)
+2026-02-25T02:33:46Z [METAL] applicationDidBecomeActive: fullscreen=true
+2026-02-25T02:33:46Z [METAL] applicationDidBecomeActive: restoring game focus
+2026-02-25T02:33:46Z [METAL] restoreGameFocus: navigated=false — injecting focus events
+2026-02-25T02:33:47Z [METAL] __focus__: from_panel=1 activePanel=3 fullscreen=true fullscreenPanel=3 firstResponder=Optional(<WKWebView: 0xaf95ed800>)
+2026-02-25T02:33:47Z [METAL] updateFocusIndicators: activePanel=1 panelCount=4
+2026-02-25T02:33:48Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0xaf95ed800>) after=Optional(<WKWebView: 0xaf95ed800>)
+2026-02-25T02:33:48Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T02:33:48Z [METAL] __focus__: from_panel=1 activePanel=1 fullscreen=true fullscreenPanel=3 firstResponder=Optional(<WKWebView: 0xaf95ed800>)
+2026-02-25T02:33:48Z [METAL] __focus__: SKIPPED — already activePanel=1
+2026-02-25T02:33:49Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T02:33:49Z [METAL] __focus__: from_panel=0 activePanel=1 fullscreen=true fullscreenPanel=3 firstResponder=Optional(<WKWebView: 0xaf95ed000>)
+2026-02-25T02:33:49Z [METAL] updateFocusIndicators: activePanel=0 panelCount=4
+2026-02-25T02:33:49Z [METAL] updateFocusIndicators: makeFirstResponder panel=0 before=Optional(<WKWebView: 0xaf95ed000>) after=Optional(<WKWebView: 0xaf95ed000>)
+2026-02-25T02:33:49Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T02:33:49Z [METAL] __focus__: from_panel=1 activePanel=0 fullscreen=true fullscreenPanel=3 firstResponder=Optional(<WKWebView: 0xaf95ed800>)
+2026-02-25T02:33:49Z [METAL] updateFocusIndicators: activePanel=1 panelCount=4
+2026-02-25T02:33:50Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0xaf95ed800>) after=Optional(<WKWebView: 0xaf95ed800>)
+2026-02-25T02:33:51Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T02:33:51Z [METAL] __focus__: from_panel=2 activePanel=1 fullscreen=true fullscreenPanel=3 firstResponder=Optional(<WKWebView: 0xaf95eec00>)
+2026-02-25T02:33:51Z [METAL] updateFocusIndicators: activePanel=2 panelCount=4
+2026-02-25T02:33:51Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0xaf95eec00>) after=Optional(<WKWebView: 0xaf95eec00>)
+2026-02-25T02:33:51Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T02:33:51Z [METAL] __focus__: from_panel=1 activePanel=2 fullscreen=true fullscreenPanel=3 firstResponder=Optional(<WKWebView: 0xaf95ed800>)
+2026-02-25T02:33:51Z [METAL] updateFocusIndicators: activePanel=1 panelCount=4
+2026-02-25T02:33:52Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0xaf95ed800>) after=Optional(<WKWebView: 0xaf95ed800>)
+2026-02-25T02:33:58Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T02:33:58Z [METAL] __focus__: from_panel=1 activePanel=1 fullscreen=true fullscreenPanel=3 firstResponder=Optional(<WKWebView: 0xaf95ed800>)
+2026-02-25T02:33:58Z [METAL] __focus__: SKIPPED — already activePanel=1
+2026-02-25T02:33:59Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T02:33:59Z [METAL] __focus__: from_panel=1 activePanel=1 fullscreen=true fullscreenPanel=3 firstResponder=Optional(<WKWebView: 0xaf95ed800>)
+2026-02-25T02:33:59Z [METAL] __focus__: SKIPPED — already activePanel=1
+2026-02-25T02:33:59Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T02:33:59Z [METAL] __focus__: from_panel=2 activePanel=1 fullscreen=true fullscreenPanel=3 firstResponder=Optional(<WKWebView: 0xaf95eec00>)
+2026-02-25T02:33:59Z [METAL] updateFocusIndicators: activePanel=2 panelCount=4
+2026-02-25T02:33:59Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0xaf95eec00>) after=Optional(<WKWebView: 0xaf95eec00>)
+2026-02-25T02:33:59Z [METAL] refocusFullscreen: click on game panel 3, switching from activePanel=2
+2026-02-25T02:33:59Z [METAL] updateFocusIndicators: activePanel=3 panelCount=4
+2026-02-25T02:33:59Z [METAL] restoreGameFocus: navigated=false — injecting focus events
+2026-02-25T02:34:00Z [METAL] keyDown: Escape → hideFullscreenIframe
+2026-02-25T02:34:00Z [METAL] hideFullscreenIframe: navigated=false panel=3
+2026-02-25T02:34:00Z [METAL] updateFocusIndicators: makeFirstResponder panel=3 before=Optional(<WKWebView: 0xaf95ef800>) after=Optional(<WKWebView: 0xaf95ef800>)
+2026-02-25T02:34:02Z [METAL] __focus__: from_panel=1 activePanel=3 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0xaf95ed800>)
+2026-02-25T02:34:02Z [METAL] updateFocusIndicators: activePanel=1 panelCount=4
+2026-02-25T02:34:02Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0xaf95ed800>) after=Optional(<WKWebView: 0xaf95ed800>)
+2026-02-25T02:34:03Z [METAL] WKMessage: "__escape__" from_panel=1 activePanel=1 fullscreen=false
+2026-02-25T02:34:03Z [METAL] updateFocusIndicators: activePanel=1 panelCount=3
+2026-02-25T02:34:03Z [METAL] updateFocusIndicators: activePanel=1 panelCount=3
+2026-02-25T02:49:10Z [METAL] JarvisBootup started — build v2
+2026-02-25T02:49:24Z [METAL] applicationDidBecomeActive: fullscreen=false
+2026-02-25T02:49:25Z [METAL] updateFocusIndicators: activePanel=0 panelCount=1
+2026-02-25T02:49:25Z [METAL] updateFocusIndicators: makeFirstResponder panel=0 before=Optional(<WKWebView: 0x91eb00000>) after=Optional(<WKWebView: 0x91eb00000>)
+2026-02-25T02:49:26Z [METAL] updateFocusIndicators: activePanel=1 panelCount=2
+2026-02-25T02:49:26Z [METAL] updateFocusIndicators: activePanel=1 panelCount=2
+2026-02-25T02:49:26Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x91eb01400>) after=Optional(<WKWebView: 0x91eb01400>)
+2026-02-25T02:49:26Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x91eb01400>) after=Optional(<WKWebView: 0x91eb01400>)
+2026-02-25T02:49:26Z [METAL] updateFocusIndicators: activePanel=2 panelCount=3
+2026-02-25T02:49:26Z [METAL] updateFocusIndicators: activePanel=2 panelCount=3
+2026-02-25T02:49:26Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0x91eb02400>) after=Optional(<WKWebView: 0x91eb02400>)
+2026-02-25T02:49:26Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0x91eb02400>) after=Optional(<WKWebView: 0x91eb02400>)
+2026-02-25T02:49:27Z [METAL] updateFocusIndicators: activePanel=3 panelCount=4
+2026-02-25T02:49:27Z [METAL] updateFocusIndicators: activePanel=3 panelCount=4
+2026-02-25T02:49:27Z [METAL] updateFocusIndicators: makeFirstResponder panel=3 before=Optional(<WKWebView: 0x91eb03000>) after=Optional(<WKWebView: 0x91eb03000>)
+2026-02-25T02:49:27Z [METAL] updateFocusIndicators: makeFirstResponder panel=3 before=Optional(<WKWebView: 0x91eb03000>) after=Optional(<WKWebView: 0x91eb03000>)
+2026-02-25T02:49:27Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T02:49:27Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T02:49:28Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0x91eb02c00>) after=Optional(<WKWebView: 0x91eb02c00>)
+2026-02-25T02:49:28Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0x91eb02c00>) after=Optional(<WKWebView: 0x91eb02c00>)
+2026-02-25T02:49:51Z [METAL] __focus__: from_panel=2 activePanel=4 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x91eb02400>)
+2026-02-25T02:49:51Z [METAL] updateFocusIndicators: activePanel=2 panelCount=5
+2026-02-25T02:49:51Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0x91eb02400>) after=Optional(<WKWebView: 0x91eb02400>)
+2026-02-25T02:49:52Z [METAL] __focus__: from_panel=4 activePanel=2 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x91eb02c00>)
+2026-02-25T02:49:52Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T02:49:53Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0x91eb02c00>) after=Optional(<WKWebView: 0x91eb02c00>)
+2026-02-25T02:49:53Z [METAL] __focus__: from_panel=2 activePanel=4 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x91eb02400>)
+2026-02-25T02:49:53Z [METAL] updateFocusIndicators: activePanel=2 panelCount=5
+2026-02-25T02:49:53Z [METAL] __focus__: from_panel=4 activePanel=2 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x91eb02c00>)
+2026-02-25T02:49:53Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T02:49:53Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0x91eb02c00>) after=Optional(<WKWebView: 0x91eb02400>)
+2026-02-25T02:49:54Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0x91eb02400>) after=Optional(<WKWebView: 0x91eb02c00>)
+2026-02-25T02:49:54Z [METAL] __focus__: from_panel=2 activePanel=4 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x91eb02400>)
+2026-02-25T02:49:54Z [METAL] updateFocusIndicators: activePanel=2 panelCount=5
+2026-02-25T02:49:54Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0x91eb02400>) after=Optional(<WKWebView: 0x91eb02400>)
+2026-02-25T02:49:54Z [METAL] __focus__: from_panel=4 activePanel=2 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x91eb02c00>)
+2026-02-25T02:49:54Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T02:49:55Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0x91eb02c00>) after=Optional(<WKWebView: 0x91eb02c00>)
+2026-02-25T02:49:56Z [METAL] WKMessage: "__escape__" from_panel=4 activePanel=4 fullscreen=false
+2026-02-25T02:49:56Z [METAL] updateFocusIndicators: activePanel=3 panelCount=4
+2026-02-25T02:49:56Z [METAL] updateFocusIndicators: activePanel=3 panelCount=4
+2026-02-25T02:54:01Z [METAL] JarvisBootup started — build v2
+2026-02-25T02:54:02Z [METAL] applicationDidBecomeActive: fullscreen=false
+2026-02-25T02:54:05Z [METAL] updateFocusIndicators: activePanel=0 panelCount=1
+2026-02-25T02:54:05Z [METAL] updateFocusIndicators: makeFirstResponder panel=0 before=Optional(<WKWebView: 0x772ad9000>) after=Optional(<WKWebView: 0x772ad9000>)
+2026-02-25T02:54:05Z [METAL] updateFocusIndicators: activePanel=1 panelCount=2
+2026-02-25T02:54:05Z [METAL] updateFocusIndicators: activePanel=1 panelCount=2
+2026-02-25T02:54:06Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x772ada000>) after=Optional(<WKWebView: 0x772ada000>)
+2026-02-25T02:54:06Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x772ada000>) after=Optional(<WKWebView: 0x772ada000>)
+2026-02-25T02:54:06Z [METAL] updateFocusIndicators: activePanel=2 panelCount=3
+2026-02-25T02:54:06Z [METAL] updateFocusIndicators: activePanel=2 panelCount=3
+2026-02-25T02:54:06Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0x772ada000>) after=Optional(<WKWebView: 0x772adac00>)
+2026-02-25T02:54:06Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0x772adac00>) after=Optional(<WKWebView: 0x772adac00>)
+2026-02-25T02:54:13Z [METAL] __focus__: from_panel=2 activePanel=2 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x772adac00>)
+2026-02-25T02:54:13Z [METAL] __focus__: SKIPPED — already activePanel=2
+2026-02-25T02:54:14Z [METAL] __focus__: from_panel=2 activePanel=2 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x772adac00>)
+2026-02-25T02:54:14Z [METAL] __focus__: SKIPPED — already activePanel=2
+2026-02-25T02:54:16Z [METAL] WKMessage: "kart" from_panel=2 activePanel=2 fullscreen=false
+2026-02-25T02:54:16Z [METAL] showFullscreenIframe: url=https://kartbros.io panel=2 isFile=false
+2026-02-25T02:54:16Z [METAL] showFullscreenIframe: navigating WKWebView to https://kartbros.io
+2026-02-25T02:54:30Z [METAL] __focus__: from_panel=1 activePanel=2 fullscreen=true fullscreenPanel=2 firstResponder=Optional(<WKWebView: 0x772ada000>)
+2026-02-25T02:54:30Z [METAL] updateFocusIndicators: activePanel=1 panelCount=3
+2026-02-25T02:54:30Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x772ada000>) after=Optional(<WKWebView: 0x772ada000>)
+2026-02-25T02:54:31Z [METAL] updateFocusIndicators: activePanel=3 panelCount=4
+2026-02-25T02:54:31Z [METAL] updateFocusIndicators: activePanel=3 panelCount=4
+2026-02-25T02:54:31Z [METAL] updateFocusIndicators: makeFirstResponder panel=3 before=Optional(<WKWebView: 0x772adbc00>) after=Optional(<WKWebView: 0x772adbc00>)
+2026-02-25T02:54:31Z [METAL] updateFocusIndicators: makeFirstResponder panel=3 before=Optional(<WKWebView: 0x772adbc00>) after=Optional(<WKWebView: 0x772adbc00>)
+2026-02-25T02:54:32Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T02:54:32Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T02:54:32Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0x772668400>) after=Optional(<WKWebView: 0x772668400>)
+2026-02-25T02:54:32Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0x772668400>) after=Optional(<WKWebView: 0x772668400>)
+2026-02-25T02:54:32Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T02:54:32Z [METAL] __focus__: from_panel=1 activePanel=4 fullscreen=true fullscreenPanel=2 firstResponder=Optional(<WKWebView: 0x772ada000>)
+2026-02-25T02:54:32Z [METAL] updateFocusIndicators: activePanel=1 panelCount=5
+2026-02-25T02:54:33Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x772ada000>) after=Optional(<WKWebView: 0x772ada000>)
+2026-02-25T02:54:33Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T02:54:33Z [METAL] __focus__: from_panel=4 activePanel=1 fullscreen=true fullscreenPanel=2 firstResponder=Optional(<WKWebView: 0x772668400>)
+2026-02-25T02:54:33Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T02:54:33Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T02:54:33Z [METAL] __focus__: from_panel=3 activePanel=4 fullscreen=true fullscreenPanel=2 firstResponder=Optional(<WKWebView: 0x772adbc00>)
+2026-02-25T02:54:33Z [METAL] updateFocusIndicators: activePanel=3 panelCount=5
+2026-02-25T02:54:33Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0x772adbc00>) after=Optional(<WKWebView: 0x772668400>)
+2026-02-25T02:54:33Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T02:54:33Z [METAL] __focus__: from_panel=4 activePanel=3 fullscreen=true fullscreenPanel=2 firstResponder=Optional(<WKWebView: 0x772668400>)
+2026-02-25T02:54:33Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T02:54:34Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T02:54:34Z [METAL] updateFocusIndicators: makeFirstResponder panel=3 before=Optional(<WKWebView: 0x772ada000>) after=Optional(<WKWebView: 0x772adbc00>)
+2026-02-25T02:54:34Z [METAL] __focus__: from_panel=1 activePanel=4 fullscreen=true fullscreenPanel=2 firstResponder=Optional(<WKWebView: 0x772adbc00>)
+2026-02-25T02:54:34Z [METAL] updateFocusIndicators: activePanel=1 panelCount=5
+2026-02-25T02:54:34Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0x772ada000>) after=Optional(<WKWebView: 0x772668400>)
+2026-02-25T02:54:34Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x772668400>) after=Optional(<WKWebView: 0x772ada000>)
+2026-02-25T02:54:34Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T02:54:34Z [METAL] __focus__: from_panel=4 activePanel=1 fullscreen=true fullscreenPanel=2 firstResponder=Optional(<WKWebView: 0x772668400>)
+2026-02-25T02:54:34Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T02:54:35Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T02:54:35Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0x772ada000>) after=Optional(<WKWebView: 0x772668400>)
+2026-02-25T02:54:35Z [METAL] __focus__: from_panel=1 activePanel=4 fullscreen=true fullscreenPanel=2 firstResponder=Optional(<WKWebView: 0x772668400>)
+2026-02-25T02:54:35Z [METAL] updateFocusIndicators: activePanel=1 panelCount=5
+2026-02-25T02:54:35Z [METAL] refocusFullscreen: click outside game WKWebView — ignoring
+2026-02-25T02:54:35Z [METAL] __focus__: from_panel=4 activePanel=1 fullscreen=true fullscreenPanel=2 firstResponder=Optional(<WKWebView: 0x772668400>)
+2026-02-25T02:54:35Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T02:54:35Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x772668400>) after=Optional(<WKWebView: 0x772ada000>)
+2026-02-25T02:54:36Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0x772ada000>) after=Optional(<WKWebView: 0x772668400>)
+2026-02-25T02:54:37Z [METAL] WKMessage: "asteroid" from_panel=4 activePanel=4 fullscreen=true
+2026-02-25T02:54:37Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=4 isFile=true
+2026-02-25T02:54:37Z [METAL] WKMessage: "__iframe_loaded__" from_panel=4 activePanel=4 fullscreen=true

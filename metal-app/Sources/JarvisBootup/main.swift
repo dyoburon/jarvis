@@ -5,23 +5,19 @@ import os.log
 
 private let swiftLog: OSLog = OSLog(subsystem: "com.jarvis.bootup", category: "metal")
 
-/// Write debug info to ~/Desktop/projects/jarvis/metal.log
-func metalLog(_ msg: String) {
-    os_log("%{public}@", log: swiftLog, type: .debug, msg)
-    let ts = ISO8601DateFormatter().string(from: Date())
-    let line = "\(ts) [METAL] \(msg)\n"
-    let path = "/Users/dylan/Desktop/projects/jarvis/metal.log"
-    if let fh = FileHandle(forWritingAtPath: path) {
-        fh.seekToEndOfFile()
-        fh.write(line.data(using: .utf8)!)
-        fh.closeFile()
-    } else {
-        FileManager.default.createFile(atPath: path, contents: line.data(using: .utf8))
-    }
-}
-
 // -- Parse command-line args --
-var basePath = "/Users/dylan/Desktop/projects/jarvis"
+// Default basePath: derive from binary location (metal-app/.build/debug/JarvisBootup → jarvis/)
+var basePath: String = {
+    let binary = CommandLine.arguments[0]
+    let url = URL(fileURLWithPath: binary).resolvingSymlinksInPath()
+    // binary is at jarvis/metal-app/.build/{debug|release}/JarvisBootup
+    // go up 4 levels to reach jarvis/
+    return url.deletingLastPathComponent()  // .build/debug/
+        .deletingLastPathComponent()        // .build/
+        .deletingLastPathComponent()        // metal-app/
+        .deletingLastPathComponent()        // jarvis/
+        .path
+}()
 var scriptOverride: String? = nil
 var jarvisMode = false
 
@@ -35,6 +31,21 @@ for i in 0..<args.count {
     }
     if args[i] == "--jarvis" {
         jarvisMode = true
+    }
+}
+
+/// Write debug info to {basePath}/metal.log
+func metalLog(_ msg: String) {
+    os_log("%{public}@", log: swiftLog, type: .debug, msg)
+    let ts = ISO8601DateFormatter().string(from: Date())
+    let line = "\(ts) [METAL] \(msg)\n"
+    let path = "\(basePath)/metal.log"
+    if let fh = FileHandle(forWritingAtPath: path) {
+        fh.seekToEndOfFile()
+        fh.write(line.data(using: .utf8)!)
+        fh.closeFile()
+    } else {
+        FileManager.default.createFile(atPath: path, contents: line.data(using: .utf8))
     }
 }
 
@@ -127,6 +138,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Chat WebView overlay (jarvis mode only)
         if jarvisMode {
+            // Transparent overlay view for interactive content (WKWebViews, resize handles).
+            // MTKView doesn't reliably forward mouse events to subviews, so we use a
+            // regular NSView on top of it as the container for all interactive content.
+            let overlayView = NSView(frame: metalView.bounds)
+            overlayView.wantsLayer = true
+            overlayView.layer?.backgroundColor = .clear
+            overlayView.autoresizingMask = [.width, .height]
+            metalView.addSubview(overlayView)
+
             let chatFrame = NSRect(
                 x: 0,
                 y: 0,
@@ -134,7 +154,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 height: screen.frame.height
             )
             chatWebView = ChatWebView(frame: chatFrame)
-            chatWebView?.attach(to: metalView)
+            chatWebView?.attach(to: overlayView)
         }
 
         // PTT state (Option+Period) — shared across monitors

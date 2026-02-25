@@ -422,3 +422,134 @@
 17:46:55 [PYTHON] send_chat_split {'title': 'Opus 4.6 Assistant 4'}
 17:49:17 [PYTHON] panel_focus {'old': 3, 'new': 1}
 17:51:15 [PYTHON] send_chat_close_panel
+18:14:38 [PYTHON] send_chat_split {'title': 'Opus 4.6 Assistant 2'}
+18:15:19 [PYTHON] send_chat_split {'title': 'Opus 4.6 Assistant 3'}
+18:15:20 [PYTHON] send_chat_split {'title': 'Opus 4.6 Assistant 4'}
+18:15:20 [PYTHON] send_chat_split {'title': 'Opus 4.6 Assistant 5'}
+18:15:21 [PYTHON] panel_focus {'old': 4, 'new': 2}
+18:15:47 [PYTHON] send_iframe_fullscreen {'url': 'file:///Users/dylan/Desktop/projects/jarvis/asteroids.html', 'panel': 2}
+18:15:47 [METAL] iframe_show {'panel': 2, 'mode': 'srcdoc', 'url': 'file:///Users/dylan/Desktop/projects/jarvis/asteroids.html'}
+18:15:47 [METAL] iframe_loaded {'panel': 2}
+18:15:48 [METAL] key_forwarded {'count': 1, 'panel': 2, 'key': ' ', 'keyCode': 49}
+18:15:51 [METAL] key_forwarded {'count': 5, 'panel': 2, 'key': 'a', 'keyCode': 0}
+18:15:53 [METAL] key_forwarded {'count': 4, 'panel': 2, 'key': 'a', 'keyCode': 0}
+18:15:55 [METAL] key_forwarded {'count': 6, 'panel': 2, 'key': 'a', 'keyCode': 0}
+18:15:58 [PYTHON] panel_focus {'old': 2, 'new': 1}
+18:16:01 [METAL] focus_restored {'panel': 2}
+18:16:01 [PYTHON] panel_focus {'old': 1, 'new': 2}
+18:16:04 [PYTHON] panel_focus {'old': 2, 'new': 1}
+18:16:07 [METAL] focus_restored {'panel': 2}
+18:16:07 [PYTHON] panel_focus {'old': 1, 'new': 2}
+18:16:08 [METAL] iframe_hide {'panel': 2}
+18:16:12 [PYTHON] send_iframe_fullscreen {'url': 'http://localhost:3000', 'panel': 2}
+18:16:12 [METAL] iframe_show {'panel': 2, 'mode': 'navigated', 'url': 'http://localhost:3000'}
+18:16:12 [METAL] iframe_loaded {'panel': 2}
+18:16:13 [METAL] iframe_hide {'panel': 2}
+18:16:17 [PYTHON] send_iframe_fullscreen {'url': 'http://localhost:3000', 'panel': 2}
+18:16:17 [METAL] iframe_show {'panel': 2, 'mode': 'navigated', 'url': 'http://localhost:3000'}
+18:16:17 [METAL] iframe_loaded {'panel': 2}
+18:16:21 [METAL] key_forwarded {'keyCode': 0, 'count': 10, 'panel': 2, 'key': 'a'}
+18:16:24 [METAL] key_forwarded {'count': 16, 'panel': 2, 'key': '@', 'keyCode': 19}
+18:16:28 [METAL] key_forwarded {'count': 12, 'panel': 2, 'keyCode': 0, 'key': 'a'}
+18:17:02 [PYTHON] panel_focus {'old': 2, 'new': 1}
+18:17:03 [METAL] focus_restored {'panel': 2}
+18:17:03 [PYTHON] panel_focus {'old': 1, 'new': 2}
+18:17:07 [METAL] iframe_hide {'panel': 2}
+18:17:08 [PYTHON] panel_focus {'old': 2, 'new': 1}
+18:17:09 [PYTHON] panel_focus {'old': 1, 'new': 2}
+18:17:09 [PYTHON] panel_focus {'old': 2, 'new': 1}
+18:17:16 [PYTHON] panel_focus {'old': 1, 'new': 4}
+18:17:24 [PYTHON] panel_focus {'old': 4, 'new': 2}
+18:17:27 [PYTHON] panel_focus {'old': 2, 'new': 4}
+18:18:53 [PYTHON] panel_focus {'old': 4, 'new': 1}
+18:18:54 [PYTHON] send_chat_close_panel
+18:32:10 [PYTHON] send_chat_split {'title': 'Opus 4.6 Assistant 2'}
+18:32:10 [PYTHON] send_chat_split {'title': 'Opus 4.6 Assistant 3'}
+18:32:11 [PYTHON] send_chat_split {'title': 'Opus 4.6 Assistant 4'}
+18:32:12 [PYTHON] panel_focus {'old': 3, 'new': 2}
+18:32:18 [PYTHON] panel_focus {'old': 2, 'new': 3}
+18:32:20 [PYTHON] send_iframe_fullscreen {'url': 'file:///Users/dylan/Desktop/projects/jarvis/asteroids.html', 'panel': 3}
+18:32:20 [METAL] iframe_show {'mode': 'srcdoc', 'panel': 3, 'url': 'file:///Users/dylan/Desktop/projects/jarvis/asteroids.html'}
+18:32:20 [METAL] iframe_loaded {'panel': 3}
+18:32:21 [METAL] key_forwarded {'panel': 3, 'keyCode': 49, 'key': ' ', 'count': 1}
+18:32:22 [PYTHON] panel_focus {'old': 3, 'new': 1}
+18:32:25 [METAL] focus_restored {'panel': 3}
+18:32:25 [PYTHON] panel_focus {'old': 1, 'new': 3}
+18:32:25 [METAL] key_forwarded {'panel': 3, 'keyCode': 2, 'key': 'd', 'count': 2}
+18:32:27 [METAL] key_forwarded {'panel': 3, 'key': 'w', 'keyCode': 13, 'count': 7}
+18:32:29 [PYTHON] panel_focus {'old': 3, 'new': 2}
+18:32:42 [METAL] focus_restored {'panel': 3}
+18:32:42 [PYTHON] panel_focus {'old': 2, 'new': 3}
+18:32:43 [METAL] key_forwarded {'panel': 3, 'keyCode': 0, 'key': 'A', 'count': 4}
+18:32:45 [METAL] key_forwarded {'panel': 3, 'keyCode': 13, 'key': 'W', 'count': 10}
+18:32:47 [METAL] key_forwarded {'panel': 3, 'keyCode': 49, 'key': ' ', 'count': 10}
+18:32:49 [METAL] key_forwarded {'panel': 3, 'key': ' ', 'keyCode': 49, 'count': 11}
+18:32:52 [METAL] key_forwarded {'panel': 3, 'key': 'W', 'keyCode': 13, 'count': 10}
+18:32:54 [METAL] key_forwarded {'panel': 3, 'key': ' ', 'keyCode': 49, 'count': 12}
+18:32:56 [METAL] key_forwarded {'panel': 3, 'keyCode': 13, 'key': 'W', 'count': 10}
+18:32:59 [METAL] key_forwarded {'panel': 3, 'keyCode': 2, 'key': 'D', 'count': 5}
+18:33:01 [METAL] key_forwarded {'panel': 3, 'keyCode': 0, 'key': 'A', 'count': 3}
+18:33:09 [METAL] key_forwarded {'panel': 3, 'keyCode': 0, 'key': 'A', 'count': 3}
+18:33:11 [METAL] key_forwarded {'panel': 3, 'keyCode': 2, 'key': 'D', 'count': 3}
+18:33:14 [METAL] key_forwarded {'panel': 3, 'keyCode': 0, 'key': 'A', 'count': 6}
+18:33:16 [METAL] key_forwarded {'panel': 3, 'keyCode': 13, 'key': 'W', 'count': 3}
+18:33:18 [METAL] key_forwarded {'panel': 3, 'keyCode': 13, 'key': 'W', 'count': 6}
+18:33:20 [METAL] key_forwarded {'panel': 3, 'keyCode': 2, 'key': 'D', 'count': 6}
+18:33:46 [METAL] focus_restored {'panel': 3}
+18:33:46 [METAL] key_forwarded {'panel': 3, 'keyCode': 49, 'key': ' ', 'count': 3}
+18:33:47 [PYTHON] panel_focus {'old': 3, 'new': 1}
+18:33:49 [PYTHON] panel_focus {'old': 1, 'new': 0}
+18:33:49 [PYTHON] panel_focus {'old': 0, 'new': 1}
+18:33:51 [PYTHON] panel_focus {'old': 1, 'new': 2}
+18:33:51 [PYTHON] panel_focus {'old': 2, 'new': 1}
+18:33:59 [PYTHON] panel_focus {'old': 1, 'new': 2}
+18:33:59 [METAL] focus_restored {'panel': 3}
+18:33:59 [PYTHON] panel_focus {'old': 2, 'new': 3}
+18:34:00 [METAL] iframe_hide {'panel': 3}
+18:34:02 [PYTHON] panel_focus {'old': 3, 'new': 1}
+18:34:03 [PYTHON] send_chat_close_panel
+18:49:26 [PYTHON] send_chat_split {'title': 'Opus 4.6 Assistant 2'}
+18:49:26 [PYTHON] send_chat_split {'title': 'Opus 4.6 Assistant 3'}
+18:49:27 [PYTHON] send_chat_split {'title': 'Opus 4.6 Assistant 4'}
+18:49:27 [PYTHON] send_chat_split {'title': 'Opus 4.6 Assistant 5'}
+18:49:51 [PYTHON] panel_focus {'old': 4, 'new': 2}
+18:49:52 [PYTHON] panel_focus {'old': 2, 'new': 4}
+18:49:53 [PYTHON] panel_focus {'old': 4, 'new': 2}
+18:49:53 [PYTHON] panel_focus {'old': 2, 'new': 4}
+18:49:54 [PYTHON] panel_focus {'old': 4, 'new': 2}
+18:49:54 [PYTHON] panel_focus {'old': 2, 'new': 4}
+18:49:56 [PYTHON] send_chat_close_panel
+18:54:05 [PYTHON] send_chat_split {'title': 'Opus 4.6 Assistant 2'}
+18:54:06 [PYTHON] send_chat_split {'title': 'Opus 4.6 Assistant 3'}
+18:54:16 [PYTHON] send_iframe_fullscreen {'url': 'https://kartbros.io', 'panel': 2}
+18:54:16 [METAL] iframe_show {'panel': 2, 'url': 'https://kartbros.io', 'mode': 'navigated'}
+18:54:18 [METAL] iframe_loaded {'panel': 2}
+18:54:30 [PYTHON] panel_focus {'old': 2, 'new': 1}
+18:54:31 [PYTHON] send_chat_split {'title': 'Opus 4.6 Assistant 4'}
+18:54:31 [METAL] iframe_loaded {'panel': 3}
+18:54:32 [PYTHON] send_chat_split {'title': 'Opus 4.6 Assistant 5'}
+18:54:32 [METAL] iframe_loaded {'panel': 4}
+18:54:32 [PYTHON] panel_focus {'old': 4, 'new': 1}
+18:54:33 [PYTHON] panel_focus {'old': 1, 'new': 4}
+18:54:33 [PYTHON] panel_focus {'old': 4, 'new': 3}
+18:54:33 [PYTHON] panel_focus {'old': 3, 'new': 4}
+18:54:34 [PYTHON] panel_focus {'old': 4, 'new': 1}
+18:54:34 [PYTHON] panel_focus {'old': 1, 'new': 4}
+18:54:35 [PYTHON] panel_focus {'old': 4, 'new': 1}
+18:54:35 [PYTHON] panel_focus {'old': 1, 'new': 4}
+18:54:37 [PYTHON] send_iframe_fullscreen {'url': 'file:///Users/dylan/Desktop/projects/jarvis/asteroids.html', 'panel': 4}
+18:54:37 [METAL] iframe_show {'mode': 'srcdoc', 'panel': 4, 'url': 'file:///Users/dylan/Desktop/projects/jarvis/asteroids.html'}
+18:54:37 [METAL] iframe_loaded {'panel': 4}
+18:54:37 [METAL] key_forwarded {'count': 1, 'panel': 4, 'key': ' ', 'keyCode': 49}
+18:54:40 [METAL] key_forwarded {'count': 8, 'panel': 4, 'keyCode': 2, 'key': 'd'}
+18:54:42 [METAL] key_forwarded {'count': 9, 'panel': 4, 'key': ' ', 'keyCode': 49}
+18:54:45 [METAL] key_forwarded {'count': 8, 'panel': 4, 'keyCode': 0, 'key': 'a'}
+18:54:47 [METAL] key_forwarded {'count': 9, 'panel': 4, 'key': 'w', 'keyCode': 13}
+18:54:49 [METAL] key_forwarded {'count': 13, 'panel': 4, 'key': 'w', 'keyCode': 13}
+18:54:51 [METAL] key_forwarded {'count': 10, 'panel': 4, 'key': ' ', 'keyCode': 49}
+18:54:53 [METAL] key_forwarded {'count': 9, 'panel': 4, 'keyCode': 49, 'key': ' '}
+18:54:55 [METAL] key_forwarded {'count': 10, 'panel': 4, 'key': 'a', 'keyCode': 0}
+18:54:57 [METAL] key_forwarded {'count': 11, 'panel': 4, 'keyCode': 49, 'key': ' '}
+18:55:00 [METAL] key_forwarded {'count': 5, 'panel': 4, 'key': 'd', 'keyCode': 2}
+18:55:06 [METAL] key_forwarded {'count': 1, 'panel': 4, 'keyCode': 2, 'key': 'd'}
+18:55:08 [METAL] key_forwarded {'count': 6, 'panel': 4, 'keyCode': 13, 'key': 'w'}

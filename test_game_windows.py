@@ -22,9 +22,9 @@ import time
 sys.path.insert(0, os.path.dirname(__file__))
 from game_event_log import GameEventLog
 
-METAL_APP = "/Users/dylan/Desktop/projects/jarvis/metal-app/.build/debug/JarvisBootup"
-BASE_PATH = "/Users/dylan/Desktop/projects/jarvis"
-PROJECT_DIR = os.path.dirname(__file__)
+PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
+METAL_APP = os.path.join(PROJECT_DIR, "metal-app", ".build", "debug", "JarvisBootup")
+BASE_PATH = PROJECT_DIR
 ASTEROIDS_PATH = os.path.join(PROJECT_DIR, "asteroids.html")
 TETRIS_PATH = os.path.join(PROJECT_DIR, "tetris.html")
 
