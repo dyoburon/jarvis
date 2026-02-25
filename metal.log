@@ -1814,3 +1814,73 @@
 2026-02-25T02:55:31Z [METAL] WKMessage: "__escape__" from_panel=1 activePanel=1 fullscreen=false
 2026-02-25T02:55:31Z [METAL] updateFocusIndicators: activePanel=1 panelCount=4
 2026-02-25T02:55:31Z [METAL] updateFocusIndicators: activePanel=1 panelCount=4
+2026-02-25T03:40:53Z [METAL] JarvisBootup started — build v2
+2026-02-25T03:40:57Z [METAL] applicationDidBecomeActive: fullscreen=false
+2026-02-25T03:40:58Z [METAL] updateFocusIndicators: activePanel=0 panelCount=1
+2026-02-25T03:40:58Z [METAL] updateFocusIndicators: makeFirstResponder panel=0 before=Optional(<WKWebView: 0xa34a24000>) after=Optional(<WKWebView: 0xa34a24000>)
+2026-02-25T03:40:58Z [METAL] updateFocusIndicators: activePanel=1 panelCount=2
+2026-02-25T03:40:59Z [METAL] updateFocusIndicators: activePanel=1 panelCount=2
+2026-02-25T03:40:59Z [METAL] updateFocusIndicators: activePanel=2 panelCount=3
+2026-02-25T03:40:59Z [METAL] updateFocusIndicators: activePanel=2 panelCount=3
+2026-02-25T03:40:59Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0xa34a26000>) after=Optional(<WKWebView: 0xa34a26000>)
+2026-02-25T03:40:59Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0xa34a26000>) after=Optional(<WKWebView: 0xa34a26000>)
+2026-02-25T03:40:59Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0xa34a27400>) after=Optional(<WKWebView: 0xa34a27400>)
+2026-02-25T03:40:59Z [METAL] updateFocusIndicators: makeFirstResponder panel=2 before=Optional(<WKWebView: 0xa34a27400>) after=Optional(<WKWebView: 0xa34a27400>)
+2026-02-25T03:41:00Z [METAL] updateFocusIndicators: activePanel=3 panelCount=4
+2026-02-25T03:41:00Z [METAL] updateFocusIndicators: activePanel=3 panelCount=4
+2026-02-25T03:41:00Z [METAL] updateFocusIndicators: makeFirstResponder panel=3 before=Optional(<WKWebView: 0xa34a25400>) after=Optional(<WKWebView: 0xa34a25400>)
+2026-02-25T03:41:00Z [METAL] updateFocusIndicators: makeFirstResponder panel=3 before=Optional(<WKWebView: 0xa34a25400>) after=Optional(<WKWebView: 0xa34a25400>)
+2026-02-25T03:41:00Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T03:41:00Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T03:41:01Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0xa34e8c000>) after=Optional(<WKWebView: 0xa34e8c000>)
+2026-02-25T03:41:01Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0xa34e8c000>) after=Optional(<WKWebView: 0xa34e8c000>)
+2026-02-25T03:41:01Z [METAL] __focus__: from_panel=1 activePanel=4 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0xa34a26000>)
+2026-02-25T03:41:01Z [METAL] updateFocusIndicators: activePanel=1 panelCount=5
+2026-02-25T03:41:01Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0xa34e8c000>) after=Optional(<WKWebView: 0xa34a26000>)
+2026-02-25T03:41:01Z [METAL] __focus__: from_panel=4 activePanel=1 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0xa34a26000>)
+2026-02-25T03:41:01Z [METAL] updateFocusIndicators: activePanel=4 panelCount=5
+2026-02-25T03:41:02Z [METAL] updateFocusIndicators: makeFirstResponder panel=4 before=Optional(<WKWebView: 0xa34e8c000>) after=Optional(<WKWebView: 0xa34e8c000>)
+2026-02-25T03:41:06Z [METAL] WKMessage: "kart" from_panel=4 activePanel=4 fullscreen=false
+2026-02-25T03:41:06Z [METAL] showFullscreenIframe: url=https://kartbros.io panel=4 isFile=false
+2026-02-25T03:41:06Z [METAL] showFullscreenIframe: navigating WKWebView to https://kartbros.io
+2026-02-25T03:41:18Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=a
+2026-02-25T03:41:18Z [METAL] forwardKeyToNavigated: keydown keyCode=1 char=s
+2026-02-25T03:41:18Z [METAL] forwardKeyToNavigated: keydown keyCode=2 char=d
+2026-02-25T03:41:21Z [METAL] forwardKeyToNavigated: keydown keyCode=9 char=v
+2026-02-25T03:41:23Z [METAL] forwardKeyToNavigated: keydown keyCode=51 char=
+2026-02-25T03:41:23Z [METAL] forwardKeyToNavigated: keydown keyCode=51 char=
+2026-02-25T03:41:23Z [METAL] forwardKeyToNavigated: keydown keyCode=51 char=
+2026-02-25T03:41:23Z [METAL] forwardKeyToNavigated: keydown keyCode=51 char=
+2026-02-25T03:41:23Z [METAL] forwardKeyToNavigated: keydown keyCode=51 char=
+2026-02-25T03:41:23Z [METAL] forwardKeyToNavigated: keydown keyCode=9 char=v
+2026-02-25T03:41:27Z [METAL] forwardKeyToNavigated: keydown keyCode=9 char=v
+2026-02-25T03:41:27Z [METAL] forwardKeyToNavigated: keydown keyCode=51 char=
+2026-02-25T03:41:28Z [METAL] forwardKeyToNavigated: keydown keyCode=51 char=
+2026-02-25T03:41:28Z [METAL] forwardKeyToNavigated: keydown keyCode=8 char=C
+2026-02-25T03:41:28Z [METAL] forwardKeyToNavigated: keydown keyCode=4 char=H
+2026-02-25T03:41:29Z [METAL] forwardKeyToNavigated: keydown keyCode=34 char=I
+2026-02-25T03:41:29Z [METAL] forwardKeyToNavigated: keydown keyCode=35 char=P
+2026-02-25T03:41:30Z [METAL] forwardKeyToNavigated: keydown keyCode=1 char=S
+2026-02-25T03:41:30Z [METAL] forwardKeyToNavigated: keydown keyCode=4 char=H
+2026-02-25T03:41:30Z [METAL] forwardKeyToNavigated: keydown keyCode=51 char=
+2026-02-25T03:41:31Z [METAL] forwardKeyToNavigated: keydown keyCode=51 char=
+2026-02-25T03:41:31Z [METAL] forwardKeyToNavigated: keydown keyCode=49 char= 
+2026-02-25T03:41:31Z [METAL] forwardKeyToNavigated: keydown keyCode=1 char=S
+2026-02-25T03:41:31Z [METAL] forwardKeyToNavigated: keydown keyCode=4 char=H
+2026-02-25T03:41:31Z [METAL] forwardKeyToNavigated: keydown keyCode=34 char=I
+2026-02-25T03:41:31Z [METAL] forwardKeyToNavigated: keydown keyCode=45 char=N
+2026-02-25T03:41:31Z [METAL] forwardKeyToNavigated: keydown keyCode=49 char= 
+2026-02-25T03:41:32Z [METAL] forwardKeyToNavigated: keydown keyCode=37 char=L
+2026-02-25T03:41:32Z [METAL] forwardKeyToNavigated: keydown keyCode=0 char=A
+2026-02-25T03:41:32Z [METAL] forwardKeyToNavigated: keydown keyCode=46 char=M
+2026-02-25T03:41:32Z [METAL] forwardKeyToNavigated: keydown keyCode=11 char=B
+2026-02-25T03:41:34Z [METAL] WKMessage: "__invite__CHIP SHIN LAMB" from_panel=4 activePanel=4 fullscreen=true
+2026-02-25T03:41:42Z [METAL] applicationDidBecomeActive: fullscreen=true
+2026-02-25T03:41:42Z [METAL] applicationDidBecomeActive: restoring game focus
+2026-02-25T03:41:42Z [METAL] restoreGameFocus: navigated=true — injecting focus events
+2026-02-25T03:42:01Z [METAL] __focus__: from_panel=1 activePanel=4 fullscreen=true fullscreenPanel=4 firstResponder=Optional(<WKWebView: 0xa34a26000>)
+2026-02-25T03:42:01Z [METAL] updateFocusIndicators: activePanel=1 panelCount=5
+2026-02-25T03:42:01Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0xa34a26000>) after=Optional(<WKWebView: 0xa34a26000>)
+2026-02-25T03:42:02Z [METAL] WKMessage: "__escape__" from_panel=1 activePanel=1 fullscreen=true
+2026-02-25T03:42:02Z [METAL] updateFocusIndicators: activePanel=1 panelCount=4
+2026-02-25T03:42:02Z [METAL] updateFocusIndicators: activePanel=1 panelCount=4

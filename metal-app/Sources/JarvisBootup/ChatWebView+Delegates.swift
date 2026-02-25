@@ -26,6 +26,12 @@ extension ChatWebView {
             let wvIdx = message.webView.flatMap { panels.firstIndex(of: $0) } ?? -1
             metalLog("WKMessage: \"\(text.prefix(60))\" from_panel=\(wvIdx) activePanel=\(activePanel) fullscreen=\(fullscreenIframeActive)")
         }
+        if text.hasPrefix("__clipboard__") {
+            let content = String(text.dropFirst("__clipboard__".count))
+            NSPasteboard.general.clearContents()
+            NSPasteboard.general.setString(content, forType: .string)
+            return
+        }
         if text.hasPrefix("__preview_image__") {
             let path = String(text.dropFirst("__preview_image__".count))
             guard let data = FileManager.default.contents(atPath: path) else { return }

@@ -77,55 +77,6 @@ CODE_TOOLS = [
                 "required": ["pattern"],
             },
         ),
-        # ── Data tools (query connected systems directly) ──
-        types.FunctionDeclaration(
-            name="get_vibetotext_stats",
-            description="Get voice transcription statistics: total words dictated, session count, WPM, sentiment, and recent transcription entries.",
-            parameters_json_schema={
-                "type": "object",
-                "properties": {
-                    "limit": {"type": "integer", "description": "Number of recent entries to return (default: 10)"},
-                },
-            },
-        ),
-        types.FunctionDeclaration(
-            name="get_domain_dashboard",
-            description="Get today's domain drop hunting results: matched domains, zone stats, disappeared domains.",
-            parameters_json_schema={
-                "type": "object",
-                "properties": {
-                    "date": {"type": "string", "description": "Date (YYYY-MM-DD), defaults to today"},
-                    "min_score": {"type": "number", "description": "Minimum match score filter"},
-                },
-            },
-        ),
-        types.FunctionDeclaration(
-            name="get_paper_dashboard",
-            description="Get today's research paper matches from arXiv, grouped by interest area.",
-            parameters_json_schema={
-                "type": "object",
-                "properties": {
-                    "date": {"type": "string", "description": "Date (YYYY-MM-DD), defaults to today"},
-                    "interest": {"type": "string", "description": "Filter to specific research interest"},
-                },
-            },
-        ),
-        types.FunctionDeclaration(
-            name="get_firewall_status",
-            description="Get chat moderation stats from the Great Firewall: recent messages, blocked count.",
-            parameters_json_schema={
-                "type": "object",
-                "properties": {},
-            },
-        ),
-        types.FunctionDeclaration(
-            name="get_system_overview",
-            description="Get a full overview across ALL connected systems (vibetotext, domains, papers, firewall).",
-            parameters_json_schema={
-                "type": "object",
-                "properties": {},
-            },
-        ),
     ]),
     # Google Search grounding — lets Gemini search the web for docs, APIs, etc.
     types.Tool(google_search=types.GoogleSearch()),
@@ -209,17 +160,6 @@ overwriting. If you discover unfamiliar files or branches, ask before deleting.
 
 NEVER use sudo. NEVER start servers or background processes. NEVER use & in commands. \
 NEVER run destructive commands (rm -rf, etc).
-
-# Connected systems
-
-You also have data tools for Dylan's connected systems. Use them directly when asked:
-- get_vibetotext_stats — voice transcription stats
-- get_domain_dashboard — domain drop hunting results
-- get_paper_dashboard — arXiv paper matches
-- get_firewall_status — chat moderation stats
-- get_system_overview — all systems at once
-
-For casual conversation or general questions, just respond with text — no tools needed.
 
 # Web search
 

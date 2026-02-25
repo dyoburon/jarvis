@@ -35,6 +35,12 @@ extension ChatWebView {
             DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) { [weak self] in
                 self?.injectAdBlocker(panel: idx)
             }
+            // Inject invite bar for multiplayer games
+            if url.contains("kartbros") {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { [weak self] in
+                    self?.injectInviteBar(panel: idx)
+                }
+            }
         }
 
         let wv = panels[idx]

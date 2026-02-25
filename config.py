@@ -27,21 +27,13 @@ CHANNELS = 1
 JARVIS_DIR = Path(__file__).parent.resolve()
 PROJECTS_DIR = JARVIS_DIR.parent
 
-# Domain Drop Hunter
-DOMAIN_HUNTER_DB = PROJECTS_DIR / "domain-drop-hunter/data/domains.db"
-DOMAIN_HUNTER_API = "http://localhost:5199"
-
-# Paper Feeder
-PAPER_FEEDER_DB = PROJECTS_DIR / "paper-feeder/data/papers.db"
-PAPER_FEEDER_API = "http://localhost:5200"
-
-# Great Firewall
+# Great Firewall (chat overlay)
 FIREWALL_API = "http://localhost:3457"
 
-# VibeToText
-VIBETOTEXT_DB = Path.home() / ".vibetotext/history.db"
-VIBETOTEXT_SOCKET = "/tmp/vibetotext.sock"
+# Whisper
 WHISPER_SAMPLE_RATE = 16000
+WHISPER_SOCKET = "/tmp/jarvis_whisper.sock"
+WHISPER_MODEL = "small"
 
 # Token usage tracking
 TOKEN_USAGE_DB = Path(__file__).parent / "data" / "token_usage.db"

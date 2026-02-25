@@ -35,6 +35,15 @@ class PresenceClient:
         except websockets.ConnectionClosed:
             self._connected = False
 
+    async def send_invite(self, game: str, code: str):
+        """Broadcast a game invite to all other users."""
+        if not self._ws or not self._connected:
+            return
+        try:
+            await self._ws.send(json.dumps({"type": "game_invite", "game": game, "code": code}))
+        except websockets.ConnectionClosed:
+            self._connected = False
+
     async def disconnect(self):
         self._closing = True
         if self._ws and self._connected:
@@ -78,7 +87,7 @@ class PresenceClient:
                                 log.info("Online users: %d", len(msg.get("users", [])))
                                 continue
                             # Broadcast events → notify callback
-                            if msg_type in ("user_online", "user_offline", "activity_changed"):
+                            if msg_type in ("user_online", "user_offline", "activity_changed", "game_invite"):
                                 if self.on_notification:
                                     try:
                                         self.on_notification(msg_type, msg)

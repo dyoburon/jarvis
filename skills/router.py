@@ -24,58 +24,12 @@ from connectors.claude_proxy import ClaudeProxyClient
 from skills.claude_code import ClaudeCodeSession
 from skills.code_assistant import CODE_SYSTEM_PROMPT, CODE_TOOLS
 from skills.code_tools import TOOL_DISPATCH
-from skills.domains import DomainSkill
-from skills.firewall import FirewallSkill
-from skills.papers import PaperSkill
-from skills.vibetotext import VibeToTextSkill
 
 console = Console()
 
 # Gemini-format tool declarations for the default conversation session
 DEFAULT_TOOLS = [
     types.Tool(function_declarations=[
-        types.FunctionDeclaration(
-            name="get_domain_dashboard",
-            description="Get today's domain drop hunting results: matched domains, zone stats, disappeared domains",
-            parameters_json_schema={
-                "type": "object",
-                "properties": {
-                    "date": {"type": "string", "description": "Date (YYYY-MM-DD), defaults to today"},
-                    "min_score": {"type": "number", "description": "Minimum match score filter"},
-                },
-            },
-        ),
-        types.FunctionDeclaration(
-            name="get_paper_dashboard",
-            description="Get today's research paper matches from arXiv, grouped by interest area",
-            parameters_json_schema={
-                "type": "object",
-                "properties": {
-                    "date": {"type": "string", "description": "Date (YYYY-MM-DD), defaults to today"},
-                    "interest": {"type": "string", "description": "Filter to specific research interest"},
-                },
-            },
-        ),
-        types.FunctionDeclaration(
-            name="get_firewall_status",
-            description="Get chat moderation stats from the Great Firewall: recent messages, blocked count",
-            parameters_json_schema={"type": "object", "properties": {}},
-        ),
-        types.FunctionDeclaration(
-            name="get_vibetotext_stats",
-            description="Get voice transcription statistics: total words dictated, sessions, WPM",
-            parameters_json_schema={
-                "type": "object",
-                "properties": {
-                    "limit": {"type": "integer", "description": "Number of recent entries"},
-                },
-            },
-        ),
-        types.FunctionDeclaration(
-            name="get_system_overview",
-            description="Get a full overview across all connected systems",
-            parameters_json_schema={"type": "object", "properties": {}},
-        ),
         types.FunctionDeclaration(
             name="code_assistant",
             description="Help with coding tasks: read/write/edit files, run commands, search code. Use when the user asks about code, wants to make changes to projects, run scripts, debug issues, or explore codebases.",
@@ -93,42 +47,10 @@ DEFAULT_TOOLS = [
 
 DEFAULT_SYSTEM_PROMPT = (
     config.SYSTEM_PROMPT + "\n\n"
-    "You have tools to check connected systems (domains, papers, firewall, vibetotext, system overview) "
-    "and a code assistant for coding tasks. Use them when the user asks about these topics. "
+    "You have a code assistant for coding tasks. Use it when the user asks about code. "
     "For casual conversation, just respond with text."
 )
 
-# Skill instances
-_skills = {
-    "get_domain_dashboard": DomainSkill(),
-    "get_paper_dashboard": PaperSkill(),
-    "get_firewall_status": FirewallSkill(),
-    "get_vibetotext_stats": VibeToTextSkill(),
-}
-
-
-# Register data skill executors so Gemini can call them as tools
-def _make_data_executor(skill):
-    async def executor(**params):
-        return await skill.fetch_data(**params)
-    return executor
-
-
-for _name, _skill in _skills.items():
-    TOOL_DISPATCH[_name] = _make_data_executor(_skill)
-
-
-async def _system_overview_executor(**params):
-    all_data = {}
-    for name, skill in _skills.items():
-        try:
-            all_data[skill.name] = await skill.fetch_data()
-        except Exception as e:
-            all_data[skill.name] = {"error": str(e)}
-    return all_data
-
-
-TOOL_DISPATCH["get_system_overview"] = _system_overview_executor
 
 
 class SkillRouter:
@@ -339,78 +261,7 @@ class SkillRouter:
         """Start a streaming skill chat session. Returns the full initial response."""
         if tool_name == "code_assistant":
             return await self._start_code_session(arguments, user_transcript, panel=panel, on_chunk=on_chunk, on_tool_activity=on_tool_activity)
-
-        params = json.loads(arguments) if arguments else {}
-
-        if tool_name == "get_system_overview":
-            all_data = {}
-            for name, skill in _skills.items():
-                try:
-                    all_data[skill.name] = await skill.fetch_data()
-                except Exception as e:
-                    all_data[skill.name] = {"error": str(e)}
-            skill_name = "System Overview"
-            prompt = (
-                "You are Jarvis, reporting on all connected systems.\n"
-                f"User asked: \"{user_transcript}\"\n\n"
-                f"Data:\n{json.dumps(all_data, indent=2, default=str)}\n\n"
-                "Provide a detailed analysis. Use bullet points. Be specific with numbers."
-            )
-        else:
-            skill = _skills.get(tool_name)
-            if not skill:
-                return f"Unknown skill: {tool_name}"
-            skill_name = skill.name
-            data = await skill.fetch_data(**params)
-            if "error" in data:
-                return data["error"]
-            prompt = skill.format_prompt(data, user_transcript or tool_name)
-
-        if not self.gemini:
-            return "Gemini is unavailable — set GOOGLE_API_KEY in .env to enable this skill."
-
-        ps = self._get_panel(panel)
-        ps["skill_name"] = skill_name
-        console.print(f"  [dim]Starting Gemini chat for {skill_name} (panel {panel})...[/]")
-
-        ps["chat"] = self.gemini.aio.chats.create(
-            model=config.GEMINI_MODEL_DEFAULT,
-            config={"system_instruction": (
-                "You are Jarvis, a personal AI assistant. You are in a text chat window "
-                "displayed on screen. The user can see your responses as text. "
-                "Be detailed but well-formatted. Use bullet points and short paragraphs. "
-                "The user may ask follow-up questions about the data.\n\n"
-                "When data has interesting patterns, include a visualization using a "
-                "fenced code block with language 'chart' containing JSON:\n"
-                "```chart\n"
-                '{"type":"bar","title":"Chart Title","labels":["A","B","C"],"values":[10,20,30]}\n'
-                "```\n"
-                "Supported types: bar, line, pie. Keep labels short. "
-                "Always include text analysis alongside charts, never just a chart alone."
-            )},
-        )
-
-        full_response = ""
-        try:
-            stream = await asyncio.wait_for(
-                ps["chat"].send_message_stream(prompt),
-                timeout=60.0,
-            )
-            last_chunk = None
-            async for chunk in stream:
-                last_chunk = chunk
-                text = chunk.text
-                if text:
-                    full_response += text
-                    if on_chunk:
-                        on_chunk(text)
-            self._record_usage(last_chunk, config.GEMINI_MODEL_DEFAULT, "skill")
-        except asyncio.TimeoutError:
-            console.print("[yellow]Gemini request timed out (60s)[/]")
-            if on_chunk:
-                on_chunk("\n\n*(Request timed out.)*")
-
-        return full_response
+        return f"Unknown skill: {tool_name}"
 
     async def send_followup(self, user_text: str, panel: int = 0, on_chunk=None, on_tool_activity=None) -> str:
         """Send a follow-up message to a specific panel's chat session."""

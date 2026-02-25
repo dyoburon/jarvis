@@ -6,6 +6,7 @@ Run with:  python -m presence.server
 import asyncio
 import json
 import logging
+import os
 import time
 from dataclasses import dataclass, field
 
@@ -110,6 +111,19 @@ class PresenceServer:
                             "ts": time.time(),
                         }, exclude=user_id)
 
+                elif msg_type == "game_invite":
+                    if user_id and user_id in self.users:
+                        u = self.users[user_id]
+                        log.info("Invite: %s hosting %s code=%s", u.display_name, msg.get("game"), msg.get("code"))
+                        await self.broadcast({
+                            "type": "game_invite",
+                            "user_id": user_id,
+                            "display_name": u.display_name,
+                            "game": msg.get("game", ""),
+                            "code": msg.get("code", ""),
+                            "ts": time.time(),
+                        }, exclude=user_id)
+
                 elif msg_type == "disconnect":
                     break
 
@@ -176,8 +190,9 @@ def main():
         format="%(asctime)s %(levelname)s %(name)s: %(message)s",
         datefmt="%H:%M:%S",
     )
+    port = int(os.environ.get("PORT", PORT))
     server = PresenceServer()
-    asyncio.run(server.run())
+    asyncio.run(server.run(port=port))
 
 
 if __name__ == "__main__":

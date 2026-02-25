@@ -33,9 +33,10 @@ log.setLevel(logging.DEBUG)
 log.addHandler(_file_handler)
 from game_event_log import GameEventLog
 from skills.claude_code import _format_tool_start as _cc_format_tool_start, _format_tool_result as _cc_format_tool_result, _TOOL_CATEGORIES as _CC_TOOL_CATEGORIES
-from skills.router import SkillRouter, _skills
+from skills.router import SkillRouter
 from voice.audio import MicCapture, SkillMicCapture
 from voice.whisper_client import WhisperClient
+from voice.whisper_server import WhisperServer
 
 console = Console()
 
@@ -241,6 +242,7 @@ async def main():
     identity = load_identity()
     presence = PresenceClient(config.PRESENCE_URL, identity["user_id"], identity["display_name"])
     _current_game: str | None = None  # tracks which game is active for exit events
+    _pending_invite: dict | None = None  # last received game invite
 
     def _handle_presence(event_type: str, data: dict):
         name = data.get("display_name", "Someone")
@@ -259,6 +261,14 @@ async def main():
                 asyncio.create_task(push_overlay_line(f">> {name} went idle"))
             elif status == "online":
                 asyncio.create_task(push_overlay_line(f">> {name} is back"))
+        elif event_type == "game_invite":
+            nonlocal _pending_invite
+            game = data.get("game", "")
+            code = data.get("code", "")
+            _pending_invite = {"game": game, "code": code, "from": name}
+            asyncio.create_task(push_overlay_line(f">> {name} is hosting {game} — Code: {code}"))
+            asyncio.create_task(push_overlay_line(f'>> Say "join" to play'))
+            console.print(f"[bold yellow]Game invite:[/] {name} hosting {game} code={code}")
 
     presence.on_notification = _handle_presence
 
@@ -272,6 +282,10 @@ async def main():
     mic = MicCapture()
     skill_mic = SkillMicCapture(source_rate=config.SAMPLE_RATE, target_rate=config.WHISPER_SAMPLE_RATE)
     whisper_client = WhisperClient()
+
+    # Start built-in Whisper transcription server
+    whisper_server = WhisperServer(config.WHISPER_SOCKET, model_name=config.WHISPER_MODEL)
+    whisper_server.start()
 
     # Send mic audio levels to Metal sphere during PTT
     skill_mic.on_level = lambda level: metal.send_audio_level(level)
@@ -417,6 +431,10 @@ async def main():
         ]
         return any(phrase == normalized or normalized.startswith(phrase) for phrase in kart_phrases)
 
+    def _is_join_invite_command(text: str) -> bool:
+        normalized = text.lower().strip().rstrip(".")
+        return normalized in ("join", "accept", "join game", "accept invite", "join invite")
+
     # 1v100 Trivia Game (deployed to Vercel)
     TRIVIA_BASE_URL = os.environ.get("TRIVIA_URL", "https://onev100.onrender.com")
 
@@ -469,9 +487,6 @@ async def main():
     _TOOL_CATEGORIES = {
         "read_file": "read", "edit_file": "edit", "write_file": "write",
         "list_files": "list", "search_files": "search", "run_command": "run",
-        "get_domain_dashboard": "data", "get_paper_dashboard": "data",
-        "get_firewall_status": "data", "get_vibetotext_stats": "data",
-        "get_system_overview": "data",
     }
 
     def _short_path(path: str) -> str:
@@ -642,11 +657,8 @@ async def main():
             # Resolve skill display name
             if tool_name == "code_assistant":
                 skill_name = "Opus 4.6 Assistant 1"
-            elif tool_name == "get_system_overview":
-                skill_name = "System Overview"
             else:
-                skill = _skills.get(tool_name)
-                skill_name = skill.name if skill else tool_name
+                skill_name = tool_name
 
             metal.send_chat_start(skill_name)
             await presence.update_activity("in_skill", skill_name)
@@ -997,15 +1009,15 @@ async def main():
         default_task: asyncio.Task | None = None
 
         async def handle_fn_key(pressed: bool):
-            nonlocal ptt_active, skill_active, pending_tool_name, default_task, _current_game
+            nonlocal ptt_active, skill_active, pending_tool_name, default_task, _current_game, _pending_invite
 
             if pressed and not ptt_active:
                 if not whisper_client.is_available():
-                    console.print("[red]vibetotext socket not available — start vibetotext first[/]")
+                    console.print("[red]Whisper server not available[/]")
                     if skill_active:
-                        metal.send_chat_message("gemini", "Local transcription unavailable. Start vibetotext.")
+                        metal.send_chat_message("gemini", "Local transcription unavailable.")
                     else:
-                        metal.send_hud("vibetotext not running")
+                        metal.send_hud("Whisper not ready")
                     return
                 ptt_active = True
                 mic._skill_capture = skill_mic
@@ -1146,6 +1158,20 @@ async def main():
                         metal.send_state("listening")
                         return
 
+                    if _pending_invite and _is_join_invite_command(text):
+                        invite = _pending_invite
+                        _pending_invite = None
+                        subprocess.run(["pbcopy"], input=invite["code"].encode(), check=True)
+                        game = invite["game"]
+                        if game == "KartBros":
+                            metal.send_chat_iframe_fullscreen("https://kartbros.io", panel=active_panel)
+                        _current_game = game
+                        await presence.update_activity("in_game", game)
+                        metal.send_hud(f"Joining {game} — code copied!")
+                        metal.send_state("listening")
+                        console.print(f"[bold cyan]Joining {game}[/] — code '{invite['code']}' copied to clipboard")
+                        return
+
                     # Default mode: send to Gemini Flash
                     console.print(f"\n[bold white]You:[/] {text}")
                     metal.send_hud_clear()
@@ -1202,11 +1228,19 @@ async def main():
                         old_panel = active_panel
                         active_panel = msg.get("panel", 0)
                         event_log.log_action("panel_focus", old=old_panel, new=active_panel)
-                    elif msg.get("type") == "chat_input" and skill_active:
+                    elif msg.get("type") == "chat_input":
                         _last_interaction = _time.time()
                         text = msg.get("text", "")
-                        panel_idx = msg.get("panel", active_panel)
-                        await on_skill_input("__skill_chat__", pending_tool_name, "", text, panel=panel_idx)
+                        # Intercept invite messages from the game overlay
+                        if text.startswith("__invite__"):
+                            code = text[len("__invite__"):]
+                            if _current_game and code:
+                                await presence.send_invite(_current_game, code)
+                                log.info(f"Sent game invite: {_current_game} code={code}")
+                                console.print(f"[bold cyan]Invite sent:[/] {_current_game} code={code}")
+                        elif skill_active:
+                            panel_idx = msg.get("panel", active_panel)
+                            await on_skill_input("__skill_chat__", pending_tool_name, "", text, panel=panel_idx)
                     elif msg.get("type") == "fn_key":
                         await handle_fn_key(msg.get("pressed", False))
                     elif msg.get("type") == "hotkey":
@@ -1267,6 +1301,7 @@ async def main():
         console.print("\n[dim]Shutting down...[/]")
         await presence.disconnect()
         mic.stop()
+        whisper_server.stop()
         metal.quit()
 
 
