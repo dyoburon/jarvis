@@ -65,6 +65,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var hudRenderer: HUDTextRenderer!
     var stdinReader: StdinReader?
     var chatWebView: ChatWebView?
+    var focusManager: FocusManager?
+    var settingsOverlay: SettingsOverlay?
+    var keybindManager: KeybindManager?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         guard let screen = NSScreen.main else {
@@ -155,49 +158,88 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             )
             chatWebView = ChatWebView(frame: chatFrame)
             chatWebView?.attach(to: overlayView)
+            
+            // Initialize FocusManager
+            let focusConfig = FocusConfig(
+                tabCyclingEnabled: true,
+                restoreOnActivate: true,
+                focusIndicatorEnabled: true,
+                debugLogging: false
+            )
+            focusManager = FocusManager(config: focusConfig)
+            focusManager?.setWindow(window)
+            chatWebView?.focusManager = focusManager
+            
+            // Initialize Settings Overlay
+            settingsOverlay = SettingsOverlay(frame: metalView.bounds)
+            settingsOverlay?.autoresizingMask = [.width, .height]
+            settingsOverlay?.onSettingsSaved = { [weak self] in
+                metalLog("Settings saved - restart required")
+            }
+            overlayView.addSubview(settingsOverlay!)
+            
+            // Initialize KeybindManager
+            keybindManager = KeybindManager()
+            metalLog("KeybindManager initialized")
         }
 
         // PTT state (Option+Period) — shared across monitors
         var pttDown = false
 
         // Escape to skip/quit, Cmd+G to open Gemini skill
-        NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
-            // Option+Period → push-to-talk start (jarvis mode only)
-            // keyCode 47 = Period key
-            if jarvisMode && event.keyCode == 47
-                && event.modifierFlags.contains(.option)
-                && !pttDown
-            {
-                pttDown = true
-                let json = "{\"type\":\"fn_key\",\"pressed\":true}"
-                print(json)
-                fflush(stdout)
-                return nil
-            }
-            // Cmd+G → open Gemini skill (jarvis mode only)
-            if jarvisMode && event.keyCode == 5
-                && event.modifierFlags.contains(.command)
-                && !event.modifierFlags.contains(.shift)
-            {
-                let json = "{\"type\":\"hotkey\",\"skill\":\"code_assistant\"}"
-                print(json)
-                fflush(stdout)
-                return nil
-            }
-            // Cmd+T → new window (when chat is open)
-            if jarvisMode && event.keyCode == 17
-                && event.modifierFlags.contains(.command)
-                && !event.modifierFlags.contains(.shift)
-            {
-                if self.chatWebView?.panelCount ?? 0 > 0 {
-                    let json = "{\"type\":\"hotkey\",\"action\":\"split\"}"
+        NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard let self = self else { return event }
+            
+            // Use KeybindManager if available (jarvis mode)
+            if jarvisMode, let kbm = self.keybindManager {
+                // Check for push_to_talk
+                if kbm.matches(event: event, keybind: ConfigManager.shared.keybinds.pushToTalk) && !pttDown {
+                    pttDown = true
+                    let json = "{\"type\":\"fn_key\",\"pressed\":true}"
                     print(json)
                     fflush(stdout)
                     return nil
                 }
+                
+                // Check for open_assistant
+                if kbm.matches(event: event, keybind: ConfigManager.shared.keybinds.openAssistant) {
+                    let json = "{\"type\":\"hotkey\",\"skill\":\"code_assistant\"}"
+                    print(json)
+                    fflush(stdout)
+                    return nil
+                }
+                
+                // Check for new_panel
+                if kbm.matches(event: event, keybind: ConfigManager.shared.keybinds.newPanel) {
+                    if self.chatWebView?.panelCount ?? 0 > 0 {
+                        let json = "{\"type\":\"hotkey\",\"action\":\"split\"}"
+                        print(json)
+                        fflush(stdout)
+                        return nil
+                    }
+                }
+                
+                // Check for open_settings
+                if kbm.matches(event: event, keybind: ConfigManager.shared.keybinds.openSettings) {
+                    self.settingsOverlay?.toggleSettings()
+                    return nil
+                }
             }
+            
             // When chat is open, forward all key events to WebView via JS
             if jarvisMode, let chat = self.chatWebView, chat.panelCount > 0 {
+                // Tab key cycling between panels
+                if event.keyCode == 48 && !event.modifierFlags.contains(.control) {
+                    if let fm = self.focusManager {
+                        if event.modifierFlags.contains(.shift) {
+                            _ = chat.handleShiftTabKey(manager: fm)
+                        } else {
+                            _ = chat.handleTabKey(manager: fm)
+                        }
+                        return nil
+                    }
+                }
+                
                 if chat.isActivePanelFullscreen {
                     if event.keyCode == 53 { // Escape exits fullscreen iframe
                         metalLog("keyDown: Escape → hideFullscreenIframe")
@@ -223,14 +265,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         // keyUp: PTT release on period key up, plus fullscreen iframe forwarding
-        NSEvent.addLocalMonitorForEvents(matching: .keyUp) { event in
+        NSEvent.addLocalMonitorForEvents(matching: .keyUp) { [weak self] event in
+            guard let self = self else { return event }
+            
             // Period released while PTT active → stop recording
-            if jarvisMode && event.keyCode == 47 && pttDown {
-                pttDown = false
-                let json = "{\"type\":\"fn_key\",\"pressed\":false}"
-                print(json)
-                fflush(stdout)
-                return nil
+            if jarvisMode && pttDown {
+                if let kbm = self.keybindManager,
+                   kbm.matches(event: event, keybind: ConfigManager.shared.keybinds.pushToTalk) {
+                    pttDown = false
+                    let json = "{\"type\":\"fn_key\",\"pressed\":false}"
+                    print(json)
+                    fflush(stdout)
+                    return nil
+                }
             }
             if jarvisMode, let chat = self.chatWebView, chat.isActivePanelFullscreen {
                 if chat.isFullscreenNavigated {
@@ -248,7 +295,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // so the __focus__ message from JS never reaches Swift)
         NSEvent.addLocalMonitorForEvents(matching: .leftMouseDown) { [weak self] event in
             guard jarvisMode,
-                  let chat = self?.chatWebView,
+                  let self = self,
+                  let chat = self.chatWebView,
                   chat.isFullscreenIframe,
                   !chat.isActivePanelFullscreen else {
                 return event
@@ -342,6 +390,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 },
                 onQuit: {
                     NSApp.terminate(nil)
+                },
+                onConfig: { [weak self] configJson in
+                    ConfigManager.shared.load(from: configJson)
+                    metalLog("Config loaded from Python")
+                    
+                    // Apply config to managers
+                    BackgroundManager.shared.updateConfig(ConfigManager.shared.background)
+                    VisualizerManager.shared.updateConfig(ConfigManager.shared.visualizer)
+                    ThemeManager.shared.loadFromConfig()
+                    
+                    metalLog("Applied config - bg.mode=\(ConfigManager.shared.background.mode), viz.type=\(ConfigManager.shared.visualizer.type)")
                 }
             )
             stdinReader?.start()
@@ -362,11 +421,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // Re-focus window + WKWebView when app regains focus (e.g. after cmd-tab or click-back)
         metalLog("applicationDidBecomeActive: fullscreen=\(chatWebView?.isFullscreenIframe ?? false)")
         window.makeKeyAndOrderFront(nil)
-        if let chat = chatWebView, chat.isFullscreenIframe {
-            metalLog("applicationDidBecomeActive: restoring game focus")
-            chat.ensureWebViewFirstResponder()
-            // Restore JS-level focus for both navigated games and srcdoc iframe games
-            chat.restoreGameFocus()
+        
+        // Notify FocusManager of activation
+        focusManager?.handleWindowActivate()
+        
+        if let chat = chatWebView, let fm = focusManager {
+            if chat.isFullscreenIframe {
+                metalLog("applicationDidBecomeActive: restoring game focus")
+                chat.ensureWebViewFirstResponder()
+                // Restore JS-level focus for both navigated games and srcdoc iframe games
+                chat.restoreGameFocus()
+            } else if chat.panelCount > 0 {
+                // Restore focus to the active panel
+                chat.restoreFocusOnActivate(manager: fm)
+            }
         }
     }
 }

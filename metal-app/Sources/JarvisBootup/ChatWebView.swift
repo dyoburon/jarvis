@@ -17,6 +17,9 @@ class ChatWebView: NSObject, WKScriptMessageHandler, WKNavigationDelegate {
     var keyEventsSinceLastLog: Int = 0
     var panelWidthRatios: [CGFloat] = []
     var resizeHandles: [PanelResizeHandle] = []
+    
+    /// Focus manager for deterministic focus tracking
+    var focusManager: FocusManager?
 
     init(frame: NSRect) {
         parentFrame = frame
@@ -71,7 +74,16 @@ class ChatWebView: NSObject, WKScriptMessageHandler, WKNavigationDelegate {
         relayoutPanels()
         loadHTML(wv, title: title)
         fadeIn(wv)
-        updateFocusIndicators()
+        
+        // Register panel with FocusManager
+        if let fm = focusManager {
+            fm.clearAllPanels()
+            fm.registerPanel(index: 0)
+            fm.setFocus(to: 0)
+            updateFocusIndicatorsWithManager(fm)
+        } else {
+            updateFocusIndicators()
+        }
     }
 
     func spawnWindow(title: String) {
@@ -86,7 +98,15 @@ class ChatWebView: NSObject, WKScriptMessageHandler, WKNavigationDelegate {
         relayoutPanels()
         loadHTML(wv, title: title)
         fadeIn(wv)
-        updateFocusIndicators()
+        
+        // Register new panel with FocusManager
+        if let fm = focusManager {
+            fm.registerPanel(index: panels.count - 1)
+            fm.setFocus(to: activePanel)
+            updateFocusIndicatorsWithManager(fm)
+        } else {
+            updateFocusIndicators()
+        }
     }
 
     func spawnWebPanel(url: String, title: String) {
@@ -138,6 +158,10 @@ class ChatWebView: NSObject, WKScriptMessageHandler, WKNavigationDelegate {
 
     func closeLastPanel() {
         guard panels.count > 1 else { return }
+        
+        // Unregister from FocusManager
+        focusManager?.unregisterPanel(index: panels.count - 1)
+        
         let last = panels.removeLast()
         NSAnimationContext.runAnimationGroup({ ctx in
             ctx.duration = 0.2
@@ -151,13 +175,24 @@ class ChatWebView: NSObject, WKScriptMessageHandler, WKNavigationDelegate {
         panelWidthRatios = Array(repeating: 1.0 / CGFloat(panels.count), count: panels.count)
         rebuildResizeHandles()
         relayoutPanels()
-        updateFocusIndicators()
+        
+        if let fm = focusManager {
+            updateFocusIndicatorsWithManager(fm)
+        } else {
+            updateFocusIndicators()
+        }
     }
 
     func focusPanel(_ index: Int) {
         guard index >= 0, index < panels.count else { return }
         activePanel = index
-        updateFocusIndicators()
+        focusManager?.setFocus(to: index)
+        
+        if let fm = focusManager {
+            updateFocusIndicatorsWithManager(fm)
+        } else {
+            updateFocusIndicators()
+        }
     }
 
     func hide() {
@@ -173,6 +208,9 @@ class ChatWebView: NSObject, WKScriptMessageHandler, WKNavigationDelegate {
             })
         }
         panels.removeAll()
+        
+        // Clear FocusManager state
+        focusManager?.clearAllPanels()
     }
 
     // MARK: - Computed Properties

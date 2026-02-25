@@ -1,0 +1,46 @@
+# =============================================================================
+# NORD - Arctic, bluish color palette
+# =============================================================================
+# Based on the Nord color palette: https://www.nordtheme.com/
+# =============================================================================
+
+name: nord
+display_name: "Nord"
+description: "Arctic, bluish color palette"
+
+colors:
+  primary: "#88c0d0"
+  secondary: "#5e81ac"
+  background: "#2e3440"
+  panel_bg: "rgba(46,52,64,0.95)"
+  text: "#eceff4"
+  text_muted: "#d8dee9"
+  border: "rgba(136,192,208,0.15)"
+  border_focused: "rgba(136,192,208,0.5)"
+  
+  user_text: "rgba(136,192,208,0.8)"
+  tool_read: "rgba(129,161,193,0.9)"
+  tool_edit: "rgba(208,135,112,0.9)"
+  tool_write: "rgba(208,135,112,0.9)"
+  tool_run: "rgba(163,190,140,0.9)"
+  tool_search: "rgba(180,142,173,0.9)"
+  
+  success: "#a3be8c"
+  warning: "#ebcb8b"
+  error: "#bf616a"
+
+font:
+  family: "Menlo"
+  size: 13
+  title_size: 15
+  line_height: 1.6
+
+visualizer:
+  orb:
+    color: "#88c0d0"
+    secondary_color: "#5e81ac"
+
+background:
+  hex_grid:
+    color: "#88c0d0"
+    opacity: 0.06

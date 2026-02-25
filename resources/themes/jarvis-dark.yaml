@@ -1,0 +1,46 @@
+# =============================================================================
+# JARVIS DARK - Default Theme
+# =============================================================================
+# The signature Jarvis theme with cyan accents on dark background.
+# =============================================================================
+
+name: jarvis-dark
+display_name: "Jarvis Dark"
+description: "The signature Jarvis theme with cyan accents"
+
+colors:
+  primary: "#00d4ff"
+  secondary: "#ff6b00"
+  background: "#000000"
+  panel_bg: "rgba(0,0,0,0.93)"
+  text: "#f0ece4"
+  text_muted: "#888888"
+  border: "rgba(0,212,255,0.12)"
+  border_focused: "rgba(0,212,255,0.5)"
+  
+  user_text: "rgba(140,190,220,0.65)"
+  tool_read: "rgba(100,180,255,0.9)"
+  tool_edit: "rgba(255,180,80,0.9)"
+  tool_write: "rgba(255,180,80,0.9)"
+  tool_run: "rgba(80,220,120,0.9)"
+  tool_search: "rgba(200,150,255,0.9)"
+  
+  success: "#00ff88"
+  warning: "#ff6b00"
+  error: "#ff4444"
+
+font:
+  family: "Menlo"
+  size: 13
+  title_size: 15
+  line_height: 1.6
+
+visualizer:
+  orb:
+    color: "#00d4ff"
+    secondary_color: "#0088aa"
+
+background:
+  hex_grid:
+    color: "#00d4ff"
+    opacity: 0.08
