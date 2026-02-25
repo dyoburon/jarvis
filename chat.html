@@ -29,7 +29,6 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  user-select: none;
 }
 
 /* ================================================================ */
@@ -59,6 +58,18 @@ body {
   align-items: center;
   gap: 14px;
   font-size: 11px;
+}
+
+#my-nick {
+  color: var(--primary);
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+}
+#my-nick:hover {
+  text-shadow: 0 0 8px var(--glow-cyan);
+  text-decoration: underline;
 }
 
 #status-dot {
@@ -256,6 +267,7 @@ body {
 }
 
 #nick-overlay.hidden { display: none; }
+.hidden { display: none !important; }
 
 #nick-panel {
   background: var(--panel-bg);
@@ -351,6 +363,7 @@ body {
 <div id="header">
   <h1>JARVIS LIVECHAT</h1>
   <div id="header-meta">
+    <span id="my-nick" title="Click to change nickname"></span>
     <span><span id="status-dot"></span><span id="status-text">offline</span></span>
     <span id="user-count">0 online</span>
   </div>
@@ -383,6 +396,13 @@ body {
 <!-- ============================================================== -->
 
 <div id="rate-feedback">Slow down! Rate limit reached.</div>
+<button id="retry-btn" class="hidden" style="
+  position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%);
+  background: transparent; border: 1px solid var(--accent); border-radius: 4px;
+  color: var(--accent); font-family: 'Courier New', monospace; font-size: 13px;
+  padding: 8px 24px; cursor: pointer; z-index: 50;
+  text-shadow: 0 0 8px var(--glow-orange);
+">RETRY</button>
 
 <!-- ============================================================== -->
 <!-- NICKNAME OVERLAY                                               -->
@@ -416,7 +436,8 @@ const CONFIG = {
   // Supabase — publishable anon key + URL.
   // These are PUBLISHABLE keys by design (like Stripe publishable keys).
   SUPABASE_URL: 'https://ojmqzagktzkualzgpcbq.supabase.co',
-  SUPABASE_KEY: 'sb_publishable_QCrdBOJAQ1kNKo62numKvA_ndKB07v-',
+  // nosemgrep: generic.secrets.security.detected-jwt-token — Supabase anon key is publishable by design
+  SUPABASE_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qbXF6YWdrdHprdWFsemdwY2JxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5ODY1ODIsImV4cCI6MjA4NzU2MjU4Mn0.WkDiksXkye-YyL1RSbAYv1iVW_Sv5zwST0RcloN_0jQ',
 
   ROOM: 'jarvis-livechat',
   MAX_MSG_LEN: 500,
@@ -613,26 +634,16 @@ class AutoMod {
 }
 
 // =================================================================
-// CRYPTO — E2E ENCRYPTION (AES-GCM + PBKDF2) with plaintext fallback
+// CRYPTO — E2E ENCRYPTION (AES-GCM + PBKDF2)
 // =================================================================
 
 const Crypto = {
   _key: null,
   _encoder: new TextEncoder(),
   _decoder: new TextDecoder(),
-  _plaintextMode: false,
-
-  /** True if crypto.subtle is available (requires secure context). */
-  get isAvailable() {
-    return !!(window.crypto && window.crypto.subtle);
-  },
 
   /** Derive AES-GCM-256 key from room name via PBKDF2. */
   async deriveKey(roomName) {
-    if (!this.isAvailable) {
-      this._plaintextMode = true;
-      return; // Graceful fallback — encryption disabled
-    }
     const salt = this._encoder.encode('jarvis-livechat-salt-v1');
     const keyMaterial = await crypto.subtle.importKey(
       'raw',
@@ -650,11 +661,8 @@ const Crypto = {
     );
   },
 
-  /** Encrypt plaintext. Returns { iv, ct } as base64 strings, or { plain } in fallback. */
+  /** Encrypt plaintext. Returns { iv, ct } as base64 strings. */
   async encrypt(plaintext) {
-    if (this._plaintextMode) {
-      return { plain: btoa(unescape(encodeURIComponent(plaintext))) };
-    }
     if (!this._key) throw new Error('Key not derived');
     const iv = crypto.getRandomValues(new Uint8Array(12));
     const ct = await crypto.subtle.encrypt(
@@ -668,12 +676,9 @@ const Crypto = {
     };
   },
 
-  /** Decrypt { iv, ct } or { plain } payload. Returns plaintext string. */
+  /** Decrypt { iv, ct } payload. Returns plaintext string. */
   async decrypt(ivB64, ctB64) {
-    if (this._plaintextMode || !this._key) {
-      // Can't decrypt — caller should check for .plain field instead
-      throw new Error('Decryption unavailable');
-    }
+    if (!this._key) throw new Error('Key not derived');
     const iv = this._fromBase64(ivB64);
     const ct = this._fromBase64(ctB64);
     const plain = await crypto.subtle.decrypt(
@@ -682,11 +687,6 @@ const Crypto = {
       ct
     );
     return this._decoder.decode(plain);
-  },
-
-  /** Decode a plaintext (base64-encoded) payload. */
-  decodePlain(b64) {
-    return decodeURIComponent(escape(atob(b64)));
   },
 
   _toBase64(bytes) {
@@ -721,7 +721,10 @@ const UI = {
   rateFeedback: null,
   nickOverlay: null,
   nickInput: null,
+  myNick: null,
+  retryBtn: null,
   _rateFeedbackTimeout: null,
+  _retryCallback: null,
 
   init() {
     this.messagesEl = $('#messages');
@@ -735,6 +738,12 @@ const UI = {
     this.rateFeedback = $('#rate-feedback');
     this.nickOverlay = $('#nick-overlay');
     this.nickInput = $('#nick-input');
+    this.myNick = $('#my-nick');
+    this.retryBtn = $('#retry-btn');
+
+    this.retryBtn.addEventListener('click', () => {
+      if (this._retryCallback) this._retryCallback();
+    });
   },
 
   setStatus(state) {
@@ -759,6 +768,16 @@ const UI = {
 
   hideNickOverlay() {
     this.nickOverlay.classList.add('hidden');
+  },
+
+  showNickOverlay() {
+    this.nickOverlay.classList.remove('hidden');
+    this.nickInput.focus();
+    this.nickInput.select();
+  },
+
+  setMyNick(nick) {
+    this.myNick.textContent = nick;
   },
 
   addMessage(nick, text, time, nickColor) {
@@ -801,6 +820,16 @@ const UI = {
     row.textContent = '[message filtered: ' + reason + ']';
     this.messagesEl.appendChild(row);
     this._scrollToBottom();
+  },
+
+  showRetryButton(callback) {
+    this._retryCallback = callback;
+    this.retryBtn.classList.remove('hidden');
+  },
+
+  hideRetryButton() {
+    this.retryBtn.classList.add('hidden');
+    this._retryCallback = null;
   },
 
   showRateLimitFeedback() {
@@ -879,21 +908,25 @@ const Chat = {
       return;
     }
 
-    // Generate userId — fallback if crypto.randomUUID unavailable (non-secure context)
-    this.userId = (window.crypto && crypto.randomUUID)
-      ? crypto.randomUUID()
-      : 'user-' + Date.now() + '-' + Math.floor(Math.random() * 1e9);
+    this.userId = crypto.randomUUID();
     this.nick = nickname.trim().slice(0, 20);
-    this.automod = new AutoMod();
+    if (!this.automod) this.automod = new AutoMod();
 
-    // Derive encryption key (gracefully degrades to plaintext if crypto.subtle unavailable)
-    await Crypto.deriveKey(CONFIG.ROOM);
-    if (Crypto._plaintextMode) {
-      UI.addSystemMessage(
-        'Note: E2E encryption unavailable (non-secure context). Messages are base64-encoded only.',
-        'leave'
-      );
+    // Moderate nickname before joining
+    const nickCheck = this.automod.checkKeywords(this.nick);
+    if (!nickCheck.ok) {
+      UI.addSystemMessage('That nickname is not allowed. Try another.', 'leave');
+      UI.showNickOverlay();
+      return;
     }
+
+    UI.setMyNick(this.nick);
+
+    // Save nick to localStorage for persistence
+    try { localStorage.setItem('jarvis-chat-nick', this.nick); } catch (_) {}
+
+    // Derive E2E encryption key
+    await Crypto.deriveKey(CONFIG.ROOM);
 
     // Initialize Supabase client
     const { createClient } = supabase;
@@ -938,10 +971,27 @@ const Chat = {
       }
     });
 
-    // Subscribe and track presence
+    // Subscribe and track presence (with connection timeout)
     this._reconnectAttempts = 0;
+    let connected = false;
+    const connectTimeout = setTimeout(() => {
+      if (!connected) {
+        UI.setStatus('');
+        UI.addSystemMessage('Connection timed out. Click RETRY to try again.', 'leave');
+        UI.showRetryButton(() => {
+          UI.hideRetryButton();
+          this.client.removeChannel(this.channel);
+          this.channel = null;
+          this.client = null;
+          Chat.start(this.nick);
+        });
+      }
+    }, 10000);
+
     this.channel.subscribe(async (status) => {
       if (status === 'SUBSCRIBED') {
+        connected = true;
+        clearTimeout(connectTimeout);
         UI.setStatus('connected');
         UI.enableInput();
         this._reconnectAttempts = 0;
@@ -1048,7 +1098,7 @@ const Chat = {
       return;
     }
 
-    // Encrypt the message (or base64-encode in plaintext mode)
+    // Encrypt the message
     let encrypted;
     try {
       encrypted = await Crypto.encrypt(text);
@@ -1058,22 +1108,15 @@ const Chat = {
     }
 
     const ts = Date.now();
-    const msgId = (window.crypto && crypto.randomUUID)
-      ? crypto.randomUUID()
-      : 'msg-' + Date.now() + '-' + Math.floor(Math.random() * 1e9);
+    const msgId = crypto.randomUUID();
     const payload = {
       id: msgId,
       userId: this.userId,
       nick: this.nick,
       ts: ts,
+      iv: encrypted.iv,
+      ct: encrypted.ct,
     };
-    // Attach encrypted fields or plaintext field
-    if (encrypted.plain !== undefined) {
-      payload.plain = encrypted.plain;
-    } else {
-      payload.iv = encrypted.iv;
-      payload.ct = encrypted.ct;
-    }
 
     // Send via broadcast
     const resp = await this.channel.send({
@@ -1091,22 +1134,16 @@ const Chat = {
   async _onReceive(payload) {
     if (!payload) return;
 
-    // Must have either encrypted (iv+ct) or plaintext (plain) fields
-    const hasEncrypted = payload.iv && payload.ct;
-    const hasPlain = typeof payload.plain === 'string';
-    if (!hasEncrypted && !hasPlain) return;
+    // Must have encrypted fields (iv + ct)
+    if (!payload.iv || !payload.ct) return;
 
     // Ignore our own messages (shouldn't arrive with self:false, but guard)
     if (payload.userId === this.userId) return;
 
-    // Decrypt or decode
+    // Decrypt
     let plaintext;
     try {
-      if (hasPlain) {
-        plaintext = Crypto.decodePlain(payload.plain);
-      } else {
-        plaintext = await Crypto.decrypt(payload.iv, payload.ct);
-      }
+      plaintext = await Crypto.decrypt(payload.iv, payload.ct);
     } catch (err) {
       // Decryption failed — likely different key or corrupt message
       return;
@@ -1124,10 +1161,15 @@ const Chat = {
       return; // rate limited sender
     }
 
-    // Display the message
-    const nick = (typeof payload.nick === 'string')
-      ? payload.nick.slice(0, 20)
+    // Moderate and display the message
+    let nick = (typeof payload.nick === 'string')
+      ? payload.nick.trim().slice(0, 20)
       : 'Unknown';
+    // Run nick through keyword filter — replace with censored if banned
+    const nickCheck = this.automod.checkKeywords(nick);
+    if (!nickCheck.ok) {
+      nick = 'Censored';
+    }
     const time = formatTime(payload.ts || Date.now());
     UI.addMessage(nick, plaintext, time, nickColor(nick));
   },
@@ -1142,6 +1184,38 @@ const Chat = {
     }
     this._senderRateBucket.push(now);
     return true;
+  },
+
+  /** Change nickname while staying connected. */
+  async changeNick(newNick) {
+    newNick = newNick.trim().slice(0, 20);
+    if (newNick.length < 1) return;
+
+    // Moderate the new nickname
+    const nickCheck = this.automod.checkKeywords(newNick);
+    if (!nickCheck.ok) {
+      UI.addSystemMessage('That nickname is not allowed. Try another.', 'leave');
+      UI.showNickOverlay();
+      return;
+    }
+
+    const oldNick = this.nick;
+    this.nick = newNick;
+    UI.setMyNick(newNick);
+    UI.hideNickOverlay();
+    UI.enableInput();
+
+    // Persist to localStorage
+    try { localStorage.setItem('jarvis-chat-nick', newNick); } catch (_) {}
+
+    // Update presence so others see the new nick
+    if (this.channel) {
+      await this.channel.track({
+        nick: this.nick,
+        online_at: new Date().toISOString(),
+      });
+    }
+    UI.addSystemMessage(oldNick + ' is now ' + newNick, 'join');
   },
 
   /** Cleanup on page unload. */
@@ -1185,20 +1259,44 @@ window.addEventListener('unhandledrejection', function(event) {
 document.addEventListener('DOMContentLoaded', () => {
   UI.init();
 
-  // Generate random default nickname
-  const randomSuffix = Math.floor(Math.random() * 9000 + 1000);
-  UI.nickInput.value = 'Agent-' + randomSuffix;
+  // Load saved nickname or generate random default
+  let savedNick = null;
+  try { savedNick = localStorage.getItem('jarvis-chat-nick'); } catch (_) {}
+  if (savedNick && savedNick.trim().length > 0) {
+    UI.nickInput.value = savedNick.trim().slice(0, 20);
+  } else {
+    const randomSuffix = Math.floor(Math.random() * 9000 + 1000);
+    UI.nickInput.value = 'Agent-' + randomSuffix;
+  }
 
-  // Nickname entry
+  // Nickname validation: alphanumeric, spaces, dashes, underscores
+  const NICK_RE = /^[a-zA-Z0-9 _-]+$/;
+
+  // Nickname entry (handles both initial join and nick change)
   const joinChat = () => {
     const nick = UI.nickInput.value.trim();
     if (nick.length < 1 || nick.length > 20) return;
-    Chat.start(nick);
+    if (!NICK_RE.test(nick)) {
+      UI.addSystemMessage('Nickname can only contain letters, numbers, spaces, dashes, and underscores.', 'leave');
+      return;
+    }
+    if (Chat.channel) {
+      Chat.changeNick(nick);
+    } else {
+      Chat.start(nick);
+    }
   };
 
   $('#nick-join-btn').addEventListener('click', joinChat);
   UI.nickInput.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') joinChat();
+  });
+
+  // Click header nick to change nickname
+  $('#my-nick').addEventListener('click', () => {
+    if (!Chat.channel) return; // not connected yet
+    UI.nickInput.value = Chat.nick;
+    UI.showNickOverlay();
   });
 
   // Message sending
@@ -1230,6 +1328,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Focus nickname input
   UI.nickInput.focus();
   UI.nickInput.select();
+
+
 });
 </script>
 </body>

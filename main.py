@@ -390,6 +390,62 @@ async def main():
     ASTEROIDS_PATH = os.path.join(os.path.dirname(__file__), "asteroids.html")
     VIDEOPLAYER_PATH = os.path.join(os.path.dirname(__file__), "videoplayer.html")
     CHAT_PATH = os.path.join(os.path.dirname(__file__), "chat.html")
+    CHAT_SERVER_PORT = 19847
+    _chat_server_url = None  # Set when server starts
+
+    def _start_chat_server():
+        """Start a local HTTP server to serve chat.html on localhost.
+
+        Serves only chat.html — rejects all other paths with 404.
+        Uses the navigated WKWebView path which has proper keyboard
+        handling, secure context (crypto.subtle), and localStorage.
+        """
+        nonlocal _chat_server_url
+        if _chat_server_url is not None:
+            return  # already running
+
+        import http.server
+        import threading
+
+        serve_dir = os.path.dirname(__file__)
+
+        class ChatHandler(http.server.SimpleHTTPRequestHandler):
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, directory=serve_dir, **kwargs)
+
+            def do_GET(self):
+                # Only serve chat.html — reject everything else
+                if self.path in ("/chat.html", "/chat.html?"):
+                    super().do_GET()
+                else:
+                    self.send_error(404)
+
+            def log_message(self, format, *args):  # noqa: A002
+                pass  # Suppress HTTP logs
+
+        server = None
+        port = CHAT_SERVER_PORT
+        for attempt in range(10):
+            try:
+                server = http.server.HTTPServer(
+                    ("127.0.0.1", port + attempt), ChatHandler
+                )
+                port = port + attempt
+                break
+            except OSError:
+                if attempt == 9:
+                    log.error("Chat server: all ports 19847-19856 in use")
+                    return
+                continue
+
+        if server is None:
+            return
+
+        _chat_server_url = f"http://127.0.0.1:{port}/chat.html"
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        log.info(f"Chat server started on port {port}")
+
     SUBWAY_CLIPS_DIR = os.path.join(os.path.dirname(__file__), "data", "subway_clips")
 
     def _is_pinball_command(text: str) -> bool:
@@ -1121,10 +1177,14 @@ async def main():
                 return
 
             if _is_chat_command(user_text):
-                metal.send_chat_iframe_fullscreen(f"file://{CHAT_PATH}", panel=panel)
-                _current_game = "Livechat"
-                await presence.update_activity("in_game", "Livechat")
-                console.print("[bold cyan]Launched Livechat[/]")
+                _start_chat_server()
+                if _chat_server_url:
+                    metal.send_chat_iframe_fullscreen(_chat_server_url, panel=panel)
+                    _current_game = "Livechat"
+                    await presence.update_activity("in_game", "Livechat")
+                    console.print("[bold cyan]Launched Livechat[/]")
+                else:
+                    console.print("[red]Failed to start chat server[/]")
                 return
 
             if _is_close_command(user_text):
@@ -1495,13 +1555,17 @@ async def main():
 
                     if _is_chat_command(text):
                         log.info(f"Chat command detected: '{text}'")
-                        metal.send_chat_iframe_fullscreen(
-                            f"file://{CHAT_PATH}", panel=active_panel
-                        )
-                        _current_game = "Livechat"
-                        await presence.update_activity("in_game", "Livechat")
-                        metal.send_state("listening")
-                        console.print("[bold cyan]Launched Livechat[/]")
+                        _start_chat_server()
+                        if _chat_server_url:
+                            metal.send_chat_iframe_fullscreen(
+                                _chat_server_url, panel=active_panel
+                            )
+                            _current_game = "Livechat"
+                            await presence.update_activity("in_game", "Livechat")
+                            metal.send_state("listening")
+                            console.print("[bold cyan]Launched Livechat[/]")
+                        else:
+                            console.print("[red]Failed to start chat server[/]")
                         return
 
                     # Default mode: send to Gemini Flash

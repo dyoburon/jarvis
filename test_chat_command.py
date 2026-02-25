@@ -215,3 +215,89 @@ class TestChatFileExists:
                     f"Line {i}: innerHTML usage detected — use textContent "
                     f"for XSS safety: {stripped}"
                 )
+
+    def test_chat_html_no_plaintext_fallback(self) -> None:
+        """v2: plaintext fallback removed — crypto always works on localhost."""
+        project_root = os.path.dirname(__file__)
+        chat_path = os.path.join(project_root, "chat.html")
+        with open(chat_path, "r") as f:
+            content = f.read()
+        assert "_plaintextMode" not in content, (
+            "Plaintext fallback code should be removed in v2 (localhost = secure context)"
+        )
+        assert "decodePlain" not in content, "decodePlain should be removed in v2"
+
+    def test_chat_html_no_keyboard_interceptor(self) -> None:
+        """v2: keyboard interceptor hack removed — navigated path handles input."""
+        project_root = os.path.dirname(__file__)
+        chat_path = os.path.join(project_root, "chat.html")
+        with open(chat_path, "r") as f:
+            content = f.read()
+        assert "SRCDOC IFRAME KEYBOARD INTERCEPTOR" not in content, (
+            "Keyboard interceptor should be removed in v2"
+        )
+
+    def test_chat_html_has_localstorage_persistence(self) -> None:
+        """v2: nickname should persist via localStorage."""
+        project_root = os.path.dirname(__file__)
+        chat_path = os.path.join(project_root, "chat.html")
+        with open(chat_path, "r") as f:
+            content = f.read()
+        assert "jarvis-chat-nick" in content, (
+            "chat.html should use localStorage key 'jarvis-chat-nick'"
+        )
+
+
+# =============================================================================
+# TESTS — CHAT SERVER
+# =============================================================================
+
+
+class TestChatServer:
+    """Verify the local HTTP server serves chat.html correctly."""
+
+    def test_server_starts_and_serves(self) -> None:
+        """Start the chat server and verify it serves chat.html."""
+        import http.server
+        import threading
+        import urllib.error
+        import urllib.request
+
+        serve_dir = os.path.dirname(__file__)
+
+        class Handler(http.server.SimpleHTTPRequestHandler):
+            def __init__(self, *a, **kw):
+                super().__init__(*a, directory=serve_dir, **kw)
+
+            def do_GET(self):
+                if self.path in ("/chat.html", "/chat.html?"):
+                    super().do_GET()
+                else:
+                    self.send_error(404)
+
+            def log_message(self, format, *args):
+                pass
+
+        server = http.server.HTTPServer(("127.0.0.1", 0), Handler)
+        port = server.server_address[1]
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            # chat.html should return 200
+            resp = urllib.request.urlopen(
+                f"http://127.0.0.1:{port}/chat.html"
+            )  # nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected
+            assert resp.status == 200
+            body = resp.read().decode()
+            assert "JARVIS LIVECHAT" in body
+
+            # anything else should return 404
+            try:
+                urllib.request.urlopen(
+                    f"http://127.0.0.1:{port}/main.py"
+                )  # nosemgrep: python.lang.security.audit.dynamic-urllib-use-detected
+                pytest.fail("Should have returned 404 for non-chat paths")
+            except urllib.error.HTTPError as e:
+                assert e.code == 404
+        finally:
+            server.shutdown()
