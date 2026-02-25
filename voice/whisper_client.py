@@ -1,4 +1,4 @@
-"""Client for vibetotext Unix domain socket transcription service."""
+"""Client for Jarvis built-in Whisper transcription server."""
 
 import asyncio
 import base64
@@ -14,14 +14,14 @@ TIMEOUT = 10.0
 
 
 class WhisperClient:
-    """Sends audio to vibetotext's local Whisper model for transcription."""
+    """Sends audio to the local Whisper server for transcription."""
 
     async def transcribe(self, audio: np.ndarray, sample_rate: int = 16000) -> str:
-        """Send audio to vibetotext and get transcription.
+        """Send audio to Whisper server and get transcription.
 
         Args:
             audio: float32 mono numpy array
-            sample_rate: sample rate (vibetotext expects 16000)
+            sample_rate: sample rate (expects 16000)
 
         Returns:
             Transcribed text, or empty string on error.
@@ -34,7 +34,7 @@ class WhisperClient:
         try:
             sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
             sock.settimeout(TIMEOUT)
-            sock.connect(config.VIBETOTEXT_SOCKET)
+            sock.connect(config.WHISPER_SOCKET)
 
             audio_f32 = audio.astype(np.float32)
             audio_b64 = base64.b64encode(audio_f32.tobytes()).decode()
@@ -68,13 +68,13 @@ class WhisperClient:
             return ""
 
     def is_available(self) -> bool:
-        """Check if the vibetotext socket server is actually listening."""
-        if not os.path.exists(config.VIBETOTEXT_SOCKET):
+        """Check if the Whisper socket server is listening."""
+        if not os.path.exists(config.WHISPER_SOCKET):
             return False
         try:
             sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
             sock.settimeout(1.0)
-            sock.connect(config.VIBETOTEXT_SOCKET)
+            sock.connect(config.WHISPER_SOCKET)
             sock.close()
             return True
         except (ConnectionRefusedError, OSError):

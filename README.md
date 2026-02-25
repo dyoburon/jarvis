@@ -1,6 +1,19 @@
 # Jarvis
 
-Personal AI assistant with voice input, a Metal-rendered HUD, and modular skills. Runs on macOS.
+A multiplayer vibe coding experience — games, chats, and vibes.
+
+![Jarvis](screenshot.png)
+
+Jarvis is a shared desktop environment where multiple AI assistants, retro arcade games, live chat, and a 3D Metal-rendered orb all coexist on one screen. Connect with friends, play Asteroids or Kart Bros, talk to Opus 4.6 assistants, and vibe — all at once.
+
+## Features
+
+- **Multiplayer AI Assistants** — Up to 4 Claude Opus 4.6 chat panels running simultaneously
+- **Arcade Games** — Jarvis Asteroids, Kart Bros, and more embedded directly in the HUD
+- **Live Chat** — Real-time online chat with room codes and invite links
+- **3D Metal Orb** — A reactive, animated orb rendered with Apple's Metal framework
+- **Voice Input** — Push-to-talk with local Whisper transcription
+- **Vibe Coding** — Ask the AI assistants to help you build, debug, and ship code live on stream
 
 ## Architecture
 
@@ -26,8 +39,6 @@ connectors/              External service integrations
   sqlite_reader.py       Database reading utilities
   http_client.py         Async HTTP client wrapper
 ```
-
-The Python backend (`main.py`) launches the Metal app as a subprocess and communicates via JSON over stdin/stdout. The Metal app renders a fullscreen 3D orb with hex grid background and displays chat panels, images, and embedded iframes from skills.
 
 ## Setup
 

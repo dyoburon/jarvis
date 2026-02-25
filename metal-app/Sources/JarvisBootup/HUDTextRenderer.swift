@@ -165,7 +165,7 @@ class HUDTextRenderer {
             let str = NSAttributedString(string: text, attributes: chatAttrs)
             let drawRect = CGRect(
                 x: overlayLeft,
-                y: marginY,
+                y: 20,
                 width: overlayWidth,
                 height: CGFloat(height) * 0.5
             )

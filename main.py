@@ -18,7 +18,7 @@ import time as _time
 
 import config
 from presence.client import PresenceClient
-from presence.identity import load_identity
+from presence.identity import load_identity, save_display_name
 
 # New config system (Phase 2)
 from jarvis.config.loader import load_config, config_to_json
@@ -46,9 +46,10 @@ from skills.claude_code import (
     _format_tool_result as _cc_format_tool_result,
     _TOOL_CATEGORIES as _CC_TOOL_CATEGORIES,
 )
-from skills.router import SkillRouter, _skills
+from skills.router import SkillRouter
 from voice.audio import MicCapture, SkillMicCapture
 from voice.whisper_client import WhisperClient
+from voice.whisper_server import WhisperServer
 
 console = Console()
 
@@ -196,6 +197,18 @@ class MetalBridge:
     def send_chat_overlay(self, text: str):
         self.send({"type": "chat_overlay", "text": text})
 
+    def send_overlay_update(self, status: str, lines: list[str]):
+        self.send({
+            "type": "overlay_update",
+            "json": json.dumps({"status": status, "lines": lines}),
+        })
+
+    def send_overlay_user_list(self, users: list[dict]):
+        self.send({
+            "type": "overlay_user_list",
+            "json": json.dumps(users),
+        })
+
     def send_chat_image(self, path: str, panel: int = None):
         msg = {"type": "chat_image", "path": path}
         if panel is not None:
@@ -262,14 +275,29 @@ async def main():
     # Shared overlay buffer (chat monitor + presence notifications)
     overlay_lines: list[str] = []
     overlay_lock = asyncio.Lock()
-    MAX_OVERLAY_LINES = 8
+    overlay_status: str = ""  # persistent top line (online count)
+    MAX_OVERLAY_LINES = 7  # leave room for status line
+
+    def _build_overlay() -> str:
+        parts = []
+        if overlay_status:
+            parts.append(overlay_status)
+        parts.extend(overlay_lines)
+        return "\n".join(parts)
 
     async def push_overlay_line(line: str):
         async with overlay_lock:
             overlay_lines.append(line)
             if len(overlay_lines) > MAX_OVERLAY_LINES:
                 del overlay_lines[: len(overlay_lines) - MAX_OVERLAY_LINES]
-            metal.send_chat_overlay("\n".join(overlay_lines))
+            metal.send_chat_overlay(_build_overlay())
+            metal.send_overlay_update(overlay_status, list(overlay_lines))
+
+    def update_overlay_status(text: str):
+        nonlocal overlay_status
+        overlay_status = text
+        metal.send_chat_overlay(_build_overlay())
+        metal.send_overlay_update(overlay_status, list(overlay_lines))
 
     # Presence client
     identity = load_identity()
@@ -277,13 +305,16 @@ async def main():
         config.PRESENCE_URL, identity["user_id"], identity["display_name"]
     )
     _current_game: str | None = None  # tracks which game is active for exit events
+    _pending_invite: dict | None = None  # last received game invite
 
     def _handle_presence(event_type: str, data: dict):
         name = data.get("display_name", "Someone")
         if event_type == "user_online":
             asyncio.create_task(push_overlay_line(f">> {name} is online"))
+            metal.send_overlay_user_list(presence.online_users)
         elif event_type == "user_offline":
             asyncio.create_task(push_overlay_line(f">> {name} went offline"))
+            metal.send_overlay_user_list(presence.online_users)
         elif event_type == "activity_changed":
             activity = data.get("activity", "")
             status = data.get("status", "")
@@ -297,8 +328,55 @@ async def main():
                 asyncio.create_task(push_overlay_line(f">> {name} went idle"))
             elif status == "online":
                 asyncio.create_task(push_overlay_line(f">> {name} is back"))
+            metal.send_overlay_user_list(presence.online_users)
+        elif event_type == "game_invite":
+            nonlocal _pending_invite
+            game = data.get("game", "")
+            code = data.get("code", "")
+            _pending_invite = {"game": game, "code": code, "from": name}
+            asyncio.create_task(push_overlay_line(f">> {name} is hosting {game} — Code: {code}"))
+            asyncio.create_task(push_overlay_line(f'>> Say "join" to play'))
+            console.print(f"[bold yellow]Game invite:[/] {name} hosting {game} code={code}")
+        elif event_type == "invite_sent":
+            game = data.get("game", "")
+            code = data.get("code", "")
+            sent_to = data.get("sent_to", [])
+            if sent_to:
+                names = ", ".join(sent_to)
+                asyncio.create_task(push_overlay_line(f">> Invite sent to {names} — {game} code: {code}"))
+            else:
+                asyncio.create_task(push_overlay_line(f">> Invite sent — no one else online"))
+            console.print(f"[bold cyan]Invite sent:[/] {game} code={code} to {sent_to}")
+        elif event_type == "poke":
+            poker_name = data.get("display_name", "Someone")
+            asyncio.create_task(push_overlay_line(f">> {poker_name} poked you!"))
+            subprocess.Popen(
+                ["afplay", "-v", "0.5", "/System/Library/Sounds/Ping.aiff"],
+                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+            )
+            console.print(f"[bold yellow]Poke![/] {poker_name} poked you")
+        elif event_type == "online_count":
+            count = data.get("count", 0)
+            update_overlay_status(f"[ {count} online ]")
 
     presence.on_notification = _handle_presence
+
+    async def _initial_overlay_sync():
+        """Send current overlay state after WebView has loaded."""
+        await asyncio.sleep(3)
+        metal.send_overlay_update(overlay_status, list(overlay_lines))
+        metal.send_overlay_user_list(presence.online_users)
+
+    async def _heartbeat_sound():
+        """Play a subtle sound every 30s while connected to presence."""
+        await asyncio.sleep(5)  # wait for initial connection
+        while True:
+            if presence._connected:
+                subprocess.Popen(
+                    ["afplay", "-v", "0.15", "/System/Library/Sounds/Tink.aiff"],
+                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL
+                )
+            await asyncio.sleep(30)
 
     console.print(
         Panel(
@@ -314,6 +392,10 @@ async def main():
         source_rate=config.SAMPLE_RATE, target_rate=config.WHISPER_SAMPLE_RATE
     )
     whisper_client = WhisperClient()
+
+    # Start built-in Whisper transcription server
+    whisper_server = WhisperServer(config.WHISPER_SOCKET, model_name=config.WHISPER_MODEL)
+    whisper_server.start()
 
     # Send mic audio levels to Metal sphere during PTT
     skill_mic.on_level = lambda level: metal.send_audio_level(level)
@@ -591,6 +673,10 @@ async def main():
             phrase == normalized or normalized.startswith(phrase)
             for phrase in kart_phrases
         )
+
+    def _is_join_invite_command(text: str) -> bool:
+        normalized = text.lower().strip().rstrip(".")
+        return normalized in ("join", "accept", "join game", "accept invite", "join invite")
 
     # 1v100 Trivia Game (deployed to Vercel)
     TRIVIA_BASE_URL = os.environ.get("TRIVIA_URL", "https://onev100.onrender.com")
@@ -905,11 +991,8 @@ async def main():
             # Resolve skill display name
             if tool_name == "code_assistant":
                 skill_name = "Opus 4.6 Assistant 1"
-            elif tool_name == "get_system_overview":
-                skill_name = "System Overview"
             else:
-                skill = _skills.get(tool_name)
-                skill_name = skill.name if skill else tool_name
+                skill_name = tool_name
 
             metal.send_chat_start(skill_name)
             await presence.update_activity("in_skill", skill_name)
@@ -1373,6 +1456,9 @@ async def main():
 
         ptt_active = False
         default_task: asyncio.Task | None = None
+        # First-run name prompt (centered input box in Metal app)
+        if not identity.get("name_set", False):
+            metal.send({"type": "name_prompt"})
 
         async def handle_fn_key(pressed: bool):
             nonlocal \
@@ -1380,7 +1466,8 @@ async def main():
                 skill_active, \
                 pending_tool_name, \
                 default_task, \
-                _current_game
+                _current_game, \
+                _pending_invite
 
             if pressed and not ptt_active:
                 if not whisper_client.is_available():
@@ -1393,7 +1480,7 @@ async def main():
                             "Local transcription unavailable. Start vibetotext.",
                         )
                     else:
-                        metal.send_hud("vibetotext not running")
+                        metal.send_hud("Whisper not ready")
                     return
                 ptt_active = True
                 mic._skill_capture = skill_mic
@@ -1567,6 +1654,28 @@ async def main():
                         metal.send_state("listening")
                         return
 
+                    if _pending_invite and _is_join_invite_command(text):
+                        invite = _pending_invite
+                        _pending_invite = None
+                        subprocess.run(
+                            ["pbcopy"],
+                            input=invite["code"].encode(),
+                            check=True,
+                        )
+                        game = invite["game"]
+                        if game == "KartBros":
+                            metal.send_chat_iframe_fullscreen(
+                                "https://kartbros.io", panel=active_panel
+                            )
+                        _current_game = game
+                        await presence.update_activity("in_game", game)
+                        metal.send_hud(f"Joining {game} — code copied!")
+                        metal.send_state("listening")
+                        console.print(
+                            f"[bold cyan]Joining {game}[/] — code '{invite['code']}' copied to clipboard"
+                        )
+                        return
+
                     if _is_chat_command(text):
                         log.info(f"Chat command detected: '{text}'")
                         _start_chat_server()
@@ -1658,17 +1767,51 @@ async def main():
                             event_log.log_action(
                                 "panel_focus", old=old_panel, new=active_panel
                             )
-                        elif msg.get("type") == "chat_input" and skill_active:
+                        elif msg.get("type") == "chat_input":
                             _last_interaction = _time.time()
                             text = msg.get("text", "")
-                            panel_idx = msg.get("panel", active_panel)
-                            await on_skill_input(
-                                "__skill_chat__",
-                                pending_tool_name,
-                                "",
-                                text,
-                                panel=panel_idx,
-                            )
+                            # Intercept invite messages from the game overlay
+                            if text.startswith("__invite__"):
+                                code = text[len("__invite__"):]
+                                if _current_game and code:
+                                    await presence.send_invite(_current_game, code)
+                                    log.info(
+                                        f"Sent game invite: {_current_game} code={code}"
+                                    )
+                                    console.print(
+                                        f"[bold cyan]Invite sent:[/] {_current_game} code={code}"
+                                    )
+                            elif skill_active:
+                                panel_idx = msg.get("panel", active_panel)
+                                await on_skill_input(
+                                    "__skill_chat__",
+                                    pending_tool_name,
+                                    "",
+                                    text,
+                                    panel=panel_idx,
+                                )
+                        elif msg.get("type") == "name_response":
+                            name = msg.get("name", "").strip()
+                            if name:
+                                save_display_name(name)
+                                identity["display_name"] = name
+                                identity["name_set"] = True
+                                presence.display_name = name
+                                log.info(f"Display name set: {name}")
+                                console.print(f"[bold cyan]Name set:[/] {name}")
+                                # Push current state to the overlay WebView
+                                metal.send_overlay_update(
+                                    overlay_status, list(overlay_lines)
+                                )
+                        elif msg.get("type") == "overlay_action":
+                            action = msg.get("action")
+                            if action == "request_users":
+                                metal.send_overlay_user_list(presence.online_users)
+                            elif action == "poke":
+                                target_id = msg.get("target_user_id")
+                                if target_id:
+                                    await presence.send_poke(target_id)
+                                    log.info(f"Poke sent to {target_id[:8]}")
                         elif msg.get("type") == "fn_key":
                             await handle_fn_key(msg.get("pressed", False))
                         elif msg.get("type") == "hotkey":
@@ -1732,6 +1875,8 @@ async def main():
             chat_monitor(),
             presence.run(),
             idle_monitor(),
+            _heartbeat_sound(),
+            _initial_overlay_sync(),
         )
 
     except KeyboardInterrupt:
@@ -1748,6 +1893,7 @@ async def main():
         console.print("\n[dim]Shutting down...[/]")
         await presence.disconnect()
         mic.stop()
+        whisper_server.stop()
         metal.quit()
 
 

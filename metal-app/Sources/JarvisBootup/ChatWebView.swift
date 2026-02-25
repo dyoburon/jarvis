@@ -52,6 +52,24 @@ class ChatWebView: NSObject, WKScriptMessageHandler, WKNavigationDelegate {
         """, injectionTime: .atDocumentStart, forMainFrameOnly: false)
         userContent.addUserScript(keyboardPatch)
 
+        // Bridge web clipboard writes to the native macOS pasteboard.
+        // WKWebView's navigator.clipboard.writeText() doesn't reliably
+        // update NSPasteboard, so games like KartBros copy buttons fail.
+        let clipboardBridge = WKUserScript(source: """
+            (function() {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    var origWrite = navigator.clipboard.writeText.bind(navigator.clipboard);
+                    navigator.clipboard.writeText = function(text) {
+                        try {
+                            window.webkit.messageHandlers.chatInput.postMessage('__clipboard__' + text);
+                        } catch(e) {}
+                        return origWrite(text);
+                    };
+                }
+            })();
+        """, injectionTime: .atDocumentStart, forMainFrameOnly: false)
+        userContent.addUserScript(clipboardBridge)
+
         super.init()
 
         userContent.add(self, name: "chatInput")

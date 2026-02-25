@@ -68,6 +68,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var focusManager: FocusManager?
     var settingsOverlay: SettingsOverlay?
     var keybindManager: KeybindManager?
+    var presenceOverlay: PresenceOverlayWebView?
+    var namePrompt: NamePromptView?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         guard let screen = NSScreen.main else {
@@ -158,7 +160,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             )
             chatWebView = ChatWebView(frame: chatFrame)
             chatWebView?.attach(to: overlayView)
-            
+
             // Initialize FocusManager
             let focusConfig = FocusConfig(
                 tabCyclingEnabled: true,
@@ -169,7 +171,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             focusManager = FocusManager(config: focusConfig)
             focusManager?.setWindow(window)
             chatWebView?.focusManager = focusManager
-            
+
             // Initialize Settings Overlay
             settingsOverlay = SettingsOverlay(frame: metalView.bounds)
             settingsOverlay?.autoresizingMask = [.width, .height]
@@ -177,10 +179,23 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 metalLog("Settings saved - restart required")
             }
             overlayView.addSubview(settingsOverlay!)
-            
+
             // Initialize KeybindManager
             keybindManager = KeybindManager()
             metalLog("KeybindManager initialized")
+
+            // Presence overlay (right 28% — interactive online list + poke)
+            let presenceFrame = NSRect(
+                x: screen.frame.width * 0.72,
+                y: 0,
+                width: screen.frame.width * 0.28,
+                height: screen.frame.height
+            )
+            presenceOverlay = PresenceOverlayWebView(frame: presenceFrame)
+            presenceOverlay?.attach(to: overlayView)
+
+            // Clear Metal HUD top-right text — the WebView overlay replaces it
+            hudRenderer.setTopRightText("")
         }
 
         // PTT state (Option+Period) — shared across monitors
@@ -368,7 +383,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     self?.chatWebView?.updateStatus(text: text, panel: panel)
                 },
                 onChatOverlay: { [weak self] text in
-                    self?.hudRenderer.setTopRightText(text)
+                    // Only render in Metal HUD if the interactive overlay WebView isn't active
+                    if self?.presenceOverlay == nil {
+                        self?.hudRenderer.setTopRightText(text)
+                    }
                 },
                 onChatImage: { [weak self] path, panel in
                     self?.chatWebView?.appendImage(path: path, panel: panel)
@@ -384,6 +402,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 },
                 onChatInputSet: { [weak self] text, panel in
                     self?.chatWebView?.setInputText(text, panel: panel)
+                },
+                onOverlayUpdate: { [weak self] json in
+                    self?.presenceOverlay?.updateOverlay(json: json)
+                },
+                onOverlayUserList: { [weak self] json in
+                    self?.presenceOverlay?.updateUserList(json: json)
+                },
+                onNamePrompt: { [weak self] in
+                    guard let self = self,
+                          let overlayView = self.window.contentView?.subviews.last else { return }
+                    self.namePrompt = NamePromptView(parentFrame: overlayView.bounds)
+                    self.namePrompt?.show(in: overlayView)
                 },
                 onTestHideFullscreen: { [weak self] in
                     self?.chatWebView?.hideFullscreenIframe()

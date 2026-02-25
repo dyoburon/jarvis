@@ -6,6 +6,7 @@ Run with:  python -m presence.server
 import asyncio
 import json
 import logging
+import os
 import time
 from dataclasses import dataclass, field
 
@@ -91,7 +92,10 @@ class PresenceServer:
                 elif msg_type == "ping":
                     if user_id and user_id in self.users:
                         self.users[user_id].last_heartbeat = time.time()
-                    await ws.send(json.dumps({"type": "pong"}))
+                    await ws.send(json.dumps({
+                        "type": "pong",
+                        "online_count": len(self.users),
+                    }))
 
                 elif msg_type == "activity_update":
                     if user_id and user_id in self.users:
@@ -109,6 +113,47 @@ class PresenceServer:
                             "activity": u.activity,
                             "ts": time.time(),
                         }, exclude=user_id)
+
+                elif msg_type == "game_invite":
+                    if user_id and user_id in self.users:
+                        u = self.users[user_id]
+                        log.info("Invite: %s hosting %s code=%s", u.display_name, msg.get("game"), msg.get("code"))
+                        invite_msg = {
+                            "type": "game_invite",
+                            "user_id": user_id,
+                            "display_name": u.display_name,
+                            "game": msg.get("game", ""),
+                            "code": msg.get("code", ""),
+                            "ts": time.time(),
+                        }
+                        await self.broadcast(invite_msg, exclude=user_id)
+                        # Send confirmation back to the sender
+                        online_names = [
+                            other.display_name for other in self.users.values()
+                            if other.user_id != user_id
+                        ]
+                        await ws.send(json.dumps({
+                            "type": "invite_sent",
+                            "game": invite_msg["game"],
+                            "code": invite_msg["code"],
+                            "sent_to": online_names,
+                        }))
+
+                elif msg_type == "poke":
+                    if user_id and user_id in self.users:
+                        target_id = msg.get("target_user_id")
+                        if target_id and target_id in self.sockets:
+                            u = self.users[user_id]
+                            log.info("Poke: %s → %s", u.display_name, target_id[:8])
+                            try:
+                                await self.sockets[target_id].send(json.dumps({
+                                    "type": "poke",
+                                    "user_id": user_id,
+                                    "display_name": u.display_name,
+                                    "ts": time.time(),
+                                }))
+                            except websockets.ConnectionClosed:
+                                pass
 
                 elif msg_type == "disconnect":
                     break
@@ -176,8 +221,9 @@ def main():
         format="%(asctime)s %(levelname)s %(name)s: %(message)s",
         datefmt="%H:%M:%S",
     )
+    port = int(os.environ.get("PORT", PORT))
     server = PresenceServer()
-    asyncio.run(server.run())
+    asyncio.run(server.run(port=port))
 
 
 if __name__ == "__main__":
