@@ -1803,3 +1803,14 @@
 2026-02-25T02:54:37Z [METAL] WKMessage: "asteroid" from_panel=4 activePanel=4 fullscreen=true
 2026-02-25T02:54:37Z [METAL] showFullscreenIframe: url=file:///Users/dylan/Desktop/projects/jarvis/asteroids.html panel=4 isFile=true
 2026-02-25T02:54:37Z [METAL] WKMessage: "__iframe_loaded__" from_panel=4 activePanel=4 fullscreen=true
+2026-02-25T02:55:29Z [METAL] applicationDidBecomeActive: fullscreen=true
+2026-02-25T02:55:29Z [METAL] applicationDidBecomeActive: restoring game focus
+2026-02-25T02:55:29Z [METAL] restoreGameFocus: navigated=false — injecting focus events
+2026-02-25T02:55:29Z [METAL] keyDown: Escape → hideFullscreenIframe
+2026-02-25T02:55:29Z [METAL] hideFullscreenIframe: navigated=false panel=4
+2026-02-25T02:55:30Z [METAL] __focus__: from_panel=1 activePanel=4 fullscreen=false fullscreenPanel=-1 firstResponder=Optional(<WKWebView: 0x772ada000>)
+2026-02-25T02:55:30Z [METAL] updateFocusIndicators: activePanel=1 panelCount=5
+2026-02-25T02:55:30Z [METAL] updateFocusIndicators: makeFirstResponder panel=1 before=Optional(<WKWebView: 0x772ada000>) after=Optional(<WKWebView: 0x772ada000>)
+2026-02-25T02:55:31Z [METAL] WKMessage: "__escape__" from_panel=1 activePanel=1 fullscreen=false
+2026-02-25T02:55:31Z [METAL] updateFocusIndicators: activePanel=1 panelCount=4
+2026-02-25T02:55:31Z [METAL] updateFocusIndicators: activePanel=1 panelCount=4

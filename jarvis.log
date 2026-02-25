@@ -20750,3 +20750,11 @@ It's done and built successfully. To recap:
 2026-02-24 18:55:06 [INFO] Game event: key_forwarded {"ts": "2026-02-25T02:55:06Z", "event": "key_forwarded", "count": 1, "panel": 4, "keyCode": 2, "key": "d"}
 2026-02-24 18:55:08 [DEBUG] Metal msg: game_event {"ts": "2026-02-25T02:55:08Z", "event": "key_forwarded", "count": 6, "panel": 4, "keyCode": 13, "key": "w"}
 2026-02-24 18:55:08 [INFO] Game event: key_forwarded {"ts": "2026-02-25T02:55:08Z", "event": "key_forwarded", "count": 6, "panel": 4, "keyCode": 13, "key": "w"}
+2026-02-24 18:55:29 [DEBUG] Metal msg: game_event {"event": "focus_restored", "panel": 4, "ts": "2026-02-25T02:55:29Z"}
+2026-02-24 18:55:29 [INFO] Game event: focus_restored {"event": "focus_restored", "panel": 4, "ts": "2026-02-25T02:55:29Z"}
+2026-02-24 18:55:29 [DEBUG] Metal msg: game_event {"event": "iframe_hide", "ts": "2026-02-25T02:55:29Z", "panel": 4}
+2026-02-24 18:55:29 [INFO] Game event: iframe_hide {"event": "iframe_hide", "ts": "2026-02-25T02:55:29Z", "panel": 4}
+2026-02-24 18:55:30 [DEBUG] Metal msg: panel_focus {"panel": 1}
+2026-02-24 18:55:31 [DEBUG] Metal msg: chat_input {"text": "__escape__", "panel": 1}
+2026-02-24 18:55:31 [INFO] on_skill_input: event=__skill_chat__ tool=code_assistant text=__escape__
+2026-02-24 18:55:31 [DEBUG] Disconnect error (ok): Attempted to exit cancel scope in a different task than it was entered in

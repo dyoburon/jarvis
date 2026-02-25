@@ -553,3 +553,7 @@
 18:55:00 [METAL] key_forwarded {'count': 5, 'panel': 4, 'key': 'd', 'keyCode': 2}
 18:55:06 [METAL] key_forwarded {'count': 1, 'panel': 4, 'keyCode': 2, 'key': 'd'}
 18:55:08 [METAL] key_forwarded {'count': 6, 'panel': 4, 'keyCode': 13, 'key': 'w'}
+18:55:29 [METAL] focus_restored {'panel': 4}
+18:55:29 [METAL] iframe_hide {'panel': 4}
+18:55:30 [PYTHON] panel_focus {'old': 4, 'new': 1}
+18:55:31 [PYTHON] send_chat_close_panel
