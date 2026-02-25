@@ -36,8 +36,8 @@ The Python backend (`main.py`) launches the Metal app as a subprocess and commun
 - macOS 13+
 - Python 3.12
 - Swift 5.9+
-- A Google Gemini API key
 - Claude Max subscription (for Claude Code / Agent SDK features)
+- Google Gemini API key (optional — enables Gemini-powered voice routing and skills)
 
 ### Install
 
@@ -58,8 +58,8 @@ swift build
 Create a `.env` file in the project root:
 
 ```
-GOOGLE_API_KEY=your-gemini-api-key
 CLAUDE_CODE_OAUTH_TOKEN=your-oauth-token
+GOOGLE_API_KEY=your-gemini-api-key        # optional
 ```
 
 ### Claude OAuth Token Setup

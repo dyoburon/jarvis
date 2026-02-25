@@ -133,7 +133,7 @@ TOOL_DISPATCH["get_system_overview"] = _system_overview_executor
 
 class SkillRouter:
     def __init__(self, metal_bridge=None):
-        self.gemini = genai.Client(api_key=config.GOOGLE_API_KEY)
+        self.gemini = genai.Client(api_key=config.GOOGLE_API_KEY) if config.GOOGLE_API_KEY else None
         self.claude_proxy = ClaudeProxyClient()
         self.metal = metal_bridge
         self.token_tracker = TokenTracker(config.TOKEN_USAGE_DB)
@@ -228,6 +228,9 @@ class SkillRouter:
 
     def start_default_session(self):
         """Create the persistent Gemini Flash chat for default conversation."""
+        if not self.gemini:
+            console.print("[yellow]Gemini unavailable — no GOOGLE_API_KEY[/]")
+            return
         self.default_chat = self.gemini.aio.chats.create(
             model=config.GEMINI_MODEL_DEFAULT,
             config=types.GenerateContentConfig(
@@ -246,6 +249,8 @@ class SkillRouter:
         """
         if not self.default_chat:
             self.start_default_session()
+        if not self.default_chat:
+            return ("Gemini is unavailable — set GOOGLE_API_KEY in .env to enable voice routing.", None)
 
         full_response = ""
         message = user_text
@@ -360,6 +365,9 @@ class SkillRouter:
             if "error" in data:
                 return data["error"]
             prompt = skill.format_prompt(data, user_transcript or tool_name)
+
+        if not self.gemini:
+            return "Gemini is unavailable — set GOOGLE_API_KEY in .env to enable this skill."
 
         ps = self._get_panel(panel)
         ps["skill_name"] = skill_name
@@ -543,6 +551,9 @@ class SkillRouter:
         params = json.loads(arguments) if arguments else {}
         task = params.get("task", user_transcript)
         project = params.get("project", "")
+
+        if not self.gemini:
+            return "Gemini is unavailable — set GOOGLE_API_KEY in .env to enable code sessions."
 
         ps = self._get_panel(panel)
         ps["skill_name"] = "Bench 1"

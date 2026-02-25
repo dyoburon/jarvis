@@ -212,8 +212,7 @@ class MetalBridge:
 async def main():
     log.info("=== Jarvis starting ===")
     if not config.GOOGLE_API_KEY:
-        console.print("[red]GOOGLE_API_KEY not set in .env[/]")
-        return
+        console.print("[yellow]GOOGLE_API_KEY not set — Gemini skills disabled[/]")
 
     # Launch Metal display
     metal = MetalBridge()
