@@ -87,13 +87,11 @@ impl JarvisApp {
             "terminal_ready" => {
                 self.handle_terminal_ready(pane_id, &msg.payload);
             }
-            // Presence messages will be handled in Phase 6
-            "presence_request_users" | "presence_poke" => {
-                tracing::debug!(
-                    pane_id,
-                    kind = %msg.kind,
-                    "Presence IPC: will be handled in Phase 6"
-                );
+            "presence_request_users" => {
+                self.handle_presence_request_users(pane_id, &msg.payload);
+            }
+            "presence_poke" => {
+                self.handle_presence_poke(pane_id, &msg.payload);
             }
             "settings_init" => {
                 self.handle_settings_init(pane_id, &msg.payload);

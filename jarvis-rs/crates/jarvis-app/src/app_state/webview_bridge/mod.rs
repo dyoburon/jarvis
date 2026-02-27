@@ -6,6 +6,7 @@
 mod bounds;
 mod ipc_dispatch;
 mod lifecycle;
+mod presence_handlers;
 mod pty_handlers;
 mod pty_polling;
 mod theme_handlers;

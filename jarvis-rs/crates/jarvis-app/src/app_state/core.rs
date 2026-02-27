@@ -12,11 +12,12 @@ use jarvis_platform::input::KeybindRegistry;
 use jarvis_platform::input_processor::InputProcessor;
 use jarvis_renderer::{AssistantPanel, RenderState, UiChrome};
 use jarvis_social::presence::PresenceEvent;
+use jarvis_social::OnlineUser;
 use jarvis_tiling::TilingManager;
 use jarvis_webview::WebViewRegistry;
 
 use super::pty_bridge::PtyManager;
-use super::types::AssistantEvent;
+use super::types::{AssistantEvent, PresenceCommand};
 
 /// Top-level application state.
 pub struct JarvisApp {
@@ -51,8 +52,9 @@ pub struct JarvisApp {
 
     // Social presence
     pub(super) online_count: u32,
+    pub(super) online_users: Vec<OnlineUser>,
     pub(super) presence_rx: Option<std::sync::mpsc::Receiver<PresenceEvent>>,
-    #[allow(dead_code)]
+    pub(super) presence_cmd_tx: Option<tokio::sync::mpsc::Sender<PresenceCommand>>,
     pub(super) tokio_runtime: Option<tokio::runtime::Runtime>,
 
     // AI assistant panel
@@ -88,7 +90,9 @@ impl JarvisApp {
             command_palette: None,
             command_palette_open: false,
             online_count: 0,
+            online_users: Vec::new(),
             presence_rx: None,
+            presence_cmd_tx: None,
             tokio_runtime: None,
             assistant_panel: None,
             assistant_open: false,
