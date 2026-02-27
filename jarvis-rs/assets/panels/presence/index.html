@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Jarvis Presence</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --color-primary: #00d4ff;
+  --color-background: #0a0a0a;
+  --color-panel-bg: #0d1117;
+  --color-text: #c0c8d0;
+  --color-text-muted: #888;
+  --color-border: #1a2a3a;
+  --color-success: #00ff88;
+  --color-warning: #ff6b00;
+  --color-error: #ff4444;
+  --font-family: Menlo, Monaco, 'Courier New', monospace;
+  --font-size: 13px;
+}
+
+body {
+  background: transparent;
+  color: var(--color-primary);
+  font-family: var(--font-family);
+  font-size: var(--font-size);
+  line-height: 1.4;
+  padding: 16px 20px;
+  -webkit-user-select: none;
+  user-select: none;
+  cursor: default;
+  overflow: hidden;
+}
+
+/* ================================================================ */
+/* STATUS LINE                                                       */
+/* ================================================================ */
+
+#status-line {
+  text-align: right;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 4px 0;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+  letter-spacing: 0.5px;
+}
+#status-line:hover {
+  opacity: 0.8;
+}
+
+/* ================================================================ */
+/* NOTIFICATIONS                                                     */
+/* ================================================================ */
+
+#notifications {
+  text-align: right;
+  margin-top: 8px;
+}
+.notif-line {
+  font-size: 11px;
+  color: var(--color-primary);
+  opacity: 0.35;
+  padding: 1px 0;
+  animation: fadeIn 0.3s ease;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ================================================================ */
+/* USER DROPDOWN                                                     */
+/* ================================================================ */
+
+#user-dropdown {
+  display: none;
+  position: absolute;
+  top: 38px;
+  right: 20px;
+  background: var(--color-panel-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  min-width: 220px;
+  max-height: 320px;
+  overflow-y: auto;
+  z-index: 10;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+}
+#user-dropdown.open { display: block; }
+#user-dropdown::-webkit-scrollbar { width: 3px; }
+#user-dropdown::-webkit-scrollbar-track { background: transparent; }
+#user-dropdown::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 2px;
+}
+
+.dd-header {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  padding: 8px 12px 4px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.user-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--color-border);
+  transition: background 0.15s;
+}
+.user-row:last-child { border-bottom: none; }
+.user-row:hover { background: rgba(0, 212, 255, 0.03); }
+
+.user-info { flex: 1; min-width: 0; }
+
+.user-name {
+  color: var(--color-primary);
+  opacity: 0.65;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.user-status {
+  font-size: 9px;
+  color: var(--color-text-muted);
+  margin-top: 1px;
+}
+
+.status-dot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  margin-right: 5px;
+  vertical-align: middle;
+}
+.status-dot.online {
+  background: var(--color-success);
+  box-shadow: 0 0 4px rgba(0, 255, 136, 0.4);
+}
+.status-dot.in_game {
+  background: var(--color-warning);
+  box-shadow: 0 0 4px rgba(255, 107, 0, 0.4);
+}
+.status-dot.in_skill {
+  background: #44aaff;
+  box-shadow: 0 0 4px rgba(68, 170, 255, 0.4);
+}
+.status-dot.idle {
+  background: var(--color-text-muted);
+}
+
+.poke-btn {
+  background: rgba(0, 212, 255, 0.08);
+  border: 1px solid var(--color-border);
+  color: var(--color-primary);
+  opacity: 0.55;
+  font-family: var(--font-family);
+  font-size: 10px;
+  padding: 3px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+.poke-btn:hover {
+  opacity: 0.9;
+  box-shadow: 0 0 8px rgba(0, 212, 255, 0.15);
+}
+.poke-btn:active {
+  background: rgba(0, 212, 255, 0.3);
+}
+.poke-btn.sent {
+  opacity: 0.25;
+  pointer-events: none;
+}
+
+.empty-msg {
+  padding: 16px 12px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+</style>
+</head>
+<body>
+  <div id="status-line">[ 0 online ]</div>
+  <div id="user-dropdown">
+    <div class="dd-header">Online Users</div>
+    <div id="user-list"></div>
+  </div>
+  <div id="notifications"></div>
+<script>
+'use strict';
+
+var dropdownOpen = false;
+var currentUsers = [];
+
+// =========================================================================
+// Public API — called from Rust via evaluate_script / IPC
+// =========================================================================
+
+function updateOverlay(jsonStr) {
+  try {
+    var data = JSON.parse(jsonStr);
+    if (data.status) {
+      document.getElementById('status-line').textContent = data.status;
+    }
+    if (data.lines) {
+      var container = document.getElementById('notifications');
+      // Clear and rebuild safely — no user content in lines (server-generated)
+      while (container.firstChild) { container.removeChild(container.firstChild); }
+      data.lines.forEach(function(line) {
+        var div = document.createElement('div');
+        div.className = 'notif-line';
+        div.textContent = line;
+        container.appendChild(div);
+      });
+    }
+  } catch (e) { /* ignore malformed JSON */ }
+}
+
+function updateUserList(jsonStr) {
+  try {
+    currentUsers = JSON.parse(jsonStr);
+    if (dropdownOpen) { renderDropdown(); }
+  } catch (e) { /* ignore malformed JSON */ }
+}
+
+// =========================================================================
+// Dropdown UI
+// =========================================================================
+
+function toggleDropdown() {
+  dropdownOpen = !dropdownOpen;
+  var dd = document.getElementById('user-dropdown');
+  if (dropdownOpen) {
+    dd.classList.add('open');
+    // Request fresh user list from Rust
+    if (window.jarvis && window.jarvis.ipc) {
+      window.jarvis.ipc.send('presence_request_users', {});
+    }
+    renderDropdown();
+  } else {
+    dd.classList.remove('open');
+  }
+}
+
+function renderDropdown() {
+  var list = document.getElementById('user-list');
+  // Clear existing content safely
+  while (list.firstChild) { list.removeChild(list.firstChild); }
+
+  if (currentUsers.length === 0) {
+    var emptyDiv = document.createElement('div');
+    emptyDiv.className = 'empty-msg';
+    emptyDiv.textContent = 'No other users online';
+    list.appendChild(emptyDiv);
+    return;
+  }
+
+  currentUsers.forEach(function(u) {
+    var row = document.createElement('div');
+    row.className = 'user-row';
+
+    var info = document.createElement('div');
+    info.className = 'user-info';
+
+    var nameEl = document.createElement('div');
+    nameEl.className = 'user-name';
+    var dot = document.createElement('span');
+    dot.className = 'status-dot ' + (u.status || 'online');
+    nameEl.appendChild(dot);
+    nameEl.appendChild(document.createTextNode(u.display_name || 'Unknown'));
+    info.appendChild(nameEl);
+
+    if (u.activity) {
+      var act = document.createElement('div');
+      act.className = 'user-status';
+      act.textContent = u.activity;
+      info.appendChild(act);
+    } else if (u.status && u.status !== 'online') {
+      var st = document.createElement('div');
+      st.className = 'user-status';
+      st.textContent = u.status.replace(/_/g, ' ');
+      info.appendChild(st);
+    }
+
+    row.appendChild(info);
+
+    var btn = document.createElement('button');
+    btn.className = 'poke-btn';
+    btn.textContent = 'Poke';
+    btn.addEventListener('click', (function(userId, btnEl) {
+      return function(e) {
+        e.stopPropagation();
+        if (window.jarvis && window.jarvis.ipc) {
+          window.jarvis.ipc.send('presence_poke', { target_user_id: userId });
+        }
+        btnEl.textContent = 'Sent!';
+        btnEl.classList.add('sent');
+        setTimeout(function() {
+          btnEl.textContent = 'Poke';
+          btnEl.classList.remove('sent');
+        }, 3000);
+      };
+    })(u.user_id, btn));
+    row.appendChild(btn);
+
+    list.appendChild(row);
+  });
+}
+
+// =========================================================================
+// IPC bridge — receive updates from Rust
+// =========================================================================
+
+if (window.jarvis && window.jarvis.ipc) {
+  window.jarvis.ipc.on('presence_update', function(payload) {
+    if (payload && payload.status) {
+      updateOverlay(JSON.stringify(payload));
+    }
+  });
+
+  window.jarvis.ipc.on('presence_users', function(payload) {
+    if (payload && Array.isArray(payload.users)) {
+      updateUserList(JSON.stringify(payload.users));
+    }
+  });
+
+  window.jarvis.ipc.on('presence_notification', function(payload) {
+    if (payload && payload.line) {
+      var container = document.getElementById('notifications');
+      var div = document.createElement('div');
+      div.className = 'notif-line';
+      div.textContent = payload.line;
+      container.appendChild(div);
+      // Cap notification lines at 10
+      while (container.children.length > 10) {
+        container.removeChild(container.firstChild);
+      }
+    }
+  });
+}
+
+// =========================================================================
+// Event listeners
+// =========================================================================
+
+document.getElementById('status-line').addEventListener('click', function() {
+  toggleDropdown();
+});
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(e) {
+  if (dropdownOpen
+      && !e.target.closest('#user-dropdown')
+      && !e.target.closest('#status-line')) {
+    dropdownOpen = false;
+    document.getElementById('user-dropdown').classList.remove('open');
+  }
+});
+</script>
+</body>
+</html>

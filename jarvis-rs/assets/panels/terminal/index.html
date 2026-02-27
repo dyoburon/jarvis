@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Jarvis Terminal</title>
+<link rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.5.0/css/xterm.min.css"
+      integrity="sha384-tStR1zLfWgsiXCF3IgfB3lBa8KmBe/lG287CL9WCeKgQYcp1bjb4/+mwN6oti4Co"
+      crossorigin="anonymous">
+<script src="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.5.0/lib/xterm.min.js"
+        integrity="sha384-J4qzUjBl1FxyLsl/kQPQIOeINsmp17OHYXDOMpMxlKX53ZfYsL+aWHpgArvOuof9"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@xterm/addon-fit@0.10.0/lib/addon-fit.min.js"
+        integrity="sha384-XGqKrV8Jrukp1NITJbOEHwg01tNkuXr6uB6YEj69ebpYU3v7FvoGgEg23C1Gcehk"
+        crossorigin="anonymous"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --color-primary: #00e5ff;
+  --color-background: #0a0a0a;
+  --color-panel-bg: #0d1117;
+  --color-text: #c0c8d0;
+  --color-border: #1a2a3a;
+  --color-border-focused: #2a4a5a;
+  --color-success: #00ff88;
+  --color-warning: #ff6b00;
+  --color-error: #ff4444;
+  --font-family: 'Courier New', monospace;
+  --font-size: 14px;
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-text);
+  font-family: var(--font-family);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  transition: border-color 0.2s ease;
+}
+body.focused {
+  border-color: var(--color-border-focused);
+}
+
+#terminal-container {
+  flex: 1;
+  padding: 4px;
+  overflow: hidden;
+}
+
+#status-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2px 8px;
+  font-size: 10px;
+  color: var(--color-primary);
+  opacity: 0.4;
+  border-top: 1px solid var(--color-border);
+  flex-shrink: 0;
+  min-height: 18px;
+}
+
+#exit-overlay {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.75);
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 12px;
+  font-family: var(--font-family);
+  z-index: 10;
+}
+#exit-overlay.visible {
+  display: flex;
+}
+#exit-overlay .exit-msg {
+  color: var(--color-primary);
+  opacity: 0.6;
+  font-size: 13px;
+}
+#exit-overlay .restart-btn {
+  background: none;
+  border: 1px solid var(--color-primary);
+  color: var(--color-primary);
+  font-family: var(--font-family);
+  font-size: 12px;
+  padding: 6px 16px;
+  border-radius: 3px;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.15s;
+}
+#exit-overlay .restart-btn:hover {
+  opacity: 1;
+}
+</style>
+</head>
+<body>
+  <div id="terminal-container"></div>
+  <div id="status-bar">
+    <span id="shell-info"></span>
+    <span id="size-info"></span>
+  </div>
+  <div id="exit-overlay">
+    <div class="exit-msg">Process exited</div>
+    <button class="restart-btn">Restart Shell</button>
+  </div>
+<script>
+'use strict';
+
+// Terminal instance
+var term = new Terminal({
+  cursorBlink: true,
+  cursorStyle: 'block',
+  scrollback: 1000,
+  fontSize: 14,
+  fontFamily: "'Courier New', monospace",
+  allowProposedApi: true,
+  theme: {
+    background: '#0a0a0a',
+    foreground: '#c0c8d0',
+    cursor: '#00e5ff',
+    cursorAccent: '#0a0a0a',
+    selectionBackground: 'rgba(0, 229, 255, 0.2)',
+    selectionForeground: '#ffffff',
+    black: '#000000',
+    red: '#ff4444',
+    green: '#00ff88',
+    yellow: '#ffaa00',
+    blue: '#4488ff',
+    magenta: '#ff44ff',
+    cyan: '#00e5ff',
+    white: '#c0c8d0',
+    brightBlack: '#666666',
+    brightRed: '#ff6666',
+    brightGreen: '#44ffaa',
+    brightYellow: '#ffcc44',
+    brightBlue: '#66aaff',
+    brightMagenta: '#ff88ff',
+    brightCyan: '#44eeff',
+    brightWhite: '#ffffff'
+  }
+});
+
+var fitAddon = new FitAddon.FitAddon();
+term.loadAddon(fitAddon);
+
+var container = document.getElementById('terminal-container');
+term.open(container);
+fitAddon.fit();
+
+// Update size display
+function updateSizeInfo() {
+  var el = document.getElementById('size-info');
+  if (el) {
+    el.textContent = term.cols + 'x' + term.rows;
+  }
+}
+updateSizeInfo();
+
+// Resize observer — fit terminal when container resizes
+var resizeObserver = new ResizeObserver(function() {
+  try { fitAddon.fit(); } catch (e) { /* ignore */ }
+  updateSizeInfo();
+});
+resizeObserver.observe(container);
+
+// =========================================================================
+// IPC Bridge — communicates with Rust via window.jarvis.ipc
+// Phase 4 will wire these to portable-pty.
+// =========================================================================
+
+// Send terminal input to Rust PTY
+term.onData(function(data) {
+  if (window.jarvis && window.jarvis.ipc) {
+    window.jarvis.ipc.send('pty_input', { data: data });
+  }
+});
+
+// Send resize events to Rust PTY
+term.onResize(function(size) {
+  if (window.jarvis && window.jarvis.ipc) {
+    window.jarvis.ipc.send('pty_resize', { cols: size.cols, rows: size.rows });
+  }
+  updateSizeInfo();
+});
+
+// Receive PTY output from Rust
+if (window.jarvis && window.jarvis.ipc) {
+  window.jarvis.ipc.on('pty_output', function(payload) {
+    if (payload && payload.data) {
+      term.write(payload.data);
+    }
+  });
+
+  window.jarvis.ipc.on('pty_exit', function(payload) {
+    var overlay = document.getElementById('exit-overlay');
+    if (overlay) {
+      var msg = overlay.querySelector('.exit-msg');
+      if (msg && payload && payload.code !== undefined) {
+        msg.textContent = 'Process exited (code ' + payload.code + ')';
+      }
+      overlay.classList.add('visible');
+    }
+  });
+
+  // Apply theme from Rust (Phase 5 will wire this)
+  window.jarvis.ipc.on('theme', function(payload) {
+    if (payload && payload.xterm) {
+      term.options.theme = payload.xterm;
+    }
+    if (payload && payload.fontSize) {
+      term.options.fontSize = payload.fontSize;
+    }
+    if (payload && payload.fontFamily) {
+      term.options.fontFamily = payload.fontFamily;
+    }
+    try { fitAddon.fit(); } catch (e) { /* ignore */ }
+  });
+
+  // Notify Rust that the terminal is ready
+  window.jarvis.ipc.send('terminal_ready', {
+    cols: term.cols,
+    rows: term.rows
+  });
+}
+
+// Restart button
+document.querySelector('.restart-btn').addEventListener('click', function() {
+  document.getElementById('exit-overlay').classList.remove('visible');
+  term.clear();
+  if (window.jarvis && window.jarvis.ipc) {
+    window.jarvis.ipc.send('pty_restart', {
+      cols: term.cols,
+      rows: term.rows
+    });
+  }
+});
+
+// Focus management
+document.addEventListener('mousedown', function() {
+  if (window.jarvis && window.jarvis.ipc) {
+    window.jarvis.ipc.send('panel_focus', {});
+  }
+});
+
+function setFocused(isFocused) {
+  if (isFocused) {
+    document.body.classList.add('focused');
+    term.focus();
+  } else {
+    document.body.classList.remove('focused');
+  }
+}
+
+// Initial focus
+setTimeout(function() { term.focus(); }, 200);
+</script>
+</body>
+</html>

@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Jarvis Settings</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --color-primary: #00e5ff;
+  --color-background: #0a0a0a;
+  --color-panel-bg: #0d1117;
+  --color-text: #c0c8d0;
+  --color-text-muted: #888;
+  --color-border: #1a2a3a;
+  --color-border-focused: #2a4a5a;
+  --color-success: #00ff88;
+  --color-warning: #ff6b00;
+  --color-error: #ff4444;
+  --font-family: Menlo, Monaco, 'Courier New', monospace;
+  --font-size: 13px;
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-text);
+  font-family: var(--font-family);
+  font-size: var(--font-size);
+  line-height: 1.5;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  transition: border-color 0.2s ease;
+}
+body.focused {
+  border-color: var(--color-border-focused);
+}
+
+/* ================================================================ */
+/* HEADER                                                           */
+/* ================================================================ */
+
+#header {
+  padding: 14px 20px 10px;
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+#header h1 {
+  font-size: 14px;
+  font-weight: bold;
+  color: var(--color-primary);
+  letter-spacing: 1px;
+}
+
+/* ================================================================ */
+/* CONTENT                                                          */
+/* ================================================================ */
+
+#content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 20px;
+}
+#content::-webkit-scrollbar { width: 3px; }
+#content::-webkit-scrollbar-track { background: transparent; }
+#content::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 2px;
+}
+
+/* ================================================================ */
+/* SECTIONS                                                         */
+/* ================================================================ */
+
+.section {
+  margin-bottom: 24px;
+}
+.section-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--color-text-muted);
+  margin-bottom: 10px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* ================================================================ */
+/* THEME GRID                                                       */
+/* ================================================================ */
+
+.theme-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+}
+
+.theme-card {
+  background: var(--color-panel-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  padding: 10px;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.theme-card:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 8px rgba(0, 229, 255, 0.1);
+}
+.theme-card.active {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.15);
+}
+.theme-card .theme-name {
+  font-size: 12px;
+  font-weight: bold;
+  color: var(--color-primary);
+  margin-bottom: 6px;
+}
+.theme-card .theme-preview {
+  display: flex;
+  gap: 3px;
+  height: 12px;
+}
+.theme-card .theme-preview .swatch {
+  flex: 1;
+  border-radius: 2px;
+}
+
+/* ================================================================ */
+/* INFO ROWS                                                        */
+/* ================================================================ */
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 12px;
+}
+.info-row:last-child { border-bottom: none; }
+.info-label {
+  color: var(--color-text-muted);
+}
+.info-value {
+  color: var(--color-text);
+  font-weight: bold;
+}
+
+/* ================================================================ */
+/* CONFIG PATH                                                      */
+/* ================================================================ */
+
+.config-path {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  word-break: break-all;
+  padding: 8px 10px;
+  background: var(--color-panel-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  margin-top: 6px;
+}
+
+/* ================================================================ */
+/* STATUS BAR                                                       */
+/* ================================================================ */
+
+#status-bar {
+  padding: 4px 20px;
+  font-size: 10px;
+  color: var(--color-text-muted);
+  border-top: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+</style>
+</head>
+<body>
+  <div id="header">
+    <h1>[ SETTINGS ]</h1>
+  </div>
+  <div id="content">
+
+    <div class="section">
+      <div class="section-title">Theme</div>
+      <div id="theme-grid" class="theme-grid">
+        <!-- Populated by Rust via IPC -->
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Info</div>
+      <div id="info-rows">
+        <div class="info-row">
+          <span class="info-label">Version</span>
+          <span class="info-value" id="version">--</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Platform</span>
+          <span class="info-value" id="platform">--</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Renderer</span>
+          <span class="info-value" id="renderer">--</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Panels Open</span>
+          <span class="info-value" id="panel-count">--</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Config File</div>
+      <div id="config-path" class="config-path">~/.config/jarvis/config.toml</div>
+    </div>
+
+  </div>
+  <div id="status-bar">
+    <span id="status-text">Settings loaded</span>
+  </div>
+<script>
+'use strict';
+
+// =========================================================================
+// Theme selection
+// =========================================================================
+
+function renderThemes(themes, activeTheme) {
+  var grid = document.getElementById('theme-grid');
+  // Clear safely
+  while (grid.firstChild) { grid.removeChild(grid.firstChild); }
+
+  themes.forEach(function(theme) {
+    var card = document.createElement('div');
+    card.className = 'theme-card';
+    if (theme.name === activeTheme) {
+      card.classList.add('active');
+    }
+
+    var name = document.createElement('div');
+    name.className = 'theme-name';
+    name.textContent = theme.name;
+    card.appendChild(name);
+
+    var preview = document.createElement('div');
+    preview.className = 'theme-preview';
+    var colors = theme.preview_colors || ['#00e5ff', '#0a0a0a', '#0d1117', '#c0c8d0'];
+    colors.forEach(function(color) {
+      var swatch = document.createElement('div');
+      swatch.className = 'swatch';
+      swatch.style.background = color;
+      preview.appendChild(swatch);
+    });
+    card.appendChild(preview);
+
+    card.addEventListener('click', function() {
+      if (window.jarvis && window.jarvis.ipc) {
+        window.jarvis.ipc.send('settings_set_theme', { name: theme.name });
+      }
+      // Optimistically update active state
+      var existing = grid.querySelector('.active');
+      if (existing) { existing.classList.remove('active'); }
+      card.classList.add('active');
+      document.getElementById('status-text').textContent =
+        'Theme changed to ' + theme.name;
+    });
+
+    grid.appendChild(card);
+  });
+}
+
+// =========================================================================
+// Info display
+// =========================================================================
+
+function updateInfo(info) {
+  if (info.version) {
+    document.getElementById('version').textContent = info.version;
+  }
+  if (info.platform) {
+    document.getElementById('platform').textContent = info.platform;
+  }
+  if (info.renderer) {
+    document.getElementById('renderer').textContent = info.renderer;
+  }
+  if (info.panel_count !== undefined) {
+    document.getElementById('panel-count').textContent = String(info.panel_count);
+  }
+  if (info.config_path) {
+    document.getElementById('config-path').textContent = info.config_path;
+  }
+}
+
+// =========================================================================
+// IPC bridge
+// =========================================================================
+
+if (window.jarvis && window.jarvis.ipc) {
+  window.jarvis.ipc.on('settings_themes', function(payload) {
+    if (payload && Array.isArray(payload.themes)) {
+      renderThemes(payload.themes, payload.active || '');
+    }
+  });
+
+  window.jarvis.ipc.on('settings_info', function(payload) {
+    if (payload) { updateInfo(payload); }
+  });
+
+  window.jarvis.ipc.on('settings_theme_changed', function(payload) {
+    if (payload && payload.name) {
+      var grid = document.getElementById('theme-grid');
+      var cards = grid.querySelectorAll('.theme-card');
+      cards.forEach(function(card) {
+        var nameEl = card.querySelector('.theme-name');
+        if (nameEl && nameEl.textContent === payload.name) {
+          var existing = grid.querySelector('.active');
+          if (existing) { existing.classList.remove('active'); }
+          card.classList.add('active');
+        }
+      });
+      document.getElementById('status-text').textContent =
+        'Theme: ' + payload.name;
+    }
+  });
+
+  // Request initial data
+  window.jarvis.ipc.send('settings_init', {});
+}
+
+// Focus management
+document.addEventListener('mousedown', function() {
+  if (window.jarvis && window.jarvis.ipc) {
+    window.jarvis.ipc.send('panel_focus', {});
+  }
+});
+
+function setFocused(isFocused) {
+  if (isFocused) {
+    document.body.classList.add('focused');
+  } else {
+    document.body.classList.remove('focused');
+  }
+}
+</script>
+</body>
+</html>
