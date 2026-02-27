@@ -45,6 +45,11 @@ impl VteHandler {
     pub fn grid_mut(&mut self) -> &mut Grid {
         &mut self.grid
     }
+
+    /// Returns a snapshot of which rows are dirty, then clears all dirty flags.
+    pub fn take_dirty(&mut self) -> Vec<bool> {
+        self.grid.take_dirty()
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -58,13 +63,15 @@ impl Perform for Grid {
 
     fn execute(&mut self, byte: u8) {
         match byte {
-            0x08 => self.backspace(),       // BS
-            0x09 => self.tab(),             // HT
-            0x0A..=0x0C => {         // LF, VT, FF
+            0x08 => self.backspace(), // BS
+            0x09 => self.tab(),       // HT
+            0x0A..=0x0C => {
+                // LF, VT, FF
                 self.newline();
             }
             0x0D => self.carriage_return(), // CR
-            0x07 => {                       // BEL
+            0x07 => {
+                // BEL
                 trace!("BEL received");
             }
             _ => {
@@ -73,13 +80,7 @@ impl Perform for Grid {
         }
     }
 
-    fn csi_dispatch(
-        &mut self,
-        params: &Params,
-        intermediates: &[u8],
-        _ignore: bool,
-        action: char,
-    ) {
+    fn csi_dispatch(&mut self, params: &Params, intermediates: &[u8], _ignore: bool, action: char) {
         // Collect params into a flat u16 vec for convenience.  Most sequences
         // only care about the first sub-parameter of each parameter group.
         let flat: Vec<u16> = params.iter().map(|sub| sub[0]).collect();
@@ -87,7 +88,11 @@ impl Perform for Grid {
         let p1 = || flat.first().copied().unwrap_or(0);
         let p1_one = || {
             let v = p1();
-            if v == 0 { 1 } else { v as usize }
+            if v == 0 {
+                1
+            } else {
+                v as usize
+            }
         };
         let p2 = || flat.get(1).copied().unwrap_or(0);
 
@@ -288,9 +293,7 @@ impl Perform for Grid {
                 self.reset();
             }
             _ => {
-                trace!(
-                    "unhandled ESC dispatch: byte=0x{byte:02X} intermediates={intermediates:?}"
-                );
+                trace!("unhandled ESC dispatch: byte=0x{byte:02X} intermediates={intermediates:?}");
             }
         }
     }
@@ -548,7 +551,7 @@ mod tests {
         h.process(b"AAAAAAAAAA"); // fill row 0
         h.process(b"\r\n");
         h.process(b"BBBBBBBBBB"); // fill row 1
-        // Move cursor to row 0, col 5.
+                                  // Move cursor to row 0, col 5.
         h.process(b"\x1b[1;6H");
         // ED 0: clear from cursor to end.
         h.process(b"\x1b[0J");
@@ -624,9 +627,9 @@ mod tests {
     fn process_cursor_save_restore_via_esc() {
         let mut h = handler(80, 24);
         h.process(b"\x1b[5;10H"); // move to row 4, col 9
-        h.process(b"\x1b7");      // DECSC
-        h.process(b"\x1b[1;1H");  // move to 0,0
-        h.process(b"\x1b8");      // DECRC
+        h.process(b"\x1b7"); // DECSC
+        h.process(b"\x1b[1;1H"); // move to 0,0
+        h.process(b"\x1b8"); // DECRC
         assert_eq!(h.grid().cursor.row, 4);
         assert_eq!(h.grid().cursor.col, 9);
     }
@@ -675,7 +678,7 @@ mod tests {
         let mut h = handler(10, 4);
         h.process(b"AAA\r\nBBB\r\nCCC\r\nDDD");
         h.process(b"\x1b[2;1H"); // row 1 (0-indexed)
-        h.process(b"\x1b[1L");   // insert 1 line
+        h.process(b"\x1b[1L"); // insert 1 line
         assert_eq!(h.grid().row_to_string(0), "AAA");
         assert_eq!(h.grid().row_to_string(1), ""); // inserted blank
         assert_eq!(h.grid().row_to_string(2), "BBB");
@@ -687,7 +690,7 @@ mod tests {
         let mut h = handler(10, 1);
         h.process(b"ABCDEF");
         h.process(b"\x1b[1;2H"); // col 1
-        h.process(b"\x1b[2P");   // delete 2 chars
+        h.process(b"\x1b[2P"); // delete 2 chars
         assert_eq!(h.grid().row_to_string(0), "ADEF");
     }
 
@@ -727,7 +730,7 @@ mod tests {
         let mut h = handler(10, 1);
         h.process(b"ABCDEFGHIJ");
         h.process(b"\x1b[1;6H"); // col 5 (0-indexed)
-        h.process(b"\x1b[1K");   // erase to left (inclusive)
+        h.process(b"\x1b[1K"); // erase to left (inclusive)
         assert_eq!(h.grid().cell(0, 0).c, ' ');
         assert_eq!(h.grid().cell(0, 4).c, ' ');
         assert_eq!(h.grid().cell(0, 5).c, ' ');
@@ -745,11 +748,11 @@ mod tests {
     fn process_cnl_cpl() {
         let mut h = handler(80, 24);
         h.process(b"\x1b[5;10H"); // row 4, col 9
-        h.process(b"\x1b[2E");    // CNL 2: down 2, col 0
+        h.process(b"\x1b[2E"); // CNL 2: down 2, col 0
         assert_eq!(h.grid().cursor.row, 6);
         assert_eq!(h.grid().cursor.col, 0);
         h.process(b"\x1b[5;10H");
-        h.process(b"\x1b[1F");    // CPL 1: up 1, col 0
+        h.process(b"\x1b[1F"); // CPL 1: up 1, col 0
         assert_eq!(h.grid().cursor.row, 3);
         assert_eq!(h.grid().cursor.col, 0);
     }

@@ -67,8 +67,7 @@ impl BackgroundRenderer {
                 BackgroundMode::Gradient { colors, angle }
             }
             ConfigBackgroundMode::HexGrid => {
-                let [r, g, b] =
-                    hex_to_rgb(&config.hex_grid.color).unwrap_or([0.0, 0.824, 1.0]);
+                let [r, g, b] = hex_to_rgb(&config.hex_grid.color).unwrap_or([0.0, 0.824, 1.0]);
                 BackgroundMode::HexGrid {
                     color: [r as f32, g as f32, b as f32],
                     opacity: config.hex_grid.opacity as f32,

@@ -112,11 +112,7 @@ impl WebViewHandle {
     }
 
     /// Send a typed IPC message to JavaScript.
-    pub fn send_ipc(
-        &self,
-        kind: &str,
-        payload: &serde_json::Value,
-    ) -> Result<(), wry::Error> {
+    pub fn send_ipc(&self, kind: &str, payload: &serde_json::Value) -> Result<(), wry::Error> {
         let script = crate::ipc::js_dispatch_message(kind, payload);
         self.webview.evaluate_script(&script)
     }
@@ -227,10 +223,7 @@ impl WebViewManager {
             let body = request.body().to_string();
             debug!(pane_id = pid, body = %body, "IPC message from JS");
             if let Ok(mut evts) = ipc_events.lock() {
-                evts.push(WebViewEvent::IpcMessage {
-                    pane_id: pid,
-                    body,
-                });
+                evts.push(WebViewEvent::IpcMessage { pane_id: pid, body });
             }
         });
 
@@ -265,10 +258,7 @@ impl WebViewManager {
         builder = builder.with_navigation_handler(move |url| {
             debug!(pane_id = pid, url = %url, "navigation requested");
             if let Ok(mut evts) = nav_events.lock() {
-                evts.push(WebViewEvent::NavigationRequested {
-                    pane_id: pid,
-                    url,
-                });
+                evts.push(WebViewEvent::NavigationRequested { pane_id: pid, url });
             }
             true // allow navigation
         });
@@ -286,14 +276,12 @@ impl WebViewManager {
                     .unwrap_or("");
 
                 match cp.resolve(path) {
-                    Some((mime, data)) => {
-                        wry::http::Response::builder()
-                            .status(200)
-                            .header("Content-Type", mime.as_ref())
-                            .header("Access-Control-Allow-Origin", "*")
-                            .body(std::borrow::Cow::from(data.into_owned()))
-                            .unwrap()
-                    }
+                    Some((mime, data)) => wry::http::Response::builder()
+                        .status(200)
+                        .header("Content-Type", mime.as_ref())
+                        .header("Access-Control-Allow-Origin", "*")
+                        .body(std::borrow::Cow::from(data.into_owned()))
+                        .unwrap(),
                     None => {
                         warn!(path = %path, "custom protocol: asset not found");
                         wry::http::Response::builder()

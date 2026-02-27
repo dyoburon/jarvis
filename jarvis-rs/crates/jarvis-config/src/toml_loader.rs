@@ -16,13 +16,11 @@ pub fn load_from_path(path: &Path) -> Result<JarvisConfig, ConfigError> {
         return Err(ConfigError::FileNotFound(path.to_path_buf()));
     }
 
-    let content = std::fs::read_to_string(path).map_err(|e| {
-        ConfigError::ParseError(format!("failed to read {}: {e}", path.display()))
-    })?;
+    let content = std::fs::read_to_string(path)
+        .map_err(|e| ConfigError::ParseError(format!("failed to read {}: {e}", path.display())))?;
 
-    let config: JarvisConfig = toml::from_str(&content).map_err(|e| {
-        ConfigError::ParseError(format!("failed to parse TOML: {e}"))
-    })?;
+    let config: JarvisConfig = toml::from_str(&content)
+        .map_err(|e| ConfigError::ParseError(format!("failed to parse TOML: {e}")))?;
 
     // Validate and warn on errors, but still return the parsed config
     if let Err(e) = validation::validate(&config) {
@@ -55,9 +53,8 @@ pub fn load_default() -> Result<JarvisConfig, ConfigError> {
 
 /// Get the platform-specific default config file path.
 pub fn default_config_path() -> Result<std::path::PathBuf, ConfigError> {
-    let config_dir = dirs::config_dir().ok_or_else(|| {
-        ConfigError::ParseError("could not determine config directory".into())
-    })?;
+    let config_dir = dirs::config_dir()
+        .ok_or_else(|| ConfigError::ParseError("could not determine config directory".into()))?;
     Ok(config_dir.join("jarvis").join("config.toml"))
 }
 

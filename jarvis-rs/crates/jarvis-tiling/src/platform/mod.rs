@@ -5,11 +5,11 @@ use serde::{Deserialize, Serialize};
 #[cfg(target_os = "macos")]
 pub mod macos;
 #[cfg(target_os = "linux")]
-pub mod x11;
-#[cfg(target_os = "linux")]
 pub mod wayland;
 #[cfg(target_os = "windows")]
 pub mod windows;
+#[cfg(target_os = "linux")]
+pub mod x11;
 
 pub mod noop;
 
@@ -54,10 +54,7 @@ pub trait WindowManager: Send + Sync {
     fn set_window_frame(&self, window_id: WindowId, frame: Rect) -> Result<()>;
     fn focus_window(&self, window_id: WindowId) -> Result<()>;
     fn set_minimized(&self, window_id: WindowId, minimized: bool) -> Result<()>;
-    fn watch_windows(
-        &self,
-        callback: Box<dyn Fn(WindowEvent) + Send>,
-    ) -> Result<WatchHandle>;
+    fn watch_windows(&self, callback: Box<dyn Fn(WindowEvent) + Send>) -> Result<WatchHandle>;
 }
 
 /// Create the platform-appropriate WindowManager.

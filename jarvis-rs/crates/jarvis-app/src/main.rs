@@ -24,7 +24,43 @@ fn install_panic_hook() {
     }));
 }
 
+/// Load environment variables from a .env file (KEY=VALUE lines).
+fn load_dotenv() {
+    // Try common locations for .env relative to the workspace
+    let manifest_dir = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+    let candidates = [
+        // Project root (jarvis/) — three levels up from crates/jarvis-app/
+        manifest_dir.join("..").join("..").join("..").join(".env"),
+        // Rust workspace root (jarvis-rs/)
+        manifest_dir.join("..").join("..").join(".env"),
+        // Current directory
+        std::path::PathBuf::from(".env"),
+    ];
+
+    for path in &candidates {
+        if let Ok(contents) = std::fs::read_to_string(path) {
+            for line in contents.lines() {
+                let line = line.trim();
+                if line.is_empty() || line.starts_with('#') {
+                    continue;
+                }
+                if let Some((key, value)) = line.split_once('=') {
+                    let key = key.trim();
+                    let value = value.trim().trim_matches('"').trim_matches('\'');
+                    if std::env::var(key).is_err() {
+                        std::env::set_var(key, value);
+                    }
+                }
+            }
+            return;
+        }
+    }
+}
+
 fn main() {
+    // Load .env file before anything else
+    load_dotenv();
+
     // Install panic hook for crash reports
     install_panic_hook();
 

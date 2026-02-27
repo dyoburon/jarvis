@@ -1,3 +1,4 @@
+pub mod assistant_panel;
 pub mod atlas;
 pub mod background;
 pub mod command_palette;
@@ -9,6 +10,7 @@ pub mod render_state;
 pub mod text;
 pub mod ui;
 
+pub use assistant_panel::{AssistantPanel, ChatMessage, ChatRole};
 pub use command_palette::CommandPalette;
 pub use gpu::GpuContext;
 pub use perf::FrameTimer;

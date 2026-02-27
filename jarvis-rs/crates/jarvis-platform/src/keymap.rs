@@ -37,9 +37,7 @@ pub fn parse_keybind(s: &str) -> Result<KeyBind, PlatformError> {
     let tokens: Vec<&str> = s.split('+').map(|t| t.trim()).collect();
 
     if tokens.is_empty() || (tokens.len() == 1 && tokens[0].is_empty()) {
-        return Err(PlatformError::NotSupported(
-            "empty keybind string".into(),
-        ));
+        return Err(PlatformError::NotSupported("empty keybind string".into()));
     }
 
     let mut modifiers = Vec::new();
@@ -87,9 +85,8 @@ pub fn parse_keybind(s: &str) -> Result<KeyBind, PlatformError> {
         }
     }
 
-    let key = key.ok_or_else(|| {
-        PlatformError::NotSupported("keybind has no key component".into())
-    })?;
+    let key =
+        key.ok_or_else(|| PlatformError::NotSupported("keybind has no key component".into()))?;
 
     Ok(KeyBind { modifiers, key })
 }
@@ -175,9 +172,9 @@ fn display_modifier(modifier: Modifier) -> String {
     if cfg!(target_os = "macos") {
         match modifier {
             Modifier::Ctrl => "\u{2303}".into(),  // ⌃
-            Modifier::Alt => "\u{2325}".into(),    // ⌥
-            Modifier::Shift => "\u{21E7}".into(),  // ⇧
-            Modifier::Super => "\u{2318}".into(),  // ⌘
+            Modifier::Alt => "\u{2325}".into(),   // ⌥
+            Modifier::Shift => "\u{21E7}".into(), // ⇧
+            Modifier::Super => "\u{2318}".into(), // ⌘
         }
     } else {
         match modifier {
@@ -199,16 +196,16 @@ fn display_key(key: &str) -> String {
     if cfg!(target_os = "macos") {
         // On macOS, some keys have symbol representations
         match key {
-            "Enter" => "\u{21A9}".into(),      // ↩
-            "Backspace" => "\u{232B}".into(),   // ⌫
-            "Delete" => "\u{2326}".into(),      // ⌦
-            "Escape" => "\u{238B}".into(),      // ⎋
-            "Tab" => "\u{21E5}".into(),         // ⇥
-            "Space" => "\u{2423}".into(),       // ␣
-            "Up" => "\u{2191}".into(),          // ↑
-            "Down" => "\u{2193}".into(),        // ↓
-            "Left" => "\u{2190}".into(),        // ←
-            "Right" => "\u{2192}".into(),       // →
+            "Enter" => "\u{21A9}".into(),     // ↩
+            "Backspace" => "\u{232B}".into(), // ⌫
+            "Delete" => "\u{2326}".into(),    // ⌦
+            "Escape" => "\u{238B}".into(),    // ⎋
+            "Tab" => "\u{21E5}".into(),       // ⇥
+            "Space" => "\u{2423}".into(),     // ␣
+            "Up" => "\u{2191}".into(),        // ↑
+            "Down" => "\u{2193}".into(),      // ↓
+            "Left" => "\u{2190}".into(),      // ←
+            "Right" => "\u{2192}".into(),     // →
             other => other.to_string(),
         }
     } else {

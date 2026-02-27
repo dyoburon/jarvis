@@ -67,11 +67,8 @@ impl UpdateChecker {
 
 /// Simple semver comparison: returns true if `a` > `b`.
 fn is_newer(a: &str, b: &str) -> bool {
-    let parse = |v: &str| -> Vec<u64> {
-        v.split('.')
-            .filter_map(|s| s.parse::<u64>().ok())
-            .collect()
-    };
+    let parse =
+        |v: &str| -> Vec<u64> { v.split('.').filter_map(|s| s.parse::<u64>().ok()).collect() };
 
     let va = parse(a);
     let vb = parse(b);

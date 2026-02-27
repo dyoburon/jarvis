@@ -120,10 +120,7 @@ mod tests {
     #[test]
     fn config_file_has_correct_name() {
         let path = config_file();
-        assert_eq!(
-            path.file_name().unwrap().to_str().unwrap(),
-            "config.toml"
-        );
+        assert_eq!(path.file_name().unwrap().to_str().unwrap(), "config.toml");
         assert!(
             path.parent().unwrap().ends_with("jarvis"),
             "config_file parent should end with 'jarvis', got: {path:?}"
@@ -133,10 +130,7 @@ mod tests {
     #[test]
     fn identity_file_has_correct_name() {
         let path = identity_file();
-        assert_eq!(
-            path.file_name().unwrap().to_str().unwrap(),
-            "identity.json"
-        );
+        assert_eq!(path.file_name().unwrap().to_str().unwrap(), "identity.json");
         assert!(
             path.parent().unwrap().ends_with("jarvis"),
             "identity_file parent should end with 'jarvis', got: {path:?}"

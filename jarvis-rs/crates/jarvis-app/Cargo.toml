@@ -8,6 +8,7 @@ name = "jarvis"
 path = "src/main.rs"
 
 [dependencies]
+jarvis-ai = { workspace = true }
 jarvis-common = { workspace = true }
 jarvis-config = { workspace = true }
 jarvis-platform = { workspace = true }

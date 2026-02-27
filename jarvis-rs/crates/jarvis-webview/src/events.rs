@@ -30,22 +30,11 @@ pub enum WebViewEvent {
         url: String,
     },
     /// Document title changed.
-    TitleChanged {
-        pane_id: u32,
-        title: String,
-    },
+    TitleChanged { pane_id: u32, title: String },
     /// An IPC message was received from JavaScript.
-    IpcMessage {
-        pane_id: u32,
-        body: String,
-    },
+    IpcMessage { pane_id: u32, body: String },
     /// A navigation was requested. If `allowed` is false, it was blocked.
-    NavigationRequested {
-        pane_id: u32,
-        url: String,
-    },
+    NavigationRequested { pane_id: u32, url: String },
     /// WebView was closed / destroyed.
-    Closed {
-        pane_id: u32,
-    },
+    Closed { pane_id: u32 },
 }

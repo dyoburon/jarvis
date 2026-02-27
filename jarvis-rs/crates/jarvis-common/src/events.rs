@@ -101,7 +101,9 @@ mod tests {
         assert!(matches!(e1, Event::PresenceUpdate { ref user_id, .. } if user_id == "alice"));
 
         let e2 = rx.recv().await.unwrap();
-        assert!(matches!(e2, Event::ChatMessage { ref from, ref text, .. } if from == "bob" && text == "hello"));
+        assert!(
+            matches!(e2, Event::ChatMessage { ref from, ref text, .. } if from == "bob" && text == "hello")
+        );
 
         let e3 = rx.recv().await.unwrap();
         assert!(matches!(e3, Event::Notification(ref msg) if msg == "test"));

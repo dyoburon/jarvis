@@ -21,7 +21,7 @@ use jarvis_config::schema::JarvisConfig;
 use jarvis_platform::input::KeybindRegistry;
 use jarvis_platform::input_processor::{InputMode, InputProcessor, InputResult};
 use jarvis_platform::winit_keys::normalize_winit_key;
-use jarvis_renderer::{RenderState, Tab, UiChrome};
+use jarvis_renderer::{AssistantPanel, RenderState, Tab, UiChrome};
 use jarvis_social::presence::{PresenceConfig, PresenceEvent};
 use jarvis_social::Identity;
 use jarvis_terminal::pty::PtyManager;
@@ -34,6 +34,16 @@ use jarvis_tiling::TilingManager;
 struct PaneState {
     vte: VteHandler,
     pty: PtyManager,
+}
+
+/// Events received from the async AI task.
+enum AssistantEvent {
+    /// A streaming text chunk arrived.
+    StreamChunk(String),
+    /// The full response is complete.
+    Done,
+    /// An error occurred.
+    Error(String),
 }
 
 /// Top-level application state.
@@ -68,12 +78,20 @@ pub struct JarvisApp {
     #[allow(dead_code)]
     tokio_runtime: Option<tokio::runtime::Runtime>,
 
+    // AI assistant panel
+    assistant_panel: Option<AssistantPanel>,
+    assistant_open: bool,
+    assistant_rx: Option<std::sync::mpsc::Receiver<AssistantEvent>>,
+    assistant_tx: Option<std::sync::mpsc::Sender<String>>,
+
     // Whether the app should exit
     should_exit: bool,
 
     // Dirty flag — set when content changes and a redraw is needed
     needs_redraw: bool,
     last_poll: Instant,
+    /// Timestamp of last keystroke sent to PTY, for adaptive polling.
+    last_pty_write: Instant,
 }
 
 /// How often to poll PTY output (approx 120 Hz).
@@ -99,9 +117,14 @@ impl JarvisApp {
             online_count: 0,
             presence_rx: None,
             tokio_runtime: None,
+            assistant_panel: None,
+            assistant_open: false,
+            assistant_rx: None,
+            assistant_tx: None,
             should_exit: false,
             needs_redraw: false,
             last_poll: Instant::now(),
+            last_pty_write: Instant::now(),
         }
     }
 
@@ -140,17 +163,13 @@ impl JarvisApp {
                     PresenceEvent::UserOffline { .. } => {
                         self.online_count = self.online_count.saturating_sub(1);
                     }
-                    PresenceEvent::Poked {
-                        display_name,
-                        ..
-                    } => {
+                    PresenceEvent::Poked { display_name, .. } => {
                         tracing::info!("{display_name} poked you!");
-                        self.notifications.push(
-                            jarvis_common::notifications::Notification::info(
+                        self.notifications
+                            .push(jarvis_common::notifications::Notification::info(
                                 "Poke!",
                                 format!("{display_name} poked you"),
-                            ),
-                        );
+                            ));
                     }
                     PresenceEvent::ChatMessage {
                         display_name,
@@ -256,9 +275,27 @@ impl JarvisApp {
                 self.command_palette = Some(jarvis_renderer::CommandPalette::new(&self.registry));
                 self.input.set_mode(InputMode::CommandPalette);
             }
+            Action::OpenAssistant => {
+                if self.assistant_open {
+                    self.assistant_open = false;
+                    self.assistant_panel = None;
+                    self.input.set_mode(InputMode::Terminal);
+                } else {
+                    self.assistant_open = true;
+                    self.assistant_panel = Some(AssistantPanel::new());
+                    self.input.set_mode(InputMode::Assistant);
+                    self.ensure_assistant_runtime();
+                }
+                self.needs_redraw = true;
+            }
             Action::CloseOverlay => {
-                self.command_palette_open = false;
-                self.command_palette = None;
+                if self.assistant_open {
+                    self.assistant_open = false;
+                    self.assistant_panel = None;
+                } else {
+                    self.command_palette_open = false;
+                    self.command_palette = None;
+                }
                 self.input.set_mode(InputMode::Terminal);
             }
             Action::OpenSettings => {
@@ -270,26 +307,23 @@ impl JarvisApp {
             Action::Paste => {
                 self.paste_from_clipboard();
             }
-            Action::ReloadConfig => {
-                match jarvis_config::load_config() {
-                    Ok(c) => {
-                        self.registry = KeybindRegistry::from_config(&c.keybinds);
-                        self.chrome = UiChrome::from_config(&c.layout);
-                        self.config = c;
-                        self.event_bus.publish(Event::ConfigReloaded);
-                        tracing::info!("Config reloaded");
-                    }
-                    Err(e) => {
-                        tracing::warn!("Config reload failed: {e}");
-                        self.notifications.push(
-                            jarvis_common::notifications::Notification::error(
-                                "Config Error",
-                                format!("Reload failed: {e}"),
-                            ),
-                        );
-                    }
+            Action::ReloadConfig => match jarvis_config::load_config() {
+                Ok(c) => {
+                    self.registry = KeybindRegistry::from_config(&c.keybinds);
+                    self.chrome = UiChrome::from_config(&c.layout);
+                    self.config = c;
+                    self.event_bus.publish(Event::ConfigReloaded);
+                    tracing::info!("Config reloaded");
                 }
-            }
+                Err(e) => {
+                    tracing::warn!("Config reload failed: {e}");
+                    self.notifications
+                        .push(jarvis_common::notifications::Notification::error(
+                            "Config Error",
+                            format!("Reload failed: {e}"),
+                        ));
+                }
+            },
             Action::ScrollUp(n) => {
                 let focused = self.tiling.focused_id();
                 if let Some(pane) = self.panes.get_mut(&focused) {
@@ -336,12 +370,11 @@ impl JarvisApp {
             }
             Err(e) => {
                 tracing::error!("Failed to spawn PTY: {e}");
-                self.notifications.push(
-                    jarvis_common::notifications::Notification::error(
+                self.notifications
+                    .push(jarvis_common::notifications::Notification::error(
                         "PTY Error",
                         format!("Failed to spawn shell: {e}"),
-                    ),
-                );
+                    ));
             }
         }
     }
@@ -365,7 +398,7 @@ impl JarvisApp {
 
     /// Resize all panes' PTYs based on their current layout rects.
     fn resize_all_panes(&mut self) {
-        if let Some(ref rs) = self.render_state {
+        if let Some(ref mut rs) = self.render_state {
             let vw = rs.gpu.size.width as f32;
             let vh = rs.gpu.size.height as f32;
             let content = self.chrome.content_rect(vw, vh);
@@ -377,6 +410,8 @@ impl JarvisApp {
                     let _ = pane.pty.resize(cols as u16, rows as u16);
                     pane.vte.grid_mut().resize(cols, rows);
                 }
+                // Invalidate cached text buffers for resized panes
+                rs.text.invalidate_pane_cache(*id);
             }
         }
     }
@@ -441,8 +476,7 @@ impl JarvisApp {
         match rt {
             Ok(rt) => {
                 rt.spawn(async move {
-                    let mut client =
-                        jarvis_social::PresenceClient::new(identity, presence_config);
+                    let mut client = jarvis_social::PresenceClient::new(identity, presence_config);
                     let mut event_rx = client.start();
                     while let Some(event) = event_rx.recv().await {
                         if sync_tx.send(event).is_err() {
@@ -511,6 +545,158 @@ impl JarvisApp {
                     }
                 }
                 false
+            }
+        }
+    }
+
+    /// Handle key events for the assistant panel.
+    fn handle_assistant_key(&mut self, key_name: &str, is_press: bool) -> bool {
+        if !is_press || !self.assistant_open {
+            return false;
+        }
+
+        let panel = match self.assistant_panel.as_mut() {
+            Some(p) => p,
+            None => return false,
+        };
+
+        match key_name {
+            "Escape" => {
+                self.dispatch(Action::CloseOverlay);
+                true
+            }
+            "Enter" => {
+                let input = panel.take_input();
+                if !input.is_empty() && !panel.is_streaming() {
+                    panel.push_user_message(input.clone());
+                    if let Some(ref tx) = self.assistant_tx {
+                        let _ = tx.send(input);
+                    }
+                }
+                true
+            }
+            "Backspace" => {
+                panel.backspace();
+                true
+            }
+            "Up" => {
+                panel.scroll_up(3);
+                true
+            }
+            "Down" => {
+                panel.scroll_down(3);
+                true
+            }
+            _ => {
+                if key_name.len() == 1 {
+                    let ch = key_name.chars().next().unwrap();
+                    if ch.is_ascii_graphic() || ch == ' ' {
+                        panel.append_char(ch);
+                        return true;
+                    }
+                }
+                false
+            }
+        }
+    }
+
+    /// Lazily initialize the async AI task and communication channels.
+    fn ensure_assistant_runtime(&mut self) {
+        if self.assistant_tx.is_some() {
+            return;
+        }
+
+        let (user_tx, user_rx) = std::sync::mpsc::channel::<String>();
+        let (event_tx, event_rx) = std::sync::mpsc::channel::<AssistantEvent>();
+
+        self.assistant_tx = Some(user_tx);
+        self.assistant_rx = Some(event_rx);
+
+        if self.tokio_runtime.is_none() {
+            match tokio::runtime::Builder::new_multi_thread()
+                .worker_threads(1)
+                .enable_all()
+                .build()
+            {
+                Ok(rt) => self.tokio_runtime = Some(rt),
+                Err(e) => {
+                    tracing::error!("Failed to create tokio runtime: {e}");
+                    return;
+                }
+            }
+        }
+
+        let rt = self.tokio_runtime.as_ref().unwrap();
+        rt.spawn(async move {
+            assistant_task(user_rx, event_tx).await;
+        });
+    }
+
+    /// Poll for assistant events from the async task (non-blocking).
+    fn poll_assistant(&mut self) {
+        if let Some(ref rx) = self.assistant_rx {
+            while let Ok(event) = rx.try_recv() {
+                match event {
+                    AssistantEvent::StreamChunk(chunk) => {
+                        if let Some(ref mut panel) = self.assistant_panel {
+                            panel.append_streaming_chunk(&chunk);
+                        }
+                    }
+                    AssistantEvent::Done => {
+                        if let Some(ref mut panel) = self.assistant_panel {
+                            panel.finish_streaming();
+                        }
+                    }
+                    AssistantEvent::Error(msg) => {
+                        tracing::warn!("Assistant error: {msg}");
+                        if let Some(ref mut panel) = self.assistant_panel {
+                            panel.set_error(msg);
+                            panel.finish_streaming();
+                        }
+                    }
+                }
+                self.needs_redraw = true;
+            }
+        }
+    }
+}
+
+/// Background task that manages the Claude AI session.
+async fn assistant_task(
+    user_rx: std::sync::mpsc::Receiver<String>,
+    event_tx: std::sync::mpsc::Sender<AssistantEvent>,
+) {
+    let config = match jarvis_ai::ClaudeConfig::from_env() {
+        Ok(c) => c.with_system_prompt(
+            "You are Jarvis, an AI assistant embedded in a terminal emulator. \
+             Be concise and helpful. Use plain text, not markdown.",
+        ),
+        Err(e) => {
+            let _ = event_tx.send(AssistantEvent::Error(format!(
+                "Claude API not configured: {e}"
+            )));
+            return;
+        }
+    };
+
+    let client = jarvis_ai::ClaudeClient::new(config);
+    let mut session = jarvis_ai::Session::new("claude").with_system_prompt(
+        "You are Jarvis, an AI assistant embedded in a terminal emulator. \
+         Be concise and helpful. Use plain text, not markdown.",
+    );
+
+    while let Ok(msg) = tokio::task::block_in_place(|| user_rx.recv()) {
+        let tx = event_tx.clone();
+        let on_chunk = Box::new(move |chunk: String| {
+            let _ = tx.send(AssistantEvent::StreamChunk(chunk));
+        });
+
+        match session.chat_streaming(&client, &msg, on_chunk).await {
+            Ok(_) => {
+                let _ = event_tx.send(AssistantEvent::Done);
+            }
+            Err(e) => {
+                let _ = event_tx.send(AssistantEvent::Error(e.to_string()));
             }
         }
     }
@@ -623,18 +809,24 @@ impl ApplicationHandler for JarvisApp {
                     return;
                 }
 
+                // If assistant is open, route keys there
+                if self.assistant_open
+                    && is_press
+                    && self.handle_assistant_key(&normalized, is_press)
+                {
+                    self.needs_redraw = true;
+                    return;
+                }
+
                 let mods = jarvis_platform::input_processor::Modifiers {
                     ctrl: self.modifiers.control_key(),
                     alt: self.modifiers.alt_key(),
                     shift: self.modifiers.shift_key(),
                     super_key: self.modifiers.super_key(),
                 };
-                let result = self.input.process_key(
-                    &self.registry,
-                    &normalized,
-                    mods,
-                    is_press,
-                );
+                let result = self
+                    .input
+                    .process_key(&self.registry, &normalized, mods, is_press);
 
                 match result {
                     InputResult::Action(action) => {
@@ -645,11 +837,10 @@ impl ApplicationHandler for JarvisApp {
                         if let Some(pane) = self.panes.get_mut(&focused) {
                             let _ = pane.pty.write(&bytes);
                         }
+                        self.last_pty_write = Instant::now();
                     }
                     InputResult::Consumed => {}
                 }
-
-                self.needs_redraw = true;
             }
 
             WindowEvent::RedrawRequested => {
@@ -657,9 +848,6 @@ impl ApplicationHandler for JarvisApp {
                     event_loop.exit();
                     return;
                 }
-
-                // Drain any pending PTY output before rendering
-                self.poll_pty_output();
 
                 // Update UI chrome state
                 self.update_chrome();
@@ -672,18 +860,31 @@ impl ApplicationHandler for JarvisApp {
                     let layout = self.tiling.compute_layout(content);
                     let focused_id = self.tiling.focused_id();
 
-                    let pane_grids: Vec<(u32, Rect, &jarvis_terminal::Grid)> = layout
+                    // Collect dirty info first (needs &mut), then build
+                    // immutable grid refs for the renderer.
+                    let mut dirty_map: HashMap<u32, Vec<bool>> = HashMap::new();
+                    for (id, _) in &layout {
+                        if let Some(pane) = self.panes.get_mut(id) {
+                            dirty_map.insert(*id, pane.vte.take_dirty());
+                        }
+                    }
+
+                    let pane_grids: Vec<(u32, Rect, &jarvis_terminal::Grid, Vec<bool>)> = layout
                         .iter()
                         .filter_map(|(id, rect)| {
+                            let dirty = dirty_map.remove(id).unwrap_or_default();
                             self.panes
                                 .get(id)
-                                .map(|p| (*id, *rect, p.vte.grid()))
+                                .map(|p| (*id, *rect, p.vte.grid(), dirty))
                         })
                         .collect();
 
-                    if let Err(e) =
-                        rs.render_frame_multi(&pane_grids, focused_id, &self.chrome)
-                    {
+                    if let Err(e) = rs.render_frame_multi(
+                        &pane_grids,
+                        focused_id,
+                        &self.chrome,
+                        self.assistant_panel.as_ref(),
+                    ) {
                         tracing::error!("Render error: {e}");
                     }
                 }
@@ -701,24 +902,32 @@ impl ApplicationHandler for JarvisApp {
             return;
         }
 
-        // Poll PTY output at a high rate
         let now = Instant::now();
-        if now.duration_since(self.last_poll) >= POLL_INTERVAL {
+
+        // Adaptive polling: 1ms after a recent keystroke, 8ms when idle.
+        let adaptive_interval =
+            if now.duration_since(self.last_pty_write) < Duration::from_millis(100) {
+                Duration::from_millis(1)
+            } else {
+                POLL_INTERVAL
+            };
+
+        if now.duration_since(self.last_poll) >= adaptive_interval {
             self.last_poll = now;
             if self.poll_pty_output() {
                 self.needs_redraw = true;
             }
-            // Also poll presence events
             self.poll_presence();
+            self.poll_assistant();
         }
 
         if self.needs_redraw {
             self.request_redraw();
+            event_loop.set_control_flow(winit::event_loop::ControlFlow::Poll);
+        } else {
+            event_loop.set_control_flow(winit::event_loop::ControlFlow::WaitUntil(
+                Instant::now() + adaptive_interval,
+            ));
         }
-
-        // Wake up again soon to poll PTY
-        event_loop.set_control_flow(winit::event_loop::ControlFlow::WaitUntil(
-            Instant::now() + POLL_INTERVAL,
-        ));
     }
 }

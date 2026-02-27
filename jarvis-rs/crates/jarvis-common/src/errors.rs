@@ -88,10 +88,7 @@ mod tests {
         );
 
         let err = ConfigError::WatchError("inotify limit reached".into());
-        assert_eq!(
-            err.to_string(),
-            "config watch error: inotify limit reached"
-        );
+        assert_eq!(err.to_string(), "config watch error: inotify limit reached");
     }
 
     #[test]

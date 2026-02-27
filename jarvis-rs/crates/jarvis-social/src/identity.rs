@@ -22,11 +22,7 @@ impl Identity {
     }
 
     /// Create an identity from a Supabase Auth session.
-    pub fn from_supabase_auth(
-        user_id: String,
-        display_name: String,
-        access_token: String,
-    ) -> Self {
+    pub fn from_supabase_auth(user_id: String, display_name: String, access_token: String) -> Self {
         Self {
             user_id,
             display_name,

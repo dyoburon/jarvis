@@ -12,6 +12,6 @@ pub mod events;
 pub mod ipc;
 pub mod manager;
 
-pub use events::{WebViewEvent, PageLoadState};
+pub use events::{PageLoadState, WebViewEvent};
 pub use ipc::{IpcMessage, IpcPayload};
 pub use manager::{WebViewConfig, WebViewHandle, WebViewManager};

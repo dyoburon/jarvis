@@ -60,15 +60,43 @@ impl VoiceRoom {
 /// Events emitted by the voice system for the UI.
 #[derive(Debug, Clone)]
 pub enum VoiceEvent {
-    RoomCreated { room_id: String, name: String },
-    RoomClosed { room_id: String },
-    UserJoined { room_id: String, user_id: String, display_name: String },
-    UserLeft { room_id: String, user_id: String, display_name: String },
-    MuteChanged { room_id: String, user_id: String, muted: bool },
-    DeafenChanged { room_id: String, user_id: String, deafened: bool },
-    SpeakingChanged { room_id: String, user_id: String, speaking: bool },
+    RoomCreated {
+        room_id: String,
+        name: String,
+    },
+    RoomClosed {
+        room_id: String,
+    },
+    UserJoined {
+        room_id: String,
+        user_id: String,
+        display_name: String,
+    },
+    UserLeft {
+        room_id: String,
+        user_id: String,
+        display_name: String,
+    },
+    MuteChanged {
+        room_id: String,
+        user_id: String,
+        muted: bool,
+    },
+    DeafenChanged {
+        room_id: String,
+        user_id: String,
+        deafened: bool,
+    },
+    SpeakingChanged {
+        room_id: String,
+        user_id: String,
+        speaking: bool,
+    },
     /// WebRTC signaling message received — forward to the WebRTC layer.
-    Signal { from_user: String, signal: VoiceSignal },
+    Signal {
+        from_user: String,
+        signal: VoiceSignal,
+    },
     Error(String),
 }
 
@@ -134,11 +162,7 @@ impl VoiceManager {
             return Err(format!("Room {room_id} already exists"));
         }
 
-        let mut room = VoiceRoom::new(
-            room_id.to_string(),
-            name.to_string(),
-            user_id.to_string(),
-        );
+        let mut room = VoiceRoom::new(room_id.to_string(), name.to_string(), user_id.to_string());
         room.max_participants = self.config.max_participants;
         room.participants.insert(
             user_id.to_string(),
@@ -279,10 +303,10 @@ impl VoiceManager {
             let room_id = room_id.clone();
             drop(user_rooms);
             let mut rooms = self.rooms.write().await;
-            if let Some(room) = rooms.get_mut(&room_id)
-                && let Some(p) = room.participants.get_mut(user_id)
-            {
-                p.muted = muted;
+            if let Some(room) = rooms.get_mut(&room_id) {
+                if let Some(p) = room.participants.get_mut(user_id) {
+                    p.muted = muted;
+                }
             }
             let _ = self
                 .event_tx
@@ -302,13 +326,13 @@ impl VoiceManager {
             let room_id = room_id.clone();
             drop(user_rooms);
             let mut rooms = self.rooms.write().await;
-            if let Some(room) = rooms.get_mut(&room_id)
-                && let Some(p) = room.participants.get_mut(user_id)
-            {
-                p.deafened = deafened;
-                // Deafening also mutes
-                if deafened {
-                    p.muted = true;
+            if let Some(room) = rooms.get_mut(&room_id) {
+                if let Some(p) = room.participants.get_mut(user_id) {
+                    p.deafened = deafened;
+                    // Deafening also mutes
+                    if deafened {
+                        p.muted = true;
+                    }
                 }
             }
             let _ = self
@@ -329,10 +353,10 @@ impl VoiceManager {
             let room_id = room_id.clone();
             drop(user_rooms);
             let mut rooms = self.rooms.write().await;
-            if let Some(room) = rooms.get_mut(&room_id)
-                && let Some(p) = room.participants.get_mut(user_id)
-            {
-                p.speaking = speaking;
+            if let Some(room) = rooms.get_mut(&room_id) {
+                if let Some(p) = room.participants.get_mut(user_id) {
+                    p.speaking = speaking;
+                }
             }
             let _ = self
                 .event_tx

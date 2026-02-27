@@ -17,14 +17,44 @@ pub fn validate(config: &JarvisConfig) -> Result<(), ConfigError> {
 
     // Font constraints
     validate_range(&mut errors, "font.size", config.font.size, 8, 32);
-    validate_range(&mut errors, "font.title_size", config.font.title_size, 8, 48);
-    validate_range_f64(&mut errors, "font.line_height", config.font.line_height, 1.0, 3.0);
+    validate_range(
+        &mut errors,
+        "font.title_size",
+        config.font.title_size,
+        8,
+        48,
+    );
+    validate_range_f64(
+        &mut errors,
+        "font.line_height",
+        config.font.line_height,
+        1.0,
+        3.0,
+    );
 
     // Layout constraints
-    validate_range(&mut errors, "layout.panel_gap", config.layout.panel_gap, 0, 20);
-    validate_range(&mut errors, "layout.border_radius", config.layout.border_radius, 0, 20);
+    validate_range(
+        &mut errors,
+        "layout.panel_gap",
+        config.layout.panel_gap,
+        0,
+        20,
+    );
+    validate_range(
+        &mut errors,
+        "layout.border_radius",
+        config.layout.border_radius,
+        0,
+        20,
+    );
     validate_range(&mut errors, "layout.padding", config.layout.padding, 0, 40);
-    validate_range(&mut errors, "layout.max_panels", config.layout.max_panels, 1, 10);
+    validate_range(
+        &mut errors,
+        "layout.max_panels",
+        config.layout.max_panels,
+        1,
+        10,
+    );
     validate_range_f64(
         &mut errors,
         "layout.default_panel_width",
@@ -32,13 +62,31 @@ pub fn validate(config: &JarvisConfig) -> Result<(), ConfigError> {
         0.3,
         1.0,
     );
-    validate_range(&mut errors, "layout.scrollbar_width", config.layout.scrollbar_width, 1, 10);
+    validate_range(
+        &mut errors,
+        "layout.scrollbar_width",
+        config.layout.scrollbar_width,
+        1,
+        10,
+    );
 
     // Opacity constraints (all 0.0-1.0)
-    validate_range_f64(&mut errors, "opacity.background", config.opacity.background, 0.0, 1.0);
+    validate_range_f64(
+        &mut errors,
+        "opacity.background",
+        config.opacity.background,
+        0.0,
+        1.0,
+    );
     validate_range_f64(&mut errors, "opacity.panel", config.opacity.panel, 0.0, 1.0);
     validate_range_f64(&mut errors, "opacity.orb", config.opacity.orb, 0.0, 1.0);
-    validate_range_f64(&mut errors, "opacity.hex_grid", config.opacity.hex_grid, 0.0, 1.0);
+    validate_range_f64(
+        &mut errors,
+        "opacity.hex_grid",
+        config.opacity.hex_grid,
+        0.0,
+        1.0,
+    );
     validate_range_f64(&mut errors, "opacity.hud", config.opacity.hud, 0.0, 1.0);
 
     // Background sub-config constraints
@@ -100,7 +148,13 @@ pub fn validate(config: &JarvisConfig) -> Result<(), ConfigError> {
         -1.0,
         1.0,
     );
-    validate_range_f64(&mut errors, "visualizer.scale", config.visualizer.scale, 0.1, 3.0);
+    validate_range_f64(
+        &mut errors,
+        "visualizer.scale",
+        config.visualizer.scale,
+        0.1,
+        3.0,
+    );
 
     // Orb visualizer
     validate_range_f64(
@@ -218,11 +272,31 @@ pub fn validate(config: &JarvisConfig) -> Result<(), ConfigError> {
     );
 
     // Visualizer state constraints
-    validate_state_config(&mut errors, "visualizer.state_listening", &config.visualizer.state_listening);
-    validate_state_config(&mut errors, "visualizer.state_speaking", &config.visualizer.state_speaking);
-    validate_state_config(&mut errors, "visualizer.state_skill", &config.visualizer.state_skill);
-    validate_state_config(&mut errors, "visualizer.state_chat", &config.visualizer.state_chat);
-    validate_state_config(&mut errors, "visualizer.state_idle", &config.visualizer.state_idle);
+    validate_state_config(
+        &mut errors,
+        "visualizer.state_listening",
+        &config.visualizer.state_listening,
+    );
+    validate_state_config(
+        &mut errors,
+        "visualizer.state_speaking",
+        &config.visualizer.state_speaking,
+    );
+    validate_state_config(
+        &mut errors,
+        "visualizer.state_skill",
+        &config.visualizer.state_skill,
+    );
+    validate_state_config(
+        &mut errors,
+        "visualizer.state_chat",
+        &config.visualizer.state_chat,
+    );
+    validate_state_config(
+        &mut errors,
+        "visualizer.state_idle",
+        &config.visualizer.state_idle,
+    );
 
     // Startup constraints
     validate_range(
@@ -349,7 +423,13 @@ fn validate_state_config(
     state: &crate::schema::VisualizerStateConfig,
 ) {
     validate_range_f64(errors, &format!("{prefix}.scale"), state.scale, 0.1, 3.0);
-    validate_range_f64(errors, &format!("{prefix}.intensity"), state.intensity, 0.0, 3.0);
+    validate_range_f64(
+        errors,
+        &format!("{prefix}.intensity"),
+        state.intensity,
+        0.0,
+        3.0,
+    );
     if let Some(x) = state.position_x {
         validate_range_f64(errors, &format!("{prefix}.position_x"), x, -1.0, 1.0);
     }
@@ -360,17 +440,13 @@ fn validate_state_config(
 
 fn validate_range(errors: &mut Vec<String>, name: &str, value: u32, min: u32, max: u32) {
     if value < min || value > max {
-        errors.push(format!(
-            "{name} = {value} is out of range [{min}, {max}]"
-        ));
+        errors.push(format!("{name} = {value} is out of range [{min}, {max}]"));
     }
 }
 
 fn validate_range_f64(errors: &mut Vec<String>, name: &str, value: f64, min: f64, max: f64) {
     if value < min || value > max {
-        errors.push(format!(
-            "{name} = {value} is out of range [{min}, {max}]"
-        ));
+        errors.push(format!("{name} = {value} is out of range [{min}, {max}]"));
     }
 }
 

@@ -28,10 +28,7 @@ impl WindowManager for NoopWindowManager {
         Ok(())
     }
 
-    fn watch_windows(
-        &self,
-        _callback: Box<dyn Fn(WindowEvent) + Send>,
-    ) -> Result<WatchHandle> {
+    fn watch_windows(&self, _callback: Box<dyn Fn(WindowEvent) + Send>) -> Result<WatchHandle> {
         Ok(WatchHandle::new(()))
     }
 }

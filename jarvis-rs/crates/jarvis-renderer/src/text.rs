@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use glyphon::{
     Attrs, Buffer as TextBuffer, Cache, Color as GlyphonColor, Family, FontSystem, Metrics,
     Resolution, Shaping, SwashCache, TextArea, TextAtlas, TextBounds,
@@ -12,21 +14,21 @@ use jarvis_terminal::TerminalColor;
 /// The standard ANSI 16-color palette as (R, G, B) tuples.
 pub const ANSI_COLORS: [(u8, u8, u8); 16] = [
     (0, 0, 0),       // 0  Black
-    (205, 49, 49),    // 1  Red
-    (13, 188, 121),   // 2  Green
-    (229, 229, 16),   // 3  Yellow
-    (36, 114, 200),   // 4  Blue
-    (188, 63, 188),   // 5  Magenta
-    (17, 168, 205),   // 6  Cyan
-    (229, 229, 229),  // 7  White
-    (102, 102, 102),  // 8  Bright Black
-    (241, 76, 76),    // 9  Bright Red
-    (35, 209, 139),   // 10 Bright Green
-    (245, 245, 67),   // 11 Bright Yellow
-    (59, 142, 234),   // 12 Bright Blue
-    (214, 112, 214),  // 13 Bright Magenta
-    (41, 184, 219),   // 14 Bright Cyan
-    (255, 255, 255),  // 15 Bright White
+    (205, 49, 49),   // 1  Red
+    (13, 188, 121),  // 2  Green
+    (229, 229, 16),  // 3  Yellow
+    (36, 114, 200),  // 4  Blue
+    (188, 63, 188),  // 5  Magenta
+    (17, 168, 205),  // 6  Cyan
+    (229, 229, 229), // 7  White
+    (102, 102, 102), // 8  Bright Black
+    (241, 76, 76),   // 9  Bright Red
+    (35, 209, 139),  // 10 Bright Green
+    (245, 245, 67),  // 11 Bright Yellow
+    (59, 142, 234),  // 12 Bright Blue
+    (214, 112, 214), // 13 Bright Magenta
+    (41, 184, 219),  // 14 Bright Cyan
+    (255, 255, 255), // 15 Bright White
 ];
 
 // ---------------------------------------------------------------------------
@@ -97,6 +99,8 @@ pub struct TextRenderer {
     pub cell_height: f32,
     pub font_size: f32,
     pub line_height: f32,
+    /// Cached text buffers per pane for incremental rendering.
+    pane_buffer_cache: HashMap<u32, Vec<TextBuffer>>,
 }
 
 impl TextRenderer {
@@ -117,12 +121,8 @@ impl TextRenderer {
         let mut atlas = TextAtlas::new(device, queue, &cache, format);
         let viewport = Viewport::new(device, &cache);
 
-        let renderer = GlyphonRenderer::new(
-            &mut atlas,
-            device,
-            wgpu::MultisampleState::default(),
-            None,
-        );
+        let renderer =
+            GlyphonRenderer::new(&mut atlas, device, wgpu::MultisampleState::default(), None);
 
         // line_height from config is a multiplier (e.g. 1.2); convert to pixels.
         let line_height_px = font_size * line_height;
@@ -146,6 +146,7 @@ impl TextRenderer {
             cell_height,
             font_size,
             line_height: line_height_px,
+            pane_buffer_cache: HashMap::new(),
         }
     }
 
@@ -194,7 +195,11 @@ impl TextRenderer {
         for row_idx in 0..grid.rows {
             let row = &grid.cells[row_idx];
             let mut buffer = TextBuffer::new(&mut self.font_system, metrics);
-            buffer.set_size(&mut self.font_system, Some(viewport_width), Some(self.line_height));
+            buffer.set_size(
+                &mut self.font_system,
+                Some(viewport_width),
+                Some(self.line_height),
+            );
 
             // Build color-batched spans: merge consecutive cells with the same
             // foreground color into a single span to minimize shaping work.
@@ -239,23 +244,13 @@ impl TextRenderer {
             }
 
             if spans.is_empty() {
-                buffer.set_text(
-                    &mut self.font_system,
-                    " ",
-                    mono_attrs,
-                    Shaping::Basic,
-                );
+                buffer.set_text(&mut self.font_system, " ", mono_attrs, Shaping::Basic);
             } else {
                 let rich: Vec<(&str, Attrs)> = spans
                     .iter()
                     .map(|(s, e, color)| (&row_text[*s..*e], mono_attrs.color(*color)))
                     .collect();
-                buffer.set_rich_text(
-                    &mut self.font_system,
-                    rich,
-                    mono_attrs,
-                    Shaping::Basic,
-                );
+                buffer.set_rich_text(&mut self.font_system, rich, mono_attrs, Shaping::Basic);
             }
             buffer.shape_until_scroll(&mut self.font_system, false);
             buffers.push(buffer);
@@ -298,16 +293,16 @@ impl TextRenderer {
             });
     }
 
-    /// Prepare multiple terminal grids for rendering in a single pass.
+    /// Prepare multiple terminal grids for rendering, only reshaping dirty rows.
     ///
-    /// Each pane is described by its grid, pixel offset, and clip dimensions.
-    /// All text areas are batched into a single `prepare()` call.
-    #[allow(clippy::too_many_arguments)]
+    /// Each pane is described by its id, grid, dirty flags, pixel offset, and
+    /// clip dimensions. Cached `TextBuffer`s are reused for clean rows.
+    #[allow(clippy::too_many_arguments, clippy::type_complexity)]
     pub fn prepare_multi_grid(
         &mut self,
         device: &wgpu::Device,
         queue: &wgpu::Queue,
-        panes: &[(&jarvis_terminal::Grid, f32, f32, f32, f32)], // (grid, offset_x, offset_y, pane_w, pane_h)
+        panes: &[(u32, &jarvis_terminal::Grid, &[bool], f32, f32, f32, f32)],
         extra_text_areas: Vec<TextArea<'_>>,
         viewport_width: f32,
         viewport_height: f32,
@@ -326,8 +321,6 @@ impl TextRenderer {
         let metrics = Metrics::new(self.font_size, self.line_height);
         let mono_attrs = Attrs::new().family(Family::Monospace);
 
-        // Build buffers for ALL panes' rows.
-        // We store (buffer, left, top, bounds) for each row across all panes.
         struct RowInfo {
             left: f32,
             top: f32,
@@ -337,79 +330,94 @@ impl TextRenderer {
             bounds_bottom: i32,
         }
 
-        let mut all_buffers: Vec<TextBuffer> = Vec::new();
-        let mut all_row_info: Vec<RowInfo> = Vec::new();
+        let mut all_row_info: Vec<(u32, usize)> = Vec::new(); // (pane_id, row_idx)
+        let mut info_list: Vec<RowInfo> = Vec::new();
+        let mut active_pane_ids: Vec<u32> = Vec::new();
 
-        for &(grid, offset_x, offset_y, pane_w, pane_h) in panes {
-            // How many rows fit in this pane?
+        // First pass: update dirty buffers in the cache
+        for &(pane_id, grid, dirty_rows, offset_x, offset_y, pane_w, pane_h) in panes {
+            active_pane_ids.push(pane_id);
             let visible_rows = ((pane_h / self.line_height).floor() as usize).min(grid.rows);
 
-            for row_idx in 0..visible_rows {
-                let row = &grid.cells[row_idx];
-                let mut buffer = TextBuffer::new(&mut self.font_system, metrics);
-                buffer.set_size(&mut self.font_system, Some(pane_w), Some(self.line_height));
+            let cached = self.pane_buffer_cache.entry(pane_id).or_default();
 
-                // Build color-batched spans
-                let mut row_text = String::with_capacity(grid.cols);
-                let mut spans: Vec<(usize, usize, GlyphonColor)> = Vec::new();
-                let mut current_color: Option<GlyphonColor> = None;
-                let mut span_start = 0;
+            // If cache size doesn't match, invalidate entirely
+            if cached.len() != visible_rows {
+                cached.clear();
+                for _ in 0..visible_rows {
+                    let mut buffer = TextBuffer::new(&mut self.font_system, metrics);
+                    buffer.set_size(&mut self.font_system, Some(pane_w), Some(self.line_height));
+                    buffer.set_text(&mut self.font_system, " ", mono_attrs, Shaping::Basic);
+                    buffer.shape_until_scroll(&mut self.font_system, false);
+                    cached.push(buffer);
+                }
+            }
 
-                let mut col = 0;
-                while col < row.len() {
-                    let cell = &row[col];
-                    if cell.width == 0 {
-                        col += 1;
-                        continue;
-                    }
-                    let fg = if cell.attrs.inverse {
-                        terminal_color_to_glyphon(&cell.attrs.bg, false)
-                    } else {
-                        terminal_color_to_glyphon(&cell.attrs.fg, true)
-                    };
+            for (row_idx, buffer) in cached.iter_mut().enumerate().take(visible_rows) {
+                let is_dirty = dirty_rows.get(row_idx).copied().unwrap_or(true);
 
-                    if let Some(cur) = current_color {
-                        if cur != fg {
-                            spans.push((span_start, row_text.len(), cur));
-                            span_start = row_text.len();
-                            current_color = Some(fg);
+                if is_dirty {
+                    let row = &grid.cells[row_idx];
+                    buffer.set_size(&mut self.font_system, Some(pane_w), Some(self.line_height));
+
+                    // Build color-batched spans
+                    let mut row_text = String::with_capacity(grid.cols);
+                    let mut spans: Vec<(usize, usize, GlyphonColor)> = Vec::new();
+                    let mut current_color: Option<GlyphonColor> = None;
+                    let mut span_start = 0;
+
+                    let mut col = 0;
+                    while col < row.len() {
+                        let cell = &row[col];
+                        if cell.width == 0 {
+                            col += 1;
+                            continue;
                         }
+                        let fg = if cell.attrs.inverse {
+                            terminal_color_to_glyphon(&cell.attrs.bg, false)
+                        } else {
+                            terminal_color_to_glyphon(&cell.attrs.fg, true)
+                        };
+
+                        if let Some(cur) = current_color {
+                            if cur != fg {
+                                spans.push((span_start, row_text.len(), cur));
+                                span_start = row_text.len();
+                                current_color = Some(fg);
+                            }
+                        } else {
+                            current_color = Some(fg);
+                            span_start = row_text.len();
+                        }
+
+                        row_text.push(cell.c);
+                        col += 1;
+                    }
+                    if let Some(cur) = current_color {
+                        if row_text.len() > span_start {
+                            spans.push((span_start, row_text.len(), cur));
+                        }
+                    }
+
+                    if spans.is_empty() {
+                        buffer.set_text(&mut self.font_system, " ", mono_attrs, Shaping::Basic);
                     } else {
-                        current_color = Some(fg);
-                        span_start = row_text.len();
+                        let rich: Vec<(&str, Attrs)> = spans
+                            .iter()
+                            .map(|(s, e, color)| (&row_text[*s..*e], mono_attrs.color(*color)))
+                            .collect();
+                        buffer.set_rich_text(
+                            &mut self.font_system,
+                            rich,
+                            mono_attrs,
+                            Shaping::Basic,
+                        );
                     }
-
-                    row_text.push(cell.c);
-                    col += 1;
-                }
-                if let Some(cur) = current_color {
-                    if row_text.len() > span_start {
-                        spans.push((span_start, row_text.len(), cur));
-                    }
+                    buffer.shape_until_scroll(&mut self.font_system, false);
                 }
 
-                if spans.is_empty() {
-                    buffer.set_text(
-                        &mut self.font_system,
-                        " ",
-                        mono_attrs,
-                        Shaping::Basic,
-                    );
-                } else {
-                    let rich: Vec<(&str, Attrs)> = spans
-                        .iter()
-                        .map(|(s, e, color)| (&row_text[*s..*e], mono_attrs.color(*color)))
-                        .collect();
-                    buffer.set_rich_text(
-                        &mut self.font_system,
-                        rich,
-                        mono_attrs,
-                        Shaping::Basic,
-                    );
-                }
-                buffer.shape_until_scroll(&mut self.font_system, false);
-
-                all_row_info.push(RowInfo {
+                all_row_info.push((pane_id, row_idx));
+                info_list.push(RowInfo {
                     left: offset_x,
                     top: offset_y + row_idx as f32 * self.line_height,
                     bounds_left: offset_x as i32,
@@ -417,30 +425,37 @@ impl TextRenderer {
                     bounds_right: (offset_x + pane_w) as i32,
                     bounds_bottom: (offset_y + pane_h) as i32,
                 });
-                all_buffers.push(buffer);
             }
         }
 
-        let mut text_areas: Vec<TextArea> = all_buffers
+        // Evict cache entries for closed panes
+        self.pane_buffer_cache
+            .retain(|id, _| active_pane_ids.contains(id));
+
+        // Second pass: build TextArea references from cached buffers
+        let mut text_areas: Vec<TextArea> = all_row_info
             .iter()
-            .zip(all_row_info.iter())
-            .map(|(buffer, info)| TextArea {
-                buffer,
-                left: info.left,
-                top: info.top,
-                scale: scale_factor,
-                bounds: TextBounds {
-                    left: info.bounds_left,
-                    top: info.bounds_top,
-                    right: info.bounds_right,
-                    bottom: info.bounds_bottom,
-                },
-                default_color: GlyphonColor::rgba(255, 255, 255, 255),
-                custom_glyphs: &[],
+            .zip(info_list.iter())
+            .filter_map(|(&(pane_id, row_idx), info)| {
+                let cached = self.pane_buffer_cache.get(&pane_id)?;
+                let buffer = cached.get(row_idx)?;
+                Some(TextArea {
+                    buffer,
+                    left: info.left,
+                    top: info.top,
+                    scale: scale_factor,
+                    bounds: TextBounds {
+                        left: info.bounds_left,
+                        top: info.bounds_top,
+                        right: info.bounds_right,
+                        bottom: info.bounds_bottom,
+                    },
+                    default_color: GlyphonColor::rgba(255, 255, 255, 255),
+                    custom_glyphs: &[],
+                })
             })
             .collect();
 
-        // Append extra text areas (status bar, tab bar text, etc.)
         text_areas.extend(extra_text_areas);
 
         self.renderer
@@ -456,6 +471,11 @@ impl TextRenderer {
             .unwrap_or_else(|e| {
                 tracing::warn!("glyphon prepare error: {:?}", e);
             });
+    }
+
+    /// Remove cached buffers for a specific pane (e.g., after resize).
+    pub fn invalidate_pane_cache(&mut self, pane_id: u32) {
+        self.pane_buffer_cache.remove(&pane_id);
     }
 
     /// Create a text buffer for a single line of UI text (status bar, tab bar).

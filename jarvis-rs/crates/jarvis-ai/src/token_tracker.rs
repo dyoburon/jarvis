@@ -29,10 +29,7 @@ impl TokenTracker {
         self.total.output_tokens += usage.output_tokens;
         self.call_count += 1;
 
-        let entry = self
-            .by_provider
-            .entry(provider.to_string())
-            .or_default();
+        let entry = self.by_provider.entry(provider.to_string()).or_default();
         entry.input_tokens += usage.input_tokens;
         entry.output_tokens += usage.output_tokens;
     }

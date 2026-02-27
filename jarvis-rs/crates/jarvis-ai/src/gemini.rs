@@ -8,7 +8,7 @@ use tracing::debug;
 
 use crate::streaming::{parse_sse_stream, SseEvent};
 use crate::tools::to_gemini_tool;
-use crate::{AiClient, AiError, AiResponse, Message, Role, ToolCall, ToolDefinition, TokenUsage};
+use crate::{AiClient, AiError, AiResponse, Message, Role, TokenUsage, ToolCall, ToolDefinition};
 
 const GEMINI_API_BASE: &str = "https://generativelanguage.googleapis.com/v1beta/models";
 
@@ -258,10 +258,7 @@ impl AiClient for GeminiClient {
                                 if let Some(fc) = part.get("functionCall") {
                                     tool_calls.push(ToolCall {
                                         id: uuid::Uuid::new_v4().to_string(),
-                                        name: fc["name"]
-                                            .as_str()
-                                            .unwrap_or("")
-                                            .to_string(),
+                                        name: fc["name"].as_str().unwrap_or("").to_string(),
                                         arguments: fc["args"].clone(),
                                     });
                                 }
@@ -272,10 +269,8 @@ impl AiClient for GeminiClient {
 
                 // Extract usage
                 if let Some(meta) = data.get("usageMetadata") {
-                    usage.input_tokens =
-                        meta["promptTokenCount"].as_u64().unwrap_or(0) as u32;
-                    usage.output_tokens =
-                        meta["candidatesTokenCount"].as_u64().unwrap_or(0) as u32;
+                    usage.input_tokens = meta["promptTokenCount"].as_u64().unwrap_or(0) as u32;
+                    usage.output_tokens = meta["candidatesTokenCount"].as_u64().unwrap_or(0) as u32;
                 }
             }
 

@@ -73,12 +73,9 @@ impl SkillRouter {
             .map(|s| s.provider)
             .unwrap_or(self.default_provider);
 
-        let client = self
-            .clients
-            .get(&provider)
-            .ok_or_else(|| {
-                AiError::ApiError(format!("No client registered for provider {provider:?}"))
-            })?;
+        let client = self.clients.get(&provider).ok_or_else(|| {
+            AiError::ApiError(format!("No client registered for provider {provider:?}"))
+        })?;
 
         client.send_message(messages, tools).await
     }
@@ -97,12 +94,9 @@ impl SkillRouter {
             .map(|s| s.provider)
             .unwrap_or(self.default_provider);
 
-        let client = self
-            .clients
-            .get(&provider)
-            .ok_or_else(|| {
-                AiError::ApiError(format!("No client registered for provider {provider:?}"))
-            })?;
+        let client = self.clients.get(&provider).ok_or_else(|| {
+            AiError::ApiError(format!("No client registered for provider {provider:?}"))
+        })?;
 
         client
             .send_message_streaming(messages, tools, on_chunk)

@@ -12,8 +12,8 @@ use tracing::{debug, warn};
 
 use crate::identity::Identity;
 use crate::protocol::{
-    events, ActivityUpdatePayload, ChatMessagePayload, GameInvitePayload, OnlineUser,
-    PokePayload, UserStatus,
+    events, ActivityUpdatePayload, ChatMessagePayload, GameInvitePayload, OnlineUser, PokePayload,
+    UserStatus,
 };
 use crate::realtime::{
     BroadcastConfig, ChannelConfig, PresenceConfig as RtPresenceConfig, RealtimeClient,
@@ -64,14 +64,32 @@ impl Default for PresenceConfig {
 /// Events emitted by the presence system for the UI to consume.
 #[derive(Debug, Clone)]
 pub enum PresenceEvent {
-    Connected { online_count: u32 },
+    Connected {
+        online_count: u32,
+    },
     Disconnected,
     UserOnline(OnlineUser),
-    UserOffline { user_id: String, display_name: String },
+    UserOffline {
+        user_id: String,
+        display_name: String,
+    },
     ActivityChanged(OnlineUser),
-    GameInvite { user_id: String, display_name: String, game: String, code: Option<String> },
-    Poked { user_id: String, display_name: String },
-    ChatMessage { user_id: String, display_name: String, channel: String, content: String },
+    GameInvite {
+        user_id: String,
+        display_name: String,
+        game: String,
+        code: Option<String>,
+    },
+    Poked {
+        user_id: String,
+        display_name: String,
+    },
+    ChatMessage {
+        user_id: String,
+        display_name: String,
+        channel: String,
+        content: String,
+    },
     Error(String),
 }
 
@@ -138,9 +156,7 @@ impl PresenceClient {
         // Spawn the event translator task.
         tokio::spawn(async move {
             // Join the channel once connected.
-            join_client
-                .join_channel(CHANNEL_NAME, channel_config)
-                .await;
+            join_client.join_channel(CHANNEL_NAME, channel_config).await;
 
             // Track our presence.
             let presence_payload = serde_json::json!({
@@ -206,8 +222,7 @@ impl PresenceClient {
                 code,
             };
             if let Ok(value) = serde_json::to_value(&payload) {
-                rt.broadcast(CHANNEL_NAME, events::GAME_INVITE, value)
-                    .await;
+                rt.broadcast(CHANNEL_NAME, events::GAME_INVITE, value).await;
             }
         }
     }
@@ -304,18 +319,14 @@ async fn event_translator(
                     })
                     .await;
             }
-            RealtimeEvent::PresenceDiff {
-                joins, leaves, ..
-            } => {
+            RealtimeEvent::PresenceDiff { joins, leaves, .. } => {
                 let mut users = online_users.write().await;
 
                 // Process joins.
                 for (key, metas) in &joins {
                     if let Some(user) = parse_presence_meta(metas) {
                         users.insert(key.clone(), user.clone());
-                        let _ = event_tx
-                            .send(PresenceEvent::UserOnline(user))
-                            .await;
+                        let _ = event_tx.send(PresenceEvent::UserOnline(user)).await;
                     }
                 }
 
@@ -336,11 +347,8 @@ async fn event_translator(
                         .await;
                 }
             }
-            RealtimeEvent::Broadcast {
-                event, payload, ..
-            } => {
-                handle_broadcast(&event, &payload, &online_users, &event_tx, our_user_id)
-                    .await;
+            RealtimeEvent::Broadcast { event, payload, .. } => {
+                handle_broadcast(&event, &payload, &online_users, &event_tx, our_user_id).await;
             }
             RealtimeEvent::Disconnected => {
                 *connected.write().await = false;
@@ -396,13 +404,8 @@ async fn handle_broadcast(
                     status: p.status,
                     activity: p.activity,
                 };
-                online_users
-                    .write()
-                    .await
-                    .insert(p.user_id, user.clone());
-                let _ = event_tx
-                    .send(PresenceEvent::ActivityChanged(user))
-                    .await;
+                online_users.write().await.insert(p.user_id, user.clone());
+                let _ = event_tx.send(PresenceEvent::ActivityChanged(user)).await;
             }
         }
         events::GAME_INVITE => {

@@ -29,6 +29,8 @@ pub enum InputMode {
     CommandPalette,
     /// Settings UI is open.
     Settings,
+    /// AI assistant panel is open: keys go to assistant input.
+    Assistant,
 }
 
 /// Modifier key state bundled for passing to input processing.
@@ -77,7 +79,13 @@ impl InputProcessor {
         mods: Modifiers,
         is_press: bool,
     ) -> InputResult {
-        let combo = KeyCombo::from_winit(mods.ctrl, mods.alt, mods.shift, mods.super_key, key_name.to_string());
+        let combo = KeyCombo::from_winit(
+            mods.ctrl,
+            mods.alt,
+            mods.shift,
+            mods.super_key,
+            key_name.to_string(),
+        );
 
         if !is_press {
             // Handle push-to-talk release
@@ -203,7 +211,12 @@ mod tests {
     }
 
     fn mods(ctrl: bool, alt: bool, shift: bool, super_key: bool) -> Modifiers {
-        Modifiers { ctrl, alt, shift, super_key }
+        Modifiers {
+            ctrl,
+            alt,
+            shift,
+            super_key,
+        }
     }
 
     #[test]
@@ -284,23 +297,50 @@ mod tests {
 
     #[test]
     fn arrow_keys() {
-        assert_eq!(encode_key_for_terminal("Up", false, false, false), b"\x1b[A");
-        assert_eq!(encode_key_for_terminal("Down", false, false, false), b"\x1b[B");
-        assert_eq!(encode_key_for_terminal("Right", false, false, false), b"\x1b[C");
-        assert_eq!(encode_key_for_terminal("Left", false, false, false), b"\x1b[D");
+        assert_eq!(
+            encode_key_for_terminal("Up", false, false, false),
+            b"\x1b[A"
+        );
+        assert_eq!(
+            encode_key_for_terminal("Down", false, false, false),
+            b"\x1b[B"
+        );
+        assert_eq!(
+            encode_key_for_terminal("Right", false, false, false),
+            b"\x1b[C"
+        );
+        assert_eq!(
+            encode_key_for_terminal("Left", false, false, false),
+            b"\x1b[D"
+        );
     }
 
     #[test]
     fn function_keys() {
-        assert_eq!(encode_key_for_terminal("F1", false, false, false), b"\x1bOP");
-        assert_eq!(encode_key_for_terminal("F5", false, false, false), b"\x1b[15~");
-        assert_eq!(encode_key_for_terminal("F12", false, false, false), b"\x1b[24~");
+        assert_eq!(
+            encode_key_for_terminal("F1", false, false, false),
+            b"\x1bOP"
+        );
+        assert_eq!(
+            encode_key_for_terminal("F5", false, false, false),
+            b"\x1b[15~"
+        );
+        assert_eq!(
+            encode_key_for_terminal("F12", false, false, false),
+            b"\x1b[24~"
+        );
     }
 
     #[test]
     fn backspace_and_delete() {
-        assert_eq!(encode_key_for_terminal("Backspace", false, false, false), b"\x7f");
-        assert_eq!(encode_key_for_terminal("Delete", false, false, false), b"\x1b[3~");
+        assert_eq!(
+            encode_key_for_terminal("Backspace", false, false, false),
+            b"\x7f"
+        );
+        assert_eq!(
+            encode_key_for_terminal("Delete", false, false, false),
+            b"\x1b[3~"
+        );
     }
 
     #[test]
@@ -309,10 +349,7 @@ mod tests {
         proc.set_bracketed_paste(true);
 
         let bytes = proc.encode_paste("hello world");
-        assert_eq!(
-            bytes,
-            b"\x1b[200~hello world\x1b[201~"
-        );
+        assert_eq!(bytes, b"\x1b[200~hello world\x1b[201~");
     }
 
     #[test]
@@ -324,7 +361,10 @@ mod tests {
 
     #[test]
     fn escape_key() {
-        assert_eq!(encode_key_for_terminal("Escape", false, false, false), b"\x1b");
+        assert_eq!(
+            encode_key_for_terminal("Escape", false, false, false),
+            b"\x1b"
+        );
     }
 
     #[test]

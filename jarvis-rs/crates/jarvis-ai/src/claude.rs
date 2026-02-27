@@ -11,7 +11,7 @@ use tracing::{debug, warn};
 
 use crate::streaming::{parse_sse_stream, SseEvent};
 use crate::tools::to_claude_tool;
-use crate::{AiClient, AiError, AiResponse, Message, Role, ToolCall, ToolDefinition, TokenUsage};
+use crate::{AiClient, AiError, AiResponse, Message, Role, TokenUsage, ToolCall, ToolDefinition};
 
 const CLAUDE_API_URL: &str = "https://api.anthropic.com/v1/messages";
 const ANTHROPIC_VERSION: &str = "2023-06-01";
@@ -189,7 +189,10 @@ impl AiClient for ClaudeClient {
         let response = self
             .http
             .post(CLAUDE_API_URL)
-            .header("x-api-key", &self.config.oauth_token)
+            .header(
+                "Authorization",
+                format!("Bearer {}", self.config.oauth_token),
+            )
             .header("anthropic-version", ANTHROPIC_VERSION)
             .header("content-type", "application/json")
             .json(&body)
@@ -227,7 +230,10 @@ impl AiClient for ClaudeClient {
         let response = self
             .http
             .post(CLAUDE_API_URL)
-            .header("x-api-key", &self.config.oauth_token)
+            .header(
+                "Authorization",
+                format!("Bearer {}", self.config.oauth_token),
+            )
             .header("anthropic-version", ANTHROPIC_VERSION)
             .header("content-type", "application/json")
             .json(&body)
@@ -271,9 +277,7 @@ impl AiClient for ClaudeClient {
                                 }
                             }
                             "input_json_delta" => {
-                                if let Some(json_part) =
-                                    data["delta"]["partial_json"].as_str()
-                                {
+                                if let Some(json_part) = data["delta"]["partial_json"].as_str() {
                                     current_tool_json.push_str(json_part);
                                 }
                             }
@@ -311,16 +315,14 @@ impl AiClient for ClaudeClient {
                 "message_delta" => {
                     if let Ok(data) = serde_json::from_str::<serde_json::Value>(&event.data) {
                         if let Some(u) = data.get("usage") {
-                            usage.output_tokens =
-                                u["output_tokens"].as_u64().unwrap_or(0) as u32;
+                            usage.output_tokens = u["output_tokens"].as_u64().unwrap_or(0) as u32;
                         }
                     }
                 }
                 "message_start" => {
                     if let Ok(data) = serde_json::from_str::<serde_json::Value>(&event.data) {
                         if let Some(u) = data["message"].get("usage") {
-                            usage.input_tokens =
-                                u["input_tokens"].as_u64().unwrap_or(0) as u32;
+                            usage.input_tokens = u["input_tokens"].as_u64().unwrap_or(0) as u32;
                         }
                     }
                 }

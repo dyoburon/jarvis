@@ -5,15 +5,13 @@ use unicode_width::UnicodeWidthChar;
 // TerminalColor
 // ---------------------------------------------------------------------------
 
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
-#[derive(Default)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Default)]
 pub enum TerminalColor {
     #[default]
     Default,
     Indexed(u8),
     Rgb(u8, u8, u8),
 }
-
 
 // ---------------------------------------------------------------------------
 // CellAttributes
@@ -59,15 +57,13 @@ impl Default for Cell {
 // Cursor
 // ---------------------------------------------------------------------------
 
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[derive(Default)]
+#[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub enum CursorShape {
     #[default]
     Block,
     Underline,
     Bar,
 }
-
 
 #[derive(Clone, Debug)]
 pub struct CursorState {
@@ -111,6 +107,8 @@ pub struct Grid {
     /// Saved primary screen when in alternate screen mode.
     pub alternate_screen: Option<Vec<Vec<Cell>>>,
     pub title: String,
+    /// Per-row dirty flags for incremental rendering.
+    dirty_rows: Vec<bool>,
 }
 
 impl Grid {
@@ -134,6 +132,7 @@ impl Grid {
             wrap_pending: false,
             alternate_screen: None,
             title: String::new(),
+            dirty_rows: vec![true; rows],
         }
     }
 
@@ -149,6 +148,42 @@ impl Grid {
 
     fn default_tab_stops(cols: usize) -> Vec<bool> {
         (0..cols).map(|c| c % 8 == 0).collect()
+    }
+
+    // -- dirty tracking -----------------------------------------------------
+
+    #[inline]
+    fn mark_dirty(&mut self, row: usize) {
+        if row < self.dirty_rows.len() {
+            self.dirty_rows[row] = true;
+        }
+    }
+
+    #[inline]
+    fn mark_range_dirty(&mut self, start: usize, end: usize) {
+        for r in start..end.min(self.dirty_rows.len()) {
+            self.dirty_rows[r] = true;
+        }
+    }
+
+    fn mark_all_dirty(&mut self) {
+        for d in &mut self.dirty_rows {
+            *d = true;
+        }
+    }
+
+    /// Returns a snapshot of which rows are dirty, then clears all dirty flags.
+    pub fn take_dirty(&mut self) -> Vec<bool> {
+        let snapshot = self.dirty_rows.clone();
+        for d in &mut self.dirty_rows {
+            *d = false;
+        }
+        snapshot
+    }
+
+    /// Check whether any row is dirty.
+    pub fn any_dirty(&self) -> bool {
+        self.dirty_rows.iter().any(|&d| d)
     }
 
     // -- resize -------------------------------------------------------------
@@ -189,6 +224,8 @@ impl Grid {
         self.cursor.row = self.cursor.row.min(new_rows.saturating_sub(1));
         self.cursor.col = self.cursor.col.min(new_cols.saturating_sub(1));
 
+        self.dirty_rows = vec![true; new_rows];
+
         scrolled_off
     }
 
@@ -218,19 +255,19 @@ impl Grid {
         }
 
         // If the character is wide and we are at the last column, wrap first.
-        if display_width == 2 && self.cursor.col + 1 >= self.cols
-            && self.auto_wrap {
-                // Fill current position with space, then wrap.
-                let row = self.cursor.row;
-                let col = self.cursor.col;
-                self.cells[row][col] = Cell {
-                    c: ' ',
-                    attrs: self.attrs,
-                    width: 1,
-                };
-                self.cursor.col = 0;
-                self.newline();
-            }
+        if display_width == 2 && self.cursor.col + 1 >= self.cols && self.auto_wrap {
+            // Fill current position with space, then wrap.
+            let row = self.cursor.row;
+            let col = self.cursor.col;
+            self.cells[row][col] = Cell {
+                c: ' ',
+                attrs: self.attrs,
+                width: 1,
+            };
+            self.mark_dirty(row);
+            self.cursor.col = 0;
+            self.newline();
+        }
 
         let row = self.cursor.row;
         let col = self.cursor.col;
@@ -250,6 +287,8 @@ impl Grid {
                     width: 0,
                 };
             }
+
+            self.mark_dirty(row);
         }
 
         // Advance cursor.
@@ -323,6 +362,7 @@ impl Grid {
             self.cells
                 .insert(bot - count + 1, Self::blank_row(self.cols));
         }
+        self.mark_range_dirty(top, bot + 1);
         scrolled
     }
 
@@ -340,6 +380,7 @@ impl Grid {
         for _ in 0..count {
             self.cells.insert(top, Self::blank_row(self.cols));
         }
+        self.mark_range_dirty(top, bot + 1);
     }
 
     // -- erasing ------------------------------------------------------------
@@ -351,36 +392,34 @@ impl Grid {
         let (row, col) = (self.cursor.row, self.cursor.col);
         match mode {
             0 => {
-                // Clear from cursor to end of line.
                 for c in col..self.cols {
                     self.cells[row][c] = Cell::default();
                 }
-                // Clear all lines below.
                 for r in (row + 1)..self.rows {
                     for c in 0..self.cols {
                         self.cells[r][c] = Cell::default();
                     }
                 }
+                self.mark_range_dirty(row, self.rows);
             }
             1 => {
-                // Clear all lines above.
                 for r in 0..row {
                     for c in 0..self.cols {
                         self.cells[r][c] = Cell::default();
                     }
                 }
-                // Clear from start of line to cursor (inclusive).
                 for c in 0..=col.min(self.cols.saturating_sub(1)) {
                     self.cells[row][c] = Cell::default();
                 }
+                self.mark_range_dirty(0, row + 1);
             }
             2 => {
-                // Clear entire screen.
                 for r in 0..self.rows {
                     for c in 0..self.cols {
                         self.cells[r][c] = Cell::default();
                     }
                 }
+                self.mark_all_dirty();
             }
             3 => {
                 // Clear scrollback -- handled externally.
@@ -414,6 +453,7 @@ impl Grid {
             }
             _ => {}
         }
+        self.mark_dirty(row);
     }
 
     // -- line insertion / deletion ------------------------------------------
@@ -431,6 +471,7 @@ impl Grid {
         for _ in 0..count {
             self.cells.insert(row, Self::blank_row(self.cols));
         }
+        self.mark_range_dirty(row, self.scroll_bottom + 1);
     }
 
     /// Delete `count` lines at the cursor row within the scroll region.
@@ -447,6 +488,7 @@ impl Grid {
             self.cells
                 .insert(self.scroll_bottom - count + 1, Self::blank_row(self.cols));
         }
+        self.mark_range_dirty(row, self.scroll_bottom + 1);
     }
 
     // -- char insertion / deletion ------------------------------------------
@@ -460,15 +502,14 @@ impl Grid {
             return;
         }
         let count = count.min(self.cols - col);
-        // Remove from end, insert blanks at cursor.
         for _ in 0..count {
             self.cells[row].pop();
         }
         for _ in 0..count {
             self.cells[row].insert(col, Cell::default());
         }
-        // Ensure row length is correct.
         self.cells[row].resize(self.cols, Cell::default());
+        self.mark_dirty(row);
     }
 
     /// Delete `count` characters at the cursor position, shifting remaining
@@ -486,6 +527,7 @@ impl Grid {
             }
         }
         self.cells[row].resize(self.cols, Cell::default());
+        self.mark_dirty(row);
     }
 
     /// Erase `count` characters starting at the cursor (replace with blanks).
@@ -499,19 +541,24 @@ impl Grid {
         for c in col..end {
             self.cells[row][c] = Cell::default();
         }
+        self.mark_dirty(row);
     }
 
     // -- cursor movement ----------------------------------------------------
 
     /// Move cursor to an absolute position, clamped to grid bounds.
     pub fn move_cursor(&mut self, row: usize, col: usize) {
+        let old_row = self.cursor.row;
         self.cursor.row = row.min(self.rows.saturating_sub(1));
         self.cursor.col = col.min(self.cols.saturating_sub(1));
         self.wrap_pending = false;
+        self.mark_dirty(old_row);
+        self.mark_dirty(self.cursor.row);
     }
 
     /// Move cursor relative to current position.
     pub fn move_cursor_relative(&mut self, d_row: i32, d_col: i32) {
+        let old_row = self.cursor.row;
         let new_row = (self.cursor.row as i32 + d_row)
             .max(0)
             .min(self.rows.saturating_sub(1) as i32) as usize;
@@ -521,6 +568,8 @@ impl Grid {
         self.cursor.row = new_row;
         self.cursor.col = new_col;
         self.wrap_pending = false;
+        self.mark_dirty(old_row);
+        self.mark_dirty(new_row);
     }
 
     // -- cursor save / restore (DECSC / DECRC) ------------------------------
@@ -556,17 +605,17 @@ impl Grid {
         }
         let saved = self.cells.clone();
         self.alternate_screen = Some(saved);
-        // Clear current screen.
         self.cells = Self::blank_cells(self.cols, self.rows);
         self.cursor = CursorState::default();
+        self.mark_all_dirty();
     }
 
     pub fn exit_alternate_screen(&mut self) {
         if let Some(saved) = self.alternate_screen.take() {
             self.cells = saved;
-            // Clamp cursor.
             self.cursor.row = self.cursor.row.min(self.rows.saturating_sub(1));
             self.cursor.col = self.cursor.col.min(self.cols.saturating_sub(1));
+            self.mark_all_dirty();
         }
     }
 
@@ -1019,9 +1068,99 @@ mod tests {
         let mut g = Grid::new(5, 2);
         g.cursor.col = 4; // last column
         g.put_char('\u{4E16}'); // wide char width=2
-        // Should wrap to next line.
+                                // Should wrap to next line.
         assert_eq!(g.cursor.row, 1);
         assert_eq!(g.cells[1][0].c, '\u{4E16}');
         assert_eq!(g.cells[1][0].width, 2);
+    }
+
+    // -- dirty tracking tests -----------------------------------------------
+
+    #[test]
+    fn new_grid_starts_all_dirty() {
+        let mut g = Grid::new(80, 24);
+        let dirty = g.take_dirty();
+        assert!(dirty.iter().all(|&d| d));
+        assert_eq!(dirty.len(), 24);
+    }
+
+    #[test]
+    fn take_dirty_clears_flags() {
+        let mut g = Grid::new(80, 24);
+        let _ = g.take_dirty();
+        let dirty = g.take_dirty();
+        assert!(dirty.iter().all(|&d| !d));
+    }
+
+    #[test]
+    fn put_char_marks_cursor_row_dirty() {
+        let mut g = Grid::new(80, 24);
+        let _ = g.take_dirty();
+        g.put_char('A');
+        let dirty = g.take_dirty();
+        assert!(dirty[0]);
+        assert!(!dirty[1]);
+    }
+
+    #[test]
+    fn scroll_up_marks_scroll_region_dirty() {
+        let mut g = Grid::new(5, 5);
+        let _ = g.take_dirty();
+        g.scroll_up(1);
+        let dirty = g.take_dirty();
+        // Default scroll region is 0..4
+        assert!(dirty.iter().all(|&d| d));
+    }
+
+    #[test]
+    fn erase_in_display_mode2_marks_all_dirty() {
+        let mut g = Grid::new(5, 3);
+        let _ = g.take_dirty();
+        g.erase_in_display(2);
+        let dirty = g.take_dirty();
+        assert!(dirty.iter().all(|&d| d));
+    }
+
+    #[test]
+    fn erase_in_line_marks_only_that_row() {
+        let mut g = Grid::new(10, 3);
+        g.cursor.row = 1;
+        let _ = g.take_dirty();
+        g.erase_in_line(2);
+        let dirty = g.take_dirty();
+        assert!(!dirty[0]);
+        assert!(dirty[1]);
+        assert!(!dirty[2]);
+    }
+
+    #[test]
+    fn move_cursor_marks_old_and_new_rows() {
+        let mut g = Grid::new(80, 24);
+        let _ = g.take_dirty();
+        g.move_cursor(5, 0);
+        let dirty = g.take_dirty();
+        assert!(dirty[0]); // old row
+        assert!(dirty[5]); // new row
+        assert!(!dirty[3]); // untouched
+    }
+
+    #[test]
+    fn resize_marks_all_dirty() {
+        let mut g = Grid::new(80, 24);
+        let _ = g.take_dirty();
+        g.resize(40, 12);
+        let dirty = g.take_dirty();
+        assert_eq!(dirty.len(), 12);
+        assert!(dirty.iter().all(|&d| d));
+    }
+
+    #[test]
+    fn any_dirty_returns_false_after_take() {
+        let mut g = Grid::new(80, 24);
+        assert!(g.any_dirty());
+        let _ = g.take_dirty();
+        assert!(!g.any_dirty());
+        g.put_char('X');
+        assert!(g.any_dirty());
     }
 }

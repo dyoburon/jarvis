@@ -51,10 +51,7 @@ impl ChatHistory {
     /// Push a message into a channel. Oldest messages are evicted when the
     /// buffer is full.
     pub fn push(&mut self, msg: ChatMessage) {
-        let buf = self
-            .channels
-            .entry(msg.channel.clone())
-            .or_default();
+        let buf = self.channels.entry(msg.channel.clone()).or_default();
         if buf.len() >= self.config.max_messages_per_channel {
             buf.pop_front();
         }

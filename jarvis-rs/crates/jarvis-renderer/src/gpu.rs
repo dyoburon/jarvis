@@ -111,7 +111,10 @@ impl GpuContext {
             .first()
             .copied()
             .unwrap_or(wgpu::TextureFormat::Bgra8UnormSrgb);
-        tracing::info!("Surface format: {format:?} (available: {:?})", surface_caps.formats);
+        tracing::info!(
+            "Surface format: {format:?} (available: {:?})",
+            surface_caps.formats
+        );
 
         let surface_config = wgpu::SurfaceConfiguration {
             usage: wgpu::TextureUsages::RENDER_ATTACHMENT,

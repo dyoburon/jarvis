@@ -187,7 +187,6 @@ pub enum BackgroundMode {
     None,
 }
 
-
 /// Hex grid background settings.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default)]
@@ -221,7 +220,6 @@ pub enum ImageFit {
     Tile,
 }
 
-
 /// Image background settings.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default)]
@@ -254,7 +252,6 @@ pub enum VideoFit {
     Fill,
 }
 
-
 /// Video background settings.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default)]
@@ -286,7 +283,6 @@ pub enum GradientType {
     #[default]
     Radial,
 }
-
 
 /// Gradient background settings.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -351,7 +347,6 @@ pub enum VisualizerType {
     None,
 }
 
-
 /// Orb mesh detail level.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
@@ -362,7 +357,6 @@ pub enum MeshDetail {
     #[default]
     High,
 }
-
 
 /// Orb visualizer settings.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -408,7 +402,6 @@ pub enum ImageAnimation {
     Float,
 }
 
-
 /// Image visualizer fit mode (no tile).
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
@@ -419,7 +412,6 @@ pub enum VisualizerFit {
     Cover,
     Fill,
 }
-
 
 /// Image visualizer settings.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -484,7 +476,6 @@ pub enum ParticleStyle {
     Custom,
 }
 
-
 /// Particle visualizer settings.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default)]
@@ -523,7 +514,6 @@ pub enum WaveformStyle {
     Circular,
     Mirror,
 }
-
 
 /// Waveform visualizer settings.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -564,7 +554,6 @@ pub enum VisualizerAnchor {
     BottomLeft,
     BottomRight,
 }
-
 
 /// Per-state visualizer overrides.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -802,7 +791,6 @@ pub enum OnReadyAction {
     Skill,
 }
 
-
 /// What to show after boot/skip.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default)]
@@ -836,7 +824,6 @@ pub struct StartupConfig {
     pub on_ready: OnReadyConfig,
 }
 
-
 // =============================================================================
 // Voice Config
 // =============================================================================
@@ -850,7 +837,6 @@ pub enum VoiceMode {
     Ptt,
     Vad,
 }
-
 
 /// Push-to-talk settings.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1062,7 +1048,6 @@ pub struct PanelsConfig {
     pub focus: FocusConfig,
 }
 
-
 // =============================================================================
 // Games Config
 // =============================================================================
@@ -1133,7 +1118,6 @@ pub struct GamesConfig {
     pub fullscreen: FullscreenConfig,
     pub custom_paths: Vec<CustomGameConfig>,
 }
-
 
 // =============================================================================
 // Livechat Config
@@ -1264,7 +1248,6 @@ pub enum PerformancePreset {
     Ultra,
 }
 
-
 /// Orb rendering quality.
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "lowercase")]
@@ -1275,7 +1258,6 @@ pub enum OrbQuality {
     #[default]
     High,
 }
-
 
 /// Preload settings.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -1333,7 +1315,6 @@ pub enum UpdateChannel {
     Beta,
 }
 
-
 /// Auto-update configuration.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default)]
@@ -1374,7 +1355,6 @@ pub enum LogLevel {
     Error,
 }
 
-
 /// Logging configuration.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default)]
@@ -1411,7 +1391,6 @@ pub struct ExperimentalConfig {
     pub metal_debug: bool,
 }
 
-
 /// Developer options.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default)]
@@ -1422,7 +1401,6 @@ pub struct DeveloperConfig {
     pub inspector_enabled: bool,
 }
 
-
 /// Advanced configuration.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(default)]
@@ -1431,7 +1409,6 @@ pub struct AdvancedConfig {
     pub experimental: ExperimentalConfig,
     pub developer: DeveloperConfig,
 }
-
 
 // =============================================================================
 // Root Config
@@ -1464,7 +1441,6 @@ pub struct JarvisConfig {
     pub logging: LoggingConfig,
     pub advanced: AdvancedConfig,
 }
-
 
 // =============================================================================
 // Tests
@@ -1563,10 +1539,7 @@ mod tests {
         assert!((config.visualizer.state_speaking.intensity - 1.4).abs() < f64::EPSILON);
         // skill
         assert!((config.visualizer.state_skill.scale - 0.9).abs() < f64::EPSILON);
-        assert_eq!(
-            config.visualizer.state_skill.color,
-            Some("#ffaa00".into())
-        );
+        assert_eq!(config.visualizer.state_skill.color, Some("#ffaa00".into()));
         // chat
         assert!((config.visualizer.state_chat.scale - 0.55).abs() < f64::EPSILON);
         assert_eq!(config.visualizer.state_chat.position_x, Some(0.10));

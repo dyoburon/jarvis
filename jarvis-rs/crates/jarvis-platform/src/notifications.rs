@@ -38,7 +38,11 @@ fn platform_notify(title: &str, body: &str) -> Result<(), PlatformError> {
 
 #[cfg(not(target_os = "macos"))]
 fn platform_notify(title: &str, body: &str) -> Result<(), PlatformError> {
-    info!(title, body, "notification (stub): would display native notification");
+    info!(
+        notification_title = title,
+        notification_body = body,
+        "notification (stub): would display native notification"
+    );
     Ok(())
 }
 

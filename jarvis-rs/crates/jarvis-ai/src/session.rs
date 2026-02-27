@@ -114,10 +114,7 @@ impl Session {
                 let result = self.execute_tool(executor, tool_call);
                 messages.push(Message {
                     role: Role::Tool,
-                    content: format!(
-                        "[Tool Result: {}]\n{}",
-                        tool_call.name, result
-                    ),
+                    content: format!("[Tool Result: {}]\n{}", tool_call.name, result),
                 });
             }
         }

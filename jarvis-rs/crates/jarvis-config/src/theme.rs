@@ -137,10 +137,7 @@ pub fn load_theme_from_path(path: &Path) -> Result<ThemeOverrides, ConfigError> 
     }
 
     let content = std::fs::read_to_string(path).map_err(|e| {
-        ConfigError::ParseError(format!(
-            "failed to read theme file {}: {e}",
-            path.display()
-        ))
+        ConfigError::ParseError(format!("failed to read theme file {}: {e}", path.display()))
     })?;
 
     let theme: ThemeOverrides = serde_yaml::from_str(&content).map_err(|e| {
@@ -347,7 +344,10 @@ font:
         assert_eq!(theme.name, Some("test-theme".into()));
         assert!(theme.colors.is_some());
         assert_eq!(theme.colors.as_ref().unwrap().primary, "#ff00ff");
-        assert_eq!(theme.font.as_ref().unwrap().family, Some("Fira Code".into()));
+        assert_eq!(
+            theme.font.as_ref().unwrap().family,
+            Some("Fira Code".into())
+        );
     }
 
     #[test]

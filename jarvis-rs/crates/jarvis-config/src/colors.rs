@@ -15,8 +15,10 @@ static HEX_RE: LazyLock<Regex> =
 
 /// Regex for rgba() color with float or int alpha.
 static RGBA_RE: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*([0-9]*\.?[0-9]+)\s*\)$")
-        .unwrap()
+    Regex::new(
+        r"^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*([0-9]*\.?[0-9]+)\s*\)$",
+    )
+    .unwrap()
 });
 
 /// Parse a color string into a [`Color`].
@@ -33,9 +35,7 @@ pub fn parse_color(s: &str) -> Result<Color, ConfigError> {
         if let Some(color) = parse_hex(s) {
             return Ok(color);
         }
-        return Err(ConfigError::ParseError(format!(
-            "invalid hex color: {s}"
-        )));
+        return Err(ConfigError::ParseError(format!("invalid hex color: {s}")));
     }
 
     // Try rgba() format
@@ -43,9 +43,7 @@ pub fn parse_color(s: &str) -> Result<Color, ConfigError> {
         if let Some(color) = parse_rgba(s) {
             return Ok(color);
         }
-        return Err(ConfigError::ParseError(format!(
-            "invalid rgba color: {s}"
-        )));
+        return Err(ConfigError::ParseError(format!("invalid rgba color: {s}")));
     }
 
     Err(ConfigError::ParseError(format!(
@@ -219,10 +217,7 @@ mod tests {
             "#ff4444",
         ];
         for c in &colors {
-            assert!(
-                parse_color(c).is_ok(),
-                "failed to parse default color: {c}"
-            );
+            assert!(parse_color(c).is_ok(), "failed to parse default color: {c}");
         }
     }
 }

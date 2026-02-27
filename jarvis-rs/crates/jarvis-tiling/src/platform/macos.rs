@@ -104,10 +104,7 @@ impl WindowManager for MacOsWindowManager {
         Ok(())
     }
 
-    fn watch_windows(
-        &self,
-        _callback: Box<dyn Fn(WindowEvent) + Send>,
-    ) -> Result<WatchHandle> {
+    fn watch_windows(&self, _callback: Box<dyn Fn(WindowEvent) + Send>) -> Result<WatchHandle> {
         // Would use NSWorkspace notifications or
         // CGRegisterScreenRefreshCallback. For Phase 4, return a dummy handle.
         Ok(WatchHandle::new(()))

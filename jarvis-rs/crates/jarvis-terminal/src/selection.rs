@@ -32,8 +32,7 @@ pub struct SelectionRange {
 // ---------------------------------------------------------------------------
 
 /// The kind of text selection.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[derive(Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum SelectionKind {
     /// Character-level selection from start to end.
     #[default]
@@ -43,7 +42,6 @@ pub enum SelectionKind {
     /// Rectangular / block (column) selection.
     Block,
 }
-
 
 // ---------------------------------------------------------------------------
 // Selection
@@ -223,9 +221,7 @@ impl Selection {
     ) -> String {
         if row < sb_len {
             // Scrollback line
-            scrollback
-                .line_to_string(row)
-                .unwrap_or_default()
+            scrollback.line_to_string(row).unwrap_or_default()
         } else {
             // Grid line
             let grid_row = row - sb_len;
@@ -264,10 +260,7 @@ mod tests {
     #[test]
     fn start_and_update_creates_range() {
         let mut sel = Selection::new();
-        sel.start(
-            SelectionPoint { row: 0, col: 2 },
-            SelectionKind::Normal,
-        );
+        sel.start(SelectionPoint { row: 0, col: 2 }, SelectionKind::Normal);
         sel.update(SelectionPoint { row: 1, col: 5 });
 
         assert!(sel.is_active());
@@ -280,10 +273,7 @@ mod tests {
     fn range_is_normalized() {
         let mut sel = Selection::new();
         // Start at a later point, then update to an earlier point.
-        sel.start(
-            SelectionPoint { row: 3, col: 10 },
-            SelectionKind::Normal,
-        );
+        sel.start(SelectionPoint { row: 3, col: 10 }, SelectionKind::Normal);
         sel.update(SelectionPoint { row: 1, col: 2 });
 
         let range = sel.range().unwrap();
@@ -295,10 +285,7 @@ mod tests {
     #[test]
     fn clear_removes_selection() {
         let mut sel = Selection::new();
-        sel.start(
-            SelectionPoint { row: 0, col: 0 },
-            SelectionKind::Normal,
-        );
+        sel.start(SelectionPoint { row: 0, col: 0 }, SelectionKind::Normal);
         sel.update(SelectionPoint { row: 1, col: 5 });
         assert!(sel.is_active());
 
@@ -310,10 +297,7 @@ mod tests {
     #[test]
     fn contains_returns_correct_cells() {
         let mut sel = Selection::new();
-        sel.start(
-            SelectionPoint { row: 1, col: 2 },
-            SelectionKind::Normal,
-        );
+        sel.start(SelectionPoint { row: 1, col: 2 }, SelectionKind::Normal);
         sel.update(SelectionPoint { row: 1, col: 5 });
 
         // Within range
@@ -331,10 +315,7 @@ mod tests {
     #[test]
     fn line_selection_includes_full_rows() {
         let mut sel = Selection::new();
-        sel.start(
-            SelectionPoint { row: 1, col: 5 },
-            SelectionKind::Line,
-        );
+        sel.start(SelectionPoint { row: 1, col: 5 }, SelectionKind::Line);
         sel.update(SelectionPoint { row: 2, col: 3 });
 
         // Any column in rows 1 and 2 should be selected.
@@ -364,10 +345,7 @@ mod tests {
         let scrollback = ScrollbackBuffer::new(100);
 
         let mut sel = Selection::new();
-        sel.start(
-            SelectionPoint { row: 0, col: 0 },
-            SelectionKind::Normal,
-        );
+        sel.start(SelectionPoint { row: 0, col: 0 }, SelectionKind::Normal);
         sel.update(SelectionPoint { row: 0, col: 4 });
 
         let text = sel.selected_text(&grid, &scrollback);
@@ -389,10 +367,7 @@ mod tests {
         let scrollback = ScrollbackBuffer::new(100);
 
         let mut sel = Selection::new();
-        sel.start(
-            SelectionPoint { row: 0, col: 3 },
-            SelectionKind::Line,
-        );
+        sel.start(SelectionPoint { row: 0, col: 3 }, SelectionKind::Line);
         sel.update(SelectionPoint { row: 1, col: 1 });
 
         let text = sel.selected_text(&grid, &scrollback);

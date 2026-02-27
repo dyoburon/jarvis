@@ -240,12 +240,7 @@ impl RealtimeClient {
     }
 
     /// Send a broadcast event on a channel.
-    pub async fn broadcast(
-        &self,
-        topic: &str,
-        event: &str,
-        payload: serde_json::Value,
-    ) {
+    pub async fn broadcast(&self, topic: &str, event: &str, payload: serde_json::Value) {
         let _ = self
             .command_tx
             .send(RealtimeCommand::Broadcast {
@@ -488,15 +483,13 @@ async fn connection_loop(
                                     };
                                     if let Ok(json) = serde_json::to_string(&msg) {
                                         let mut writer = cmd_write.lock().await;
-                                        let _ =
-                                            writer.send(WsMessage::Text(json.into())).await;
+                                        let _ = writer.send(WsMessage::Text(json.into())).await;
                                     }
                                 }
                                 drop(channels);
                                 let mut writer = cmd_write.lock().await;
                                 let _ = writer.send(WsMessage::Close(None)).await;
-                                let _ =
-                                    cmd_event_tx.send(RealtimeEvent::Disconnected).await;
+                                let _ = cmd_event_tx.send(RealtimeEvent::Disconnected).await;
                                 return; // Exit the command forwarder
                             }
                         }
@@ -508,15 +501,9 @@ async fn connection_loop(
                 while let Some(msg_result) = read_stream.next().await {
                     match msg_result {
                         Ok(WsMessage::Text(text)) => {
-                            if let Ok(phoenix_msg) =
-                                serde_json::from_str::<PhoenixMessage>(&text)
-                            {
-                                handle_phoenix_message(
-                                    &phoenix_msg,
-                                    &joined_channels,
-                                    &event_tx,
-                                )
-                                .await;
+                            if let Ok(phoenix_msg) = serde_json::from_str::<PhoenixMessage>(&text) {
+                                handle_phoenix_message(&phoenix_msg, &joined_channels, &event_tx)
+                                    .await;
                             } else {
                                 debug!(text = %text, "Unrecognized message from Supabase");
                             }
@@ -569,9 +556,7 @@ fn strip_topic_prefix(topic: &str) -> &str {
 /// Parse a Phoenix presence map into `HashMap<key, Vec<meta>>`.
 ///
 /// Supabase sends presence as `{ "key": { "metas": [{ ... }] } }`.
-fn parse_presence_map(
-    value: &serde_json::Value,
-) -> HashMap<String, Vec<serde_json::Value>> {
+fn parse_presence_map(value: &serde_json::Value) -> HashMap<String, Vec<serde_json::Value>> {
     let mut result = HashMap::new();
     if let Some(obj) = value.as_object() {
         for (key, val) in obj {

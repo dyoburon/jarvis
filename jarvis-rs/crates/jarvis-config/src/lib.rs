@@ -54,9 +54,8 @@ pub fn load_config() -> Result<JarvisConfig, ConfigError> {
 
 /// Serialize a config to a pretty-printed JSON string.
 pub fn config_to_json(config: &JarvisConfig) -> String {
-    serde_json::to_string_pretty(config).unwrap_or_else(|e| {
-        format!("{{\"error\": \"failed to serialize config: {e}\"}}")
-    })
+    serde_json::to_string_pretty(config)
+        .unwrap_or_else(|e| format!("{{\"error\": \"failed to serialize config: {e}\"}}"))
 }
 
 #[cfg(test)]

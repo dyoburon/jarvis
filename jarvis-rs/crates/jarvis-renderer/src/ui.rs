@@ -140,16 +140,8 @@ impl UiChrome {
     /// Compute the rectangle available for terminal content after subtracting
     /// chrome elements (tab bar, status bar).
     pub fn content_rect(&self, window_width: f32, window_height: f32) -> Rect {
-        let top = self
-            .tab_bar
-            .as_ref()
-            .map(|tb| tb.height)
-            .unwrap_or(0.0);
-        let bottom = self
-            .status_bar
-            .as_ref()
-            .map(|sb| sb.height)
-            .unwrap_or(0.0);
+        let top = self.tab_bar.as_ref().map(|tb| tb.height).unwrap_or(0.0);
+        let bottom = self.status_bar.as_ref().map(|sb| sb.height).unwrap_or(0.0);
         Rect {
             x: 0.0,
             y: top as f64,
@@ -193,12 +185,10 @@ mod tests {
     fn content_rect_subtracts_tab_and_status_bar() {
         let mut chrome = UiChrome::new();
         chrome.set_tabs(
-            vec![
-                Tab {
-                    title: "Tab 1".into(),
-                    is_active: true,
-                },
-            ],
+            vec![Tab {
+                title: "Tab 1".into(),
+                is_active: true,
+            }],
             0,
         );
         chrome.set_status("left", "center", "right");
@@ -299,12 +289,10 @@ mod tests {
     fn set_tabs_clamps_active_index() {
         let mut chrome = UiChrome::new();
         chrome.set_tabs(
-            vec![
-                Tab {
-                    title: "Only".into(),
-                    is_active: false,
-                },
-            ],
+            vec![Tab {
+                title: "Only".into(),
+                is_active: false,
+            }],
             99,
         );
         let tb = chrome.tab_bar.as_ref().unwrap();

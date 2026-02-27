@@ -59,7 +59,6 @@ impl ShareQuality {
     }
 }
 
-
 /// An active screen sharing session.
 #[derive(Debug, Clone)]
 pub struct ScreenShareSession {

@@ -51,11 +51,7 @@ impl WhisperClient {
     /// `audio_data` should be valid audio in a supported format
     /// (mp3, mp4, mpeg, mpga, m4a, wav, webm).
     /// `filename` is used for the multipart form (e.g., "audio.wav").
-    pub async fn transcribe(
-        &self,
-        audio_data: Vec<u8>,
-        filename: &str,
-    ) -> Result<String, AiError> {
+    pub async fn transcribe(&self, audio_data: Vec<u8>, filename: &str) -> Result<String, AiError> {
         debug!(
             model = %self.config.model,
             size = audio_data.len(),

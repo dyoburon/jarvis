@@ -227,7 +227,11 @@ mod tests {
 
     #[test]
     fn app_state_variants() {
-        let states = [AppState::Starting, AppState::Running, AppState::ShuttingDown];
+        let states = [
+            AppState::Starting,
+            AppState::Running,
+            AppState::ShuttingDown,
+        ];
         for state in &states {
             let json = serde_json::to_string(state).unwrap();
             let deserialized: AppState = serde_json::from_str(&json).unwrap();

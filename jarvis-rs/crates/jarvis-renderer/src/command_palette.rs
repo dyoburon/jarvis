@@ -138,7 +138,10 @@ mod tests {
     #[test]
     fn initial_state_shows_all() {
         let palette = make_palette();
-        assert_eq!(palette.visible_items().len(), Action::palette_actions().len());
+        assert_eq!(
+            palette.visible_items().len(),
+            Action::palette_actions().len()
+        );
         assert_eq!(palette.selected_index(), 0);
         assert_eq!(palette.query(), "");
     }
@@ -192,10 +195,7 @@ mod tests {
         let mut palette = make_palette();
         palette.select_prev();
         // Should wrap to last item
-        assert_eq!(
-            palette.selected_index(),
-            palette.visible_items().len() - 1
-        );
+        assert_eq!(palette.selected_index(), palette.visible_items().len() - 1);
     }
 
     #[test]

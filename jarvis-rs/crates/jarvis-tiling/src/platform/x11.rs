@@ -27,10 +27,7 @@ impl WindowManager for X11WindowManager {
         Ok(())
     }
 
-    fn watch_windows(
-        &self,
-        _callback: Box<dyn Fn(WindowEvent) + Send>,
-    ) -> Result<WatchHandle> {
+    fn watch_windows(&self, _callback: Box<dyn Fn(WindowEvent) + Send>) -> Result<WatchHandle> {
         Ok(WatchHandle::new(()))
     }
 }

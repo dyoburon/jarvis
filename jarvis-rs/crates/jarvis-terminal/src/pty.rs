@@ -3,9 +3,7 @@
 //! Provides [`PtyManager`] for spawning a shell inside a pseudo-terminal,
 //! reading/writing data, resizing, and lifecycle management.
 
-use portable_pty::{
-    native_pty_system, Child, CommandBuilder, MasterPty, PtySize,
-};
+use portable_pty::{native_pty_system, Child, CommandBuilder, MasterPty, PtySize};
 use std::io::{Read, Write};
 use std::sync::mpsc;
 

@@ -60,20 +60,17 @@ impl ConfigWatcher {
                 move |result: Result<Event, notify::Error>| {
                     match result {
                         Ok(event) => {
-                            let dominated = matches!(
-                                event.kind,
-                                EventKind::Modify(_) | EventKind::Create(_)
-                            );
+                            let dominated =
+                                matches!(event.kind, EventKind::Modify(_) | EventKind::Create(_));
                             if !dominated {
                                 return;
                             }
 
                             // Check if the changed file matches our config file
-                            let is_our_file = event.paths.iter().any(|p| {
-                                p.file_name()
-                                    .map(|n| n == file_name)
-                                    .unwrap_or(false)
-                            });
+                            let is_our_file = event
+                                .paths
+                                .iter()
+                                .any(|p| p.file_name().map(|n| n == file_name).unwrap_or(false));
 
                             if is_our_file {
                                 debug!("config file change detected");

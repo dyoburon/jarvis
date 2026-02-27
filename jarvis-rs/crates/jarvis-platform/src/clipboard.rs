@@ -8,8 +8,8 @@ pub struct Clipboard {
 impl Clipboard {
     /// Creates a new clipboard handle.
     pub fn new() -> Result<Self, PlatformError> {
-        let inner = arboard::Clipboard::new()
-            .map_err(|e| PlatformError::ClipboardError(e.to_string()))?;
+        let inner =
+            arboard::Clipboard::new().map_err(|e| PlatformError::ClipboardError(e.to_string()))?;
         Ok(Self { inner })
     }
 
