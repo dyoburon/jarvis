@@ -107,21 +107,6 @@ fn main() {
     let registry = jarvis_platform::KeybindRegistry::from_config(&config.keybinds);
     tracing::info!("Keybind registry loaded ({} bindings)", registry.len());
 
-    // Install graceful shutdown handler
-    std::thread::spawn(|| {
-        let rt = tokio::runtime::Builder::new_current_thread()
-            .enable_all()
-            .build()
-            .expect("failed to create signal runtime");
-        rt.block_on(async {
-            tokio::signal::ctrl_c()
-                .await
-                .expect("failed to listen for ctrl+c");
-            tracing::info!("Received Ctrl+C, shutting down gracefully...");
-            std::process::exit(0);
-        });
-    });
-
     // Create event loop and run
     let event_loop = EventLoop::new().expect("failed to create event loop");
     let mut app = app_state::JarvisApp::new(config, registry);
@@ -130,4 +115,5 @@ fn main() {
     if let Err(e) = event_loop.run_app(&mut app) {
         tracing::error!("Event loop error: {e}");
     }
+    tracing::info!("Shutdown complete");
 }

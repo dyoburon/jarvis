@@ -38,6 +38,9 @@ pub struct PtyManager {
     writer: Box<dyn Write + Send>,
     child: Box<dyn Child + Send + Sync>,
     rx: mpsc::Receiver<Vec<u8>>,
+    /// Leftover bytes from a previous channel receive that did not fit in the
+    /// caller's buffer. Drained first on the next [`PtyManager::read`] call.
+    pending: Vec<u8>,
 }
 
 impl PtyManager {
@@ -111,18 +114,31 @@ impl PtyManager {
             writer,
             child,
             rx,
+            pending: Vec::new(),
         })
     }
 
     /// Read bytes produced by the child process (non-blocking).
     ///
     /// Returns the number of bytes placed into `buf`, or `0` if no data
-    /// is currently available.
+    /// is currently available.  Data that does not fit in `buf` is kept
+    /// in an internal buffer and returned on the next call.
     pub fn read(&mut self, buf: &mut [u8]) -> Result<usize, PtyError> {
+        // Serve leftover bytes from a previous oversized receive first.
+        if !self.pending.is_empty() {
+            let n = self.pending.len().min(buf.len());
+            buf[..n].copy_from_slice(&self.pending[..n]);
+            self.pending.drain(..n);
+            return Ok(n);
+        }
+
         match self.rx.try_recv() {
             Ok(data) => {
                 let n = data.len().min(buf.len());
                 buf[..n].copy_from_slice(&data[..n]);
+                if data.len() > buf.len() {
+                    self.pending.extend_from_slice(&data[buf.len()..]);
+                }
                 Ok(n)
             }
             Err(mpsc::TryRecvError::Empty) => Ok(0),
@@ -163,6 +179,15 @@ impl PtyManager {
     /// Block until the child process exits, returning its exit status.
     pub fn wait(&mut self) -> Option<portable_pty::ExitStatus> {
         self.child.wait().ok()
+    }
+}
+
+impl Drop for PtyManager {
+    fn drop(&mut self) {
+        // Kill the child process so the PTY fd closes and the reader thread
+        // exits naturally.  Errors are intentionally ignored — the process may
+        // have already exited.
+        let _ = self.child.kill();
     }
 }
 

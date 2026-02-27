@@ -36,8 +36,9 @@ impl LayoutEngine {
                 let gap = self.gap as f64;
                 let (a, b) = match direction {
                     Direction::Horizontal => {
-                        let w1 = (bounds.width - gap) * ratio;
-                        let w2 = bounds.width - gap - w1;
+                        let available_width = (bounds.width - gap).max(0.0);
+                        let w1 = available_width * ratio;
+                        let w2 = (available_width - w1).max(0.0);
                         (
                             Rect {
                                 x: bounds.x,
@@ -54,8 +55,9 @@ impl LayoutEngine {
                         )
                     }
                     Direction::Vertical => {
-                        let h1 = (bounds.height - gap) * ratio;
-                        let h2 = bounds.height - gap - h1;
+                        let available_height = (bounds.height - gap).max(0.0);
+                        let h1 = available_height * ratio;
+                        let h2 = (available_height - h1).max(0.0);
                         (
                             Rect {
                                 x: bounds.x,

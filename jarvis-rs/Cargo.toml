@@ -62,3 +62,9 @@ jarvis-renderer = { path = "crates/jarvis-renderer" }
 jarvis-ai = { path = "crates/jarvis-ai" }
 jarvis-social = { path = "crates/jarvis-social" }
 jarvis-webview = { path = "crates/jarvis-webview" }
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = "symbols"
+panic = "abort"

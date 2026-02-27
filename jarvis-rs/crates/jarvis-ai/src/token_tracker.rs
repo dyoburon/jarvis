@@ -45,8 +45,10 @@ impl TokenTracker {
     }
 
     /// Get total tokens (input + output).
-    pub fn total_tokens(&self) -> u32 {
-        self.total.input_tokens + self.total.output_tokens
+    pub fn total_tokens(&self) -> u64 {
+        self.total
+            .input_tokens
+            .saturating_add(self.total.output_tokens)
     }
 
     /// Get number of API calls.

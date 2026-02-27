@@ -1,8 +1,10 @@
+use serde::{Deserialize, Serialize};
 use tokio::sync::broadcast;
 
 use crate::types::PaneId;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(tag = "type", content = "data")]
 pub enum Event {
     ConfigReloaded,
     PaneOpened(PaneId),
@@ -12,6 +14,8 @@ pub enum Event {
     ChatMessage { from: String, text: String },
     Notification(String),
     Shutdown,
+    #[serde(other)]
+    Unknown,
 }
 
 pub struct EventBus {
@@ -125,5 +129,12 @@ mod tests {
 
         let count = bus.publish(Event::ConfigReloaded);
         assert_eq!(count, 3);
+    }
+
+    #[test]
+    fn unknown_event_deserializes() {
+        let json = r#"{"type":"SomeNewEventWeNeverHeardOf","data":null}"#;
+        let event: Event = serde_json::from_str(json).unwrap();
+        assert!(matches!(event, Event::Unknown));
     }
 }

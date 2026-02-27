@@ -9,10 +9,17 @@ pub fn notify(title: &str, body: &str) -> Result<(), PlatformError> {
     platform_notify(title, body)
 }
 
+// TODO: replace osascript with notify-rust crate for safety
 #[cfg(target_os = "macos")]
 fn platform_notify(title: &str, body: &str) -> Result<(), PlatformError> {
-    let escaped_title = title.replace('\\', "\\\\").replace('"', "\\\"");
-    let escaped_body = body.replace('\\', "\\\\").replace('"', "\\\"");
+    let escaped_title = title
+        .replace('\\', "\\\\")
+        .replace('"', "\\\"")
+        .replace('\'', "\\'");
+    let escaped_body = body
+        .replace('\\', "\\\\")
+        .replace('"', "\\\"")
+        .replace('\'', "\\'");
 
     let script = format!(
         "display notification \"{}\" with title \"{}\"",
@@ -32,7 +39,7 @@ fn platform_notify(title: &str, body: &str) -> Result<(), PlatformError> {
         )));
     }
 
-    info!(title, body, "native notification sent");
+    info!("native notification sent");
     Ok(())
 }
 

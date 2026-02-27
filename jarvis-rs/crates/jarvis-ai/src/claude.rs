@@ -6,6 +6,8 @@
 //! Uses Cloud OAuth tokens (via `CLAUDE_CODE_OAUTH_TOKEN`) for
 //! authentication, matching the Python Jarvis implementation.
 
+use std::fmt;
+
 use async_trait::async_trait;
 use tracing::{debug, warn};
 
@@ -17,13 +19,25 @@ const CLAUDE_API_URL: &str = "https://api.anthropic.com/v1/messages";
 const ANTHROPIC_VERSION: &str = "2023-06-01";
 
 /// Claude API client configuration.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct ClaudeConfig {
     pub oauth_token: String,
     pub model: String,
     pub max_tokens: u32,
     pub temperature: f64,
     pub system_prompt: Option<String>,
+}
+
+impl fmt::Debug for ClaudeConfig {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("ClaudeConfig")
+            .field("oauth_token", &"[REDACTED]")
+            .field("model", &self.model)
+            .field("max_tokens", &self.max_tokens)
+            .field("temperature", &self.temperature)
+            .field("system_prompt", &self.system_prompt)
+            .finish()
+    }
 }
 
 impl ClaudeConfig {
@@ -78,7 +92,11 @@ impl ClaudeClient {
     pub fn new(config: ClaudeConfig) -> Self {
         Self {
             config,
-            http: reqwest::Client::new(),
+            http: reqwest::Client::builder()
+                .connect_timeout(std::time::Duration::from_secs(10))
+                .timeout(std::time::Duration::from_secs(120))
+                .build()
+                .expect("failed to build HTTP client"),
         }
     }
 
@@ -163,8 +181,8 @@ impl ClaudeClient {
             .unwrap_or_default();
 
         let usage = TokenUsage {
-            input_tokens: json["usage"]["input_tokens"].as_u64().unwrap_or(0) as u32,
-            output_tokens: json["usage"]["output_tokens"].as_u64().unwrap_or(0) as u32,
+            input_tokens: json["usage"]["input_tokens"].as_u64().unwrap_or(0),
+            output_tokens: json["usage"]["output_tokens"].as_u64().unwrap_or(0),
         };
 
         Ok(AiResponse {
@@ -206,6 +224,7 @@ impl AiClient for ClaudeClient {
         }
         if !status.is_success() {
             let text = response.text().await.unwrap_or_default();
+            let text = text.chars().take(200).collect::<String>();
             return Err(AiError::ApiError(format!("HTTP {status}: {text}")));
         }
 
@@ -247,6 +266,7 @@ impl AiClient for ClaudeClient {
         }
         if !status.is_success() {
             let text = response.text().await.unwrap_or_default();
+            let text = text.chars().take(200).collect::<String>();
             return Err(AiError::ApiError(format!("HTTP {status}: {text}")));
         }
 
@@ -315,14 +335,16 @@ impl AiClient for ClaudeClient {
                 "message_delta" => {
                     if let Ok(data) = serde_json::from_str::<serde_json::Value>(&event.data) {
                         if let Some(u) = data.get("usage") {
-                            usage.output_tokens = u["output_tokens"].as_u64().unwrap_or(0) as u32;
+                            usage.output_tokens =
+                                u["output_tokens"].as_u64().unwrap_or(0);
                         }
                     }
                 }
                 "message_start" => {
                     if let Ok(data) = serde_json::from_str::<serde_json::Value>(&event.data) {
                         if let Some(u) = data["message"].get("usage") {
-                            usage.input_tokens = u["input_tokens"].as_u64().unwrap_or(0) as u32;
+                            usage.input_tokens =
+                                u["input_tokens"].as_u64().unwrap_or(0);
                         }
                     }
                 }

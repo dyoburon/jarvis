@@ -221,7 +221,18 @@ impl WebViewManager {
         let ipc_events = Arc::clone(&events);
         builder = builder.with_ipc_handler(move |request| {
             let body = request.body().to_string();
-            debug!(pane_id = pid, body = %body, "IPC message from JS");
+
+            // Validate that the IPC body is valid JSON before forwarding
+            if serde_json::from_str::<serde_json::Value>(&body).is_err() {
+                warn!(
+                    pane_id = pid,
+                    body_len = body.len(),
+                    "IPC message rejected: invalid JSON"
+                );
+                return;
+            }
+
+            debug!(pane_id = pid, body_len = body.len(), "IPC message from JS");
             if let Ok(mut evts) = ipc_events.lock() {
                 evts.push(WebViewEvent::IpcMessage { pane_id: pid, body });
             }
@@ -253,14 +264,20 @@ impl WebViewManager {
             }
         });
 
-        // Navigation handler — allow all by default
+        // Navigation handler — allowlist: only https:// and jarvis:// schemes
         let nav_events = Arc::clone(&events);
         builder = builder.with_navigation_handler(move |url| {
+            let allowed = url.starts_with("https://") || url.starts_with("jarvis://");
+            if !allowed {
+                warn!(pane_id = pid, url = %url, "navigation blocked: scheme not in allowlist");
+                return false;
+            }
+
             debug!(pane_id = pid, url = %url, "navigation requested");
             if let Ok(mut evts) = nav_events.lock() {
                 evts.push(WebViewEvent::NavigationRequested { pane_id: pid, url });
             }
-            true // allow navigation
+            true
         });
 
         // Custom protocol for bundled content
@@ -279,7 +296,7 @@ impl WebViewManager {
                     Some((mime, data)) => wry::http::Response::builder()
                         .status(200)
                         .header("Content-Type", mime.as_ref())
-                        .header("Access-Control-Allow-Origin", "*")
+                        .header("Access-Control-Allow-Origin", "jarvis://localhost")
                         .body(std::borrow::Cow::from(data.into_owned()))
                         .unwrap(),
                     None => {

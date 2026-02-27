@@ -81,9 +81,18 @@ impl Perform for Grid {
     }
 
     fn csi_dispatch(&mut self, params: &Params, intermediates: &[u8], _ignore: bool, action: char) {
-        // Collect params into a flat u16 vec for convenience.  Most sequences
-        // only care about the first sub-parameter of each parameter group.
-        let flat: Vec<u16> = params.iter().map(|sub| sub[0]).collect();
+        // Collect params into a flat fixed-size array for convenience.  Most
+        // sequences only care about the first sub-parameter of each parameter
+        // group.  A stack buffer avoids heap allocation on every CSI dispatch.
+        let mut flat_buf = [0u16; 32];
+        let mut flat_len = 0;
+        for sub in params.iter() {
+            if flat_len < flat_buf.len() {
+                flat_buf[flat_len] = sub[0];
+                flat_len += 1;
+            }
+        }
+        let flat = &flat_buf[..flat_len];
 
         let p1 = || flat.first().copied().unwrap_or(0);
         let p1_one = || {
@@ -220,7 +229,7 @@ impl Perform for Grid {
             // -- DEC private modes (CSI ? ... h / l) ----------------------------
             'h' => {
                 if has_private {
-                    for p in &flat {
+                    for p in flat {
                         match p {
                             1049 => self.enter_alternate_screen(),
                             25 => self.cursor.visible = true,
@@ -238,7 +247,7 @@ impl Perform for Grid {
             }
             'l' => {
                 if has_private {
-                    for p in &flat {
+                    for p in flat {
                         match p {
                             1049 => self.exit_alternate_screen(),
                             25 => self.cursor.visible = false,
@@ -356,12 +365,17 @@ impl Grid {
         };
 
         // We process the first sub-param group, then continue with the rest.
-        // We need a combined iterator that yields `&[u16]` slices.
-        let mut groups: Vec<&[u16]> = Vec::new();
-        groups.push(first);
+        // A fixed-size stack buffer avoids heap allocation on every SGR call.
+        let mut groups_buf: [&[u16]; 32] = [&[]; 32];
+        groups_buf[0] = first;
+        let mut groups_len = 1;
         for sub in iter {
-            groups.push(sub);
+            if groups_len < groups_buf.len() {
+                groups_buf[groups_len] = sub;
+                groups_len += 1;
+            }
         }
+        let groups = &groups_buf[..groups_len];
 
         let mut i = 0;
         while i < groups.len() {

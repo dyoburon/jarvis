@@ -264,7 +264,6 @@ impl Grid {
                 attrs: self.attrs,
                 width: 1,
             };
-            self.mark_dirty(row);
             self.cursor.col = 0;
             self.newline();
         }
@@ -346,6 +345,9 @@ impl Grid {
 
     /// Scroll the scroll-region up by `count` lines. Returns lines scrolled
     /// off the top of the region.
+    ///
+    /// Uses `drain` + `splice` for O(n) bulk moves instead of repeated
+    /// O(n) `remove`/`insert` calls (which would be O(count × n)).
     pub fn scroll_up(&mut self, count: usize) -> Vec<Vec<Cell>> {
         let top = self.scroll_top;
         let bot = self.scroll_bottom;
@@ -353,20 +355,19 @@ impl Grid {
             return Vec::new();
         }
         let count = count.min(bot - top + 1);
-        let mut scrolled: Vec<Vec<Cell>> = Vec::with_capacity(count);
-        for _ in 0..count {
-            let row = self.cells.remove(top);
-            scrolled.push(row);
-        }
-        for _ in 0..count {
-            self.cells
-                .insert(bot - count + 1, Self::blank_row(self.cols));
-        }
-        self.mark_range_dirty(top, bot + 1);
+        // Drain the top `count` rows from the scroll region in one shot.
+        let scrolled: Vec<Vec<Cell>> = self.cells.drain(top..top + count).collect();
+        // Insert `count` blank rows at the bottom of the (now-shorter) region.
+        let insert_at = bot - count + 1; // bot shifted down by `count` after drain
+        let blanks = (0..count).map(|_| Self::blank_row(self.cols));
+        self.cells.splice(insert_at..insert_at, blanks);
         scrolled
     }
 
     /// Scroll the scroll-region down by `count` lines.
+    ///
+    /// Uses `drain` + `splice` for O(n) bulk moves instead of repeated
+    /// O(n) `remove`/`insert` calls.
     pub fn scroll_down(&mut self, count: usize) {
         let top = self.scroll_top;
         let bot = self.scroll_bottom;
@@ -374,13 +375,12 @@ impl Grid {
             return;
         }
         let count = count.min(bot - top + 1);
-        for _ in 0..count {
-            self.cells.remove(bot);
-        }
-        for _ in 0..count {
-            self.cells.insert(top, Self::blank_row(self.cols));
-        }
-        self.mark_range_dirty(top, bot + 1);
+        // Remove `count` rows from the bottom of the scroll region.
+        let drain_start = bot + 1 - count;
+        self.cells.drain(drain_start..drain_start + count);
+        // Insert `count` blank rows at the top of the region.
+        let blanks = (0..count).map(|_| Self::blank_row(self.cols));
+        self.cells.splice(top..top, blanks);
     }
 
     // -- erasing ------------------------------------------------------------
@@ -459,19 +459,21 @@ impl Grid {
     // -- line insertion / deletion ------------------------------------------
 
     /// Insert `count` blank lines at the cursor row within the scroll region.
+    ///
+    /// Uses `drain` + `splice` for O(n) bulk moves instead of repeated
+    /// O(n) `remove`/`insert` calls.
     pub fn insert_lines(&mut self, count: usize) {
         let row = self.cursor.row;
         if row < self.scroll_top || row > self.scroll_bottom {
             return;
         }
         let count = count.min(self.scroll_bottom - row + 1);
-        for _ in 0..count {
-            self.cells.remove(self.scroll_bottom);
-        }
-        for _ in 0..count {
-            self.cells.insert(row, Self::blank_row(self.cols));
-        }
-        self.mark_range_dirty(row, self.scroll_bottom + 1);
+        // Remove `count` rows from the bottom of the scroll region.
+        let drain_start = self.scroll_bottom + 1 - count;
+        self.cells.drain(drain_start..drain_start + count);
+        // Insert `count` blank rows at the cursor position.
+        let blanks = (0..count).map(|_| Self::blank_row(self.cols));
+        self.cells.splice(row..row, blanks);
     }
 
     /// Delete `count` lines at the cursor row within the scroll region.

@@ -20,7 +20,7 @@ use tracing::{debug, error, info, warn};
 // ---------------------------------------------------------------------------
 
 /// Configuration for connecting to Supabase Realtime.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct RealtimeConfig {
     /// Supabase project reference (e.g., "ojmqzagktzkualzgpcbq").
     pub project_ref: String,
@@ -34,6 +34,19 @@ pub struct RealtimeConfig {
     pub reconnect_delay_secs: u64,
     /// Maximum reconnect delay in seconds.
     pub max_reconnect_delay_secs: u64,
+}
+
+impl std::fmt::Debug for RealtimeConfig {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("RealtimeConfig")
+            .field("project_ref", &self.project_ref)
+            .field("api_key", &"[REDACTED]")
+            .field("access_token", &self.access_token.as_ref().map(|_| "[REDACTED]"))
+            .field("heartbeat_interval_secs", &self.heartbeat_interval_secs)
+            .field("reconnect_delay_secs", &self.reconnect_delay_secs)
+            .field("max_reconnect_delay_secs", &self.max_reconnect_delay_secs)
+            .finish()
+    }
 }
 
 impl Default for RealtimeConfig {
@@ -316,10 +329,15 @@ async fn connection_loop(
 
     loop {
         let url = config.ws_url();
-        info!(url = %url, "Connecting to Supabase Realtime");
+        info!(url = %url.split('?').next().unwrap_or(""), "Connecting to Supabase Realtime");
 
-        match tokio_tungstenite::connect_async(&url).await {
-            Ok((ws_stream, _)) => {
+        match tokio::time::timeout(
+            std::time::Duration::from_secs(15),
+            tokio_tungstenite::connect_async(&url),
+        )
+        .await
+        {
+            Ok(Ok((ws_stream, _))) => {
                 reconnect_delay = config.reconnect_delay_secs;
                 *connected.write().await = true;
                 let _ = event_tx.send(RealtimeEvent::Connected).await;
@@ -526,10 +544,18 @@ async fn connection_loop(
                 *connected.write().await = false;
                 let _ = event_tx.send(RealtimeEvent::Disconnected).await;
             }
-            Err(e) => {
+            Ok(Err(e)) => {
                 error!(error = %e, "Failed to connect to Supabase Realtime");
                 let _ = event_tx
                     .send(RealtimeEvent::Error(format!("Connection failed: {e}")))
+                    .await;
+            }
+            Err(_elapsed) => {
+                error!("WebSocket connection timed out after 15s");
+                let _ = event_tx
+                    .send(RealtimeEvent::Error(
+                        "Connection timed out after 15s".to_string(),
+                    ))
                     .await;
             }
         }

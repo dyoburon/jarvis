@@ -10,23 +10,18 @@ use tracing::{info, warn};
 ///
 /// Deserializes the file using serde defaults for any missing fields.
 /// After loading, the config is validated; if validation fails, a warning
-/// is logged and the default config is returned.
+/// is logged and the parsed config is returned as-is.
 pub fn load_from_path(path: &Path) -> Result<JarvisConfig, ConfigError> {
-    if !path.exists() {
-        return Err(ConfigError::FileNotFound(path.to_path_buf()));
-    }
-
     let content = std::fs::read_to_string(path)
         .map_err(|e| ConfigError::ParseError(format!("failed to read {}: {e}", path.display())))?;
 
     let config: JarvisConfig = toml::from_str(&content)
         .map_err(|e| ConfigError::ParseError(format!("failed to parse TOML: {e}")))?;
 
-    // Validate and warn on errors, but still return the parsed config
     if let Err(e) = validation::validate(&config) {
-        warn!("config validation warning: {e}");
-        warn!("falling back to default config");
-        return Ok(JarvisConfig::default());
+        warn!(
+            "config validation warning: {e} — using parsed config with potentially invalid values"
+        );
     }
 
     info!("loaded config from {}", path.display());
@@ -42,13 +37,15 @@ pub fn load_from_path(path: &Path) -> Result<JarvisConfig, ConfigError> {
 pub fn load_default() -> Result<JarvisConfig, ConfigError> {
     let path = default_config_path()?;
 
-    if !path.exists() {
-        info!("no config found at {}, creating default", path.display());
-        create_default_config(&path)?;
-        return Ok(JarvisConfig::default());
+    match load_from_path(&path) {
+        Ok(config) => Ok(config),
+        Err(ConfigError::ParseError(msg)) if msg.contains("failed to read") => {
+            info!("no config found at {}, creating default", path.display());
+            create_default_config(&path)?;
+            Ok(JarvisConfig::default())
+        }
+        Err(e) => Err(e),
     }
-
-    load_from_path(&path)
 }
 
 /// Get the platform-specific default config file path.
@@ -250,7 +247,7 @@ mod tests {
         let result = load_from_path(Path::new("/tmp/nonexistent_jarvis_config.toml"));
         assert!(result.is_err());
         let err = result.unwrap_err();
-        assert!(matches!(err, ConfigError::FileNotFound(_)));
+        assert!(matches!(err, ConfigError::ParseError(_)));
     }
 
     #[test]
@@ -305,8 +302,8 @@ size = 100
         .unwrap();
 
         let config = load_from_path(&path).unwrap();
-        // Should fall back to default since validation fails
-        assert_eq!(config.font.size, 13);
+        // No longer falls back — parsed config returned with invalid values
+        assert_eq!(config.font.size, 100);
     }
 
     #[test]

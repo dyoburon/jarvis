@@ -163,20 +163,22 @@ impl JarvisApp {
                     PresenceEvent::UserOffline { .. } => {
                         self.online_count = self.online_count.saturating_sub(1);
                     }
-                    PresenceEvent::Poked { display_name, .. } => {
-                        tracing::info!("{display_name} poked you!");
-                        self.notifications
-                            .push(jarvis_common::notifications::Notification::info(
+                    PresenceEvent::Poked {
+                        display_name,
+                        ..
+                    } => {
+                        tracing::info!("poke received");
+                        self.notifications.push(
+                            jarvis_common::notifications::Notification::info(
                                 "Poke!",
                                 format!("{display_name} poked you"),
                             ));
                     }
                     PresenceEvent::ChatMessage {
-                        display_name,
                         content,
                         ..
                     } => {
-                        tracing::info!("[chat] {display_name}: {content}");
+                        tracing::info!("[chat] message received, {} chars", content.len());
                     }
                     PresenceEvent::Disconnected => {
                         self.online_count = 0;
@@ -185,7 +187,9 @@ impl JarvisApp {
                     PresenceEvent::Error(msg) => {
                         tracing::warn!("Presence error: {msg}");
                     }
-                    _ => {}
+                    _ => {
+                        tracing::debug!("unhandled presence event");
+                    }
                 }
                 self.needs_redraw = true;
             }
