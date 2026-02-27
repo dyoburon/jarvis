@@ -11,6 +11,7 @@ pub mod render_state;
 pub mod sphere;
 pub mod text;
 pub mod ui;
+pub mod visualizer;
 
 pub use assistant_panel::{AssistantPanel, ChatMessage, ChatRole};
 pub use command_palette::CommandPalette;
