@@ -55,6 +55,20 @@ extension ChatWebView {
             sendGameEvent("iframe_loaded", extra: ["panel": activePanel])
             return
         }
+        if text == "__close_panel__" {
+            let wv = message.webView
+            let idx = wv.flatMap { panels.firstIndex(of: $0) }
+            metalLog("__close_panel__: panel=\(idx ?? -1) panelCount=\(panels.count)")
+            if panels.count <= 1 {
+                // Last panel — close entire chat session
+                let json = "{\"type\":\"chat_input\",\"text\":\"__escape__\",\"panel\":0}"
+                print(json)
+                fflush(stdout)
+            } else if let idx = idx {
+                closePanel(at: idx)
+            }
+            return
+        }
         if text == "__focus__" {
             let wv = message.webView
             let idx = wv.flatMap { panels.firstIndex(of: $0) }

@@ -70,6 +70,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var keybindManager: KeybindManager?
     var presenceOverlay: PresenceOverlayWebView?
     var namePrompt: NamePromptView?
+    var panelInteractionManager: PanelInteractionManager?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         guard let screen = NSScreen.main else {
@@ -155,7 +156,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             let chatFrame = NSRect(
                 x: 0,
                 y: 0,
-                width: screen.frame.width * 0.72,
+                width: screen.frame.width,
                 height: screen.frame.height
             )
             chatWebView = ChatWebView(frame: chatFrame)
@@ -183,6 +184,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             // Initialize KeybindManager
             keybindManager = KeybindManager()
             metalLog("KeybindManager initialized")
+
+            // Panel interaction manager (drag + resize)
+            let interactionMgr = PanelInteractionManager()
+            interactionMgr.chatWebView = chatWebView
+            interactionMgr.install()
+            chatWebView?.interactionManager = interactionMgr
+            panelInteractionManager = interactionMgr
+            window.acceptsMouseMovedEvents = true
+            metalLog("PanelInteractionManager initialized")
 
             // Presence overlay (right 28% — interactive online list + poke)
             let presenceFrame = NSRect(

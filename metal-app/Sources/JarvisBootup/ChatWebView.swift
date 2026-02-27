@@ -17,7 +17,10 @@ class ChatWebView: NSObject, WKScriptMessageHandler, WKNavigationDelegate {
     var keyEventsSinceLastLog: Int = 0
     var panelWidthRatios: [CGFloat] = []
     var resizeHandles: [PanelResizeHandle] = []
-    
+    var interactionManager: PanelInteractionManager?
+    var panelFrames: [NSRect] = []
+    var isFreeFormLayout: Bool = false
+
     /// Focus manager for deterministic focus tracking
     var focusManager: FocusManager?
 
@@ -85,7 +88,7 @@ class ChatWebView: NSObject, WKScriptMessageHandler, WKNavigationDelegate {
         removeAllPanels()
         activePanel = 0
         panelWidthRatios = [1.0]
-        let wv = makePanel(frame: parentFrame)
+        let wv = makePanel(frame: layoutFrame)
         panels.append(wv)
         parentView?.addSubview(wv)
         rebuildResizeHandles()
@@ -150,12 +153,16 @@ class ChatWebView: NSObject, WKScriptMessageHandler, WKNavigationDelegate {
             body.focused { border-color: rgba(0,212,255,0.5); box-shadow: inset 0 0 12px rgba(0,212,255,0.08); }
             #title-bar { padding: 8px 16px; font-size: 12px; font-family: Menlo, monospace; color: rgba(0,212,255,0.7);
                          border-bottom: 1px solid rgba(0,212,255,0.12); flex-shrink: 0;
-                         text-shadow: 0 0 6px rgba(0,212,255,0.2); }
+                         text-shadow: 0 0 6px rgba(0,212,255,0.2);
+                         display: flex; justify-content: space-between; align-items: center; }
+            #title-bar .close-btn { cursor: pointer; opacity: 0.3; font-size: 14px; padding: 2px 6px;
+                         border-radius: 3px; transition: opacity 0.15s ease, background 0.15s ease; }
+            #title-bar .close-btn:hover { opacity: 0.8; background: rgba(0,212,255,0.15); }
             iframe { flex: 1; width: 100%; border: none; background: #111; }
         </style>
         </head>
         <body>
-            <div id="title-bar">[ \(titleEsc) ]</div>
+            <div id="title-bar"><span>[ \(titleEsc) ]</span><span class="close-btn" onclick="window.webkit.messageHandlers.chatInput.postMessage('__close_panel__')">&#x2715;</span></div>
             <iframe src="\(escaped)" sandbox="allow-scripts allow-same-origin allow-popups allow-forms"></iframe>
         <script>
             function setFocused(f) { if(f) document.body.classList.add('focused'); else document.body.classList.remove('focused'); }
@@ -176,10 +183,10 @@ class ChatWebView: NSObject, WKScriptMessageHandler, WKNavigationDelegate {
 
     func closeLastPanel() {
         guard panels.count > 1 else { return }
-        
+
         // Unregister from FocusManager
         focusManager?.unregisterPanel(index: panels.count - 1)
-        
+
         let last = panels.removeLast()
         NSAnimationContext.runAnimationGroup({ ctx in
             ctx.duration = 0.2
@@ -193,12 +200,51 @@ class ChatWebView: NSObject, WKScriptMessageHandler, WKNavigationDelegate {
         panelWidthRatios = Array(repeating: 1.0 / CGFloat(panels.count), count: panels.count)
         rebuildResizeHandles()
         relayoutPanels()
-        
+
         if let fm = focusManager {
             updateFocusIndicatorsWithManager(fm)
         } else {
             updateFocusIndicators()
         }
+    }
+
+    func closePanel(at index: Int) {
+        guard index >= 0, index < panels.count, panels.count > 1 else { return }
+
+        focusManager?.unregisterPanel(index: index)
+
+        let panel = panels.remove(at: index)
+        NSAnimationContext.runAnimationGroup({ ctx in
+            ctx.duration = 0.2
+            panel.animator().alphaValue = 0
+        }, completionHandler: {
+            panel.removeFromSuperview()
+        })
+
+        // Remove stored frame if in free-form mode
+        if index < panelFrames.count {
+            panelFrames.remove(at: index)
+        }
+
+        if activePanel >= panels.count {
+            activePanel = panels.count - 1
+        } else if activePanel > index {
+            activePanel -= 1
+        }
+
+        panelWidthRatios = Array(repeating: 1.0 / CGFloat(panels.count), count: panels.count)
+        if !isFreeFormLayout {
+            rebuildResizeHandles()
+            relayoutPanels()
+        }
+
+        if let fm = focusManager {
+            updateFocusIndicatorsWithManager(fm)
+        } else {
+            updateFocusIndicators()
+        }
+
+        metalLog("closePanel: removed panel \(index), remaining=\(panels.count)")
     }
 
     func focusPanel(_ index: Int) {
@@ -233,6 +279,16 @@ class ChatWebView: NSObject, WKScriptMessageHandler, WKNavigationDelegate {
 
     // MARK: - Computed Properties
 
+    /// Layout frame for tiled panels (72% of screen width). parentFrame is full screen for drag/resize bounds.
+    var layoutFrame: NSRect {
+        NSRect(
+            x: parentFrame.origin.x,
+            y: parentFrame.origin.y,
+            width: parentFrame.width * 0.72,
+            height: parentFrame.height
+        )
+    }
+
     var panelCount: Int { panels.count }
     var isFullscreenIframe: Bool { fullscreenIframeActive }
     var isFullscreenNavigated: Bool { fullscreenNavigated }
@@ -243,19 +299,30 @@ class ChatWebView: NSObject, WKScriptMessageHandler, WKNavigationDelegate {
 
     func appendMessage(speaker: String, text: String, panel: Int = -1) {
         let idx = panel < 0 ? activePanel : panel
-        guard idx >= 0, idx < panels.count else { return }
+        guard idx >= 0, idx < panels.count else {
+            metalLog("appendMessage DROPPED: speaker=\(speaker) panel=\(idx) panelCount=\(panels.count) text=\(text.prefix(80))")
+            return
+        }
         let escaped = text
             .replacingOccurrences(of: "\\", with: "\\\\")
             .replacingOccurrences(of: "'", with: "\\'")
             .replacingOccurrences(of: "\n", with: "\\n")
             .replacingOccurrences(of: "\r", with: "")
-        panels[idx].evaluateJavaScript("appendChunk('\(speaker)', '\(escaped)')", completionHandler: nil)
+        panels[idx].evaluateJavaScript("appendChunk('\(speaker)', '\(escaped)')") { _, error in
+            if let e = error { metalLog("appendMessage JS ERROR: panel=\(idx) speaker=\(speaker) error=\(e)") }
+        }
     }
 
     func appendImage(path: String, panel: Int = -1) {
         let idx = panel < 0 ? activePanel : panel
-        guard idx >= 0, idx < panels.count else { return }
-        guard let data = FileManager.default.contents(atPath: path) else { return }
+        guard idx >= 0, idx < panels.count else {
+            metalLog("appendImage DROPPED: panel=\(idx) panelCount=\(panels.count) path=\(path)")
+            return
+        }
+        guard let data = FileManager.default.contents(atPath: path) else {
+            metalLog("appendImage DROPPED: file not readable at \(path)")
+            return
+        }
         let base64 = data.base64EncodedString()
         let ext = (path as NSString).pathExtension.lowercased()
         let mime: String
@@ -274,7 +341,10 @@ class ChatWebView: NSObject, WKScriptMessageHandler, WKNavigationDelegate {
 
     func appendIframe(url: String, height: Int = 400, panel: Int = -1) {
         let idx = panel < 0 ? activePanel : panel
-        guard idx >= 0, idx < panels.count else { return }
+        guard idx >= 0, idx < panels.count else {
+            metalLog("appendIframe DROPPED: panel=\(idx) panelCount=\(panels.count) url=\(url.prefix(80))")
+            return
+        }
 
         // For file:// URLs, read content and inject via srcdoc to avoid cross-origin restrictions
         if url.hasPrefix("file://") {
@@ -294,7 +364,10 @@ class ChatWebView: NSObject, WKScriptMessageHandler, WKNavigationDelegate {
 
     func setInputText(_ text: String, panel: Int = -1) {
         let idx = panel < 0 ? activePanel : panel
-        guard idx >= 0, idx < panels.count else { return }
+        guard idx >= 0, idx < panels.count else {
+            metalLog("setInputText DROPPED: panel=\(idx) panelCount=\(panels.count)")
+            return
+        }
         let escaped = text
             .replacingOccurrences(of: "\\", with: "\\\\")
             .replacingOccurrences(of: "'", with: "\\'")
@@ -304,8 +377,10 @@ class ChatWebView: NSObject, WKScriptMessageHandler, WKNavigationDelegate {
     }
 
     func setChatOverlay(_ text: String) {
-        // Only show on the active panel instead of all panels
-        guard activePanel >= 0, activePanel < panels.count else { return }
+        guard activePanel >= 0, activePanel < panels.count else {
+            metalLog("setChatOverlay DROPPED: activePanel=\(activePanel) panelCount=\(panels.count)")
+            return
+        }
         let escaped = text
             .replacingOccurrences(of: "\\", with: "\\\\")
             .replacingOccurrences(of: "'", with: "\\'")
@@ -316,13 +391,18 @@ class ChatWebView: NSObject, WKScriptMessageHandler, WKNavigationDelegate {
 
     func updateStatus(text: String, panel: Int = -1) {
         let idx = panel < 0 ? activePanel : panel
-        guard idx >= 0, idx < panels.count else { return }
+        guard idx >= 0, idx < panels.count else {
+            metalLog("updateStatus DROPPED: panel=\(idx) panelCount=\(panels.count) text=\(text.prefix(80))")
+            return
+        }
         let escaped = text
             .replacingOccurrences(of: "\\", with: "\\\\")
             .replacingOccurrences(of: "'", with: "\\'")
             .replacingOccurrences(of: "\n", with: "\\n")
             .replacingOccurrences(of: "\r", with: "")
-        panels[idx].evaluateJavaScript("setStatus('\(escaped)')", completionHandler: nil)
+        panels[idx].evaluateJavaScript("setStatus('\(escaped)')") { _, error in
+            if let e = error { metalLog("updateStatus JS ERROR: panel=\(idx) error=\(e)") }
+        }
     }
 
     // MARK: - Helpers

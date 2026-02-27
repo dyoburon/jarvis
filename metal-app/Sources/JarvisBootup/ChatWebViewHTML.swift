@@ -45,6 +45,22 @@ extension ChatWebView {
                 text-shadow: 0 0 8px color-mix(in srgb, var(--color-primary) 35%, transparent);
                 border-bottom: 1px solid var(--color-border);
                 flex-shrink: 0;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            #title-bar .close-btn {
+                cursor: pointer;
+                opacity: 0.3;
+                font-size: 14px;
+                line-height: 1;
+                padding: 2px 6px;
+                border-radius: 3px;
+                transition: opacity 0.15s ease, background 0.15s ease;
+            }
+            #title-bar .close-btn:hover {
+                opacity: 0.8;
+                background: color-mix(in srgb, var(--color-primary) 15%, transparent);
             }
             #messages {
                 flex: 1;
@@ -277,7 +293,7 @@ extension ChatWebView {
         </head>
         <body>
             <div id="chat-overlay"></div>
-            <div id="title-bar">[ \(escapedTitle) ]</div>
+            <div id="title-bar"><span>[ \(escapedTitle) ]</span><span class="close-btn" onclick="closePanel()">&#x2715;</span></div>
             <div id="messages"></div>
             <div id="image-preview"></div>
             <div id="input-bar">
@@ -616,13 +632,14 @@ extension ChatWebView {
             if (e.key === 'Escape') {
                 const now = Date.now();
                 if (now - lastEscapeJS < 400) {
+                    // Double escape → clear input
                     lastEscapeJS = 0;
-                    window.webkit.messageHandlers.chatInput.postMessage('__escape__');
-                } else {
-                    lastEscapeJS = now;
                     chatInput.value = '';
                     if (typeof autoGrow === 'function') autoGrow();
                     if (typeof clearImagePreview === 'function') clearImagePreview();
+                } else {
+                    // Single escape → nothing
+                    lastEscapeJS = now;
                 }
                 return;
             }
@@ -768,6 +785,10 @@ extension ChatWebView {
             document.getElementById('image-preview').style.display = '';
             var overlay = document.getElementById('chat-overlay');
             if (overlay) overlay.style.display = '';
+        }
+
+        function closePanel() {
+            window.webkit.messageHandlers.chatInput.postMessage('__close_panel__');
         }
 
         setTimeout(() => chatInput.focus(), 200);

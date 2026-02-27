@@ -92,9 +92,20 @@ class StdinReader {
         Thread.detachNewThread { [weak self] in
             while let line = readLine() {
                 guard let self = self else { break }
-                guard let data = line.data(using: .utf8),
-                      let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+                // Try UTF-8 first, fall back to lossy ASCII conversion
+                let data: Data
+                if let utf8 = line.data(using: .utf8) {
+                    data = utf8
+                } else if let ascii = line.data(using: .ascii, allowLossyConversion: true) {
+                    metalLog("StdinReader: UTF-8 failed, using lossy ASCII for: \(line.prefix(100))")
+                    data = ascii
+                } else {
+                    metalLog("StdinReader DROPPED: cannot encode line at all: \(line.prefix(100))")
+                    continue
+                }
+                guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
                       let type = json["type"] as? String else {
+                    metalLog("StdinReader DROPPED malformed JSON: \(line.prefix(200))")
                     continue
                 }
 
@@ -184,6 +195,7 @@ class StdinReader {
                     case "quit":
                         self.onQuit()
                     default:
+                        metalLog("StdinReader UNKNOWN type: \(type)")
                         break
                     }
                 }

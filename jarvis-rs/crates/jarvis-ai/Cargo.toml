@@ -1,0 +1,17 @@
+[package]
+name = "jarvis-ai"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+jarvis-common = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+reqwest = { workspace = true }
+tracing = { workspace = true }
+async-trait = { workspace = true }
+tokio-util = { workspace = true }
+futures-util = { workspace = true }
+uuid = { workspace = true }

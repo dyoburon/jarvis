@@ -1,0 +1,64 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/jarvis-app",
+    "crates/jarvis-common",
+    "crates/jarvis-config",
+    "crates/jarvis-platform",
+    "crates/jarvis-terminal",
+    "crates/jarvis-tiling",
+    "crates/jarvis-renderer",
+    "crates/jarvis-ai",
+    "crates/jarvis-social",
+    "crates/jarvis-webview",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+repository = "https://github.com/dylan/jarvis"
+
+[workspace.dependencies]
+# Shared across crates
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_yaml = "0.9"
+toml = "0.8"
+tokio = { version = "1", features = ["full"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+thiserror = "2"
+uuid = { version = "1", features = ["v4", "serde"] }
+dirs = "6"
+regex = "1"
+async-trait = "0.1"
+clap = { version = "4", features = ["derive"] }
+pollster = "0.4"
+chrono = "0.4"
+
+# Async / networking
+reqwest = { version = "0.12", features = ["json", "stream", "multipart"] }
+tokio-tungstenite = { version = "0.26", features = ["native-tls"] }
+tokio-util = { version = "0.7", features = ["io"] }
+futures-util = "0.3"
+
+# Platform
+arboard = "3"
+
+# WebView
+wry = "0.47"
+
+# Config
+notify = "7"
+
+# Internal crates
+jarvis-common = { path = "crates/jarvis-common" }
+jarvis-config = { path = "crates/jarvis-config" }
+jarvis-platform = { path = "crates/jarvis-platform" }
+jarvis-terminal = { path = "crates/jarvis-terminal" }
+jarvis-tiling = { path = "crates/jarvis-tiling" }
+jarvis-renderer = { path = "crates/jarvis-renderer" }
+jarvis-ai = { path = "crates/jarvis-ai" }
+jarvis-social = { path = "crates/jarvis-social" }
+jarvis-webview = { path = "crates/jarvis-webview" }

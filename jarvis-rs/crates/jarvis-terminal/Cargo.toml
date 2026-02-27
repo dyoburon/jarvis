@@ -1,0 +1,17 @@
+[package]
+name = "jarvis-terminal"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+jarvis-common = { workspace = true }
+vte = "0.15"
+portable-pty = "0.8"
+unicode-width = "0.2"
+regex = { workspace = true }
+tracing = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true }

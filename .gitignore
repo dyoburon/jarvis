@@ -15,6 +15,9 @@ htmlcov/
 # Swift build
 metal-app/.build/
 
+# Rust build
+jarvis-rs/target/
+
 # Config (user-specific)
 # Note: ~/.config/jarvis/ is outside repo, but local config testing
 .config/

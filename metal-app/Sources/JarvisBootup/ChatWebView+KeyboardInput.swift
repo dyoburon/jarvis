@@ -134,18 +134,11 @@ extension ChatWebView {
         let wv = panels[activePanel]
         let hasOption = event.modifierFlags.contains(.option)
 
-        if event.keyCode == 53 { // Escape — single: clear input, double: close window
+        if event.keyCode == 53 { // Escape — double: clear input
             let now = Date()
             if now.timeIntervalSince(lastEscapeTime) < 0.4 {
-                // Double escape → close window
+                // Double escape → clear input
                 lastEscapeTime = .distantPast
-                wv.evaluateJavaScript(
-                    "window.webkit.messageHandlers.chatInput.postMessage('__escape__')",
-                    completionHandler: nil
-                )
-            } else {
-                // Single escape → clear input
-                lastEscapeTime = now
                 wv.evaluateJavaScript("""
                     (function() {
                         const input = document.getElementById('chat-input');
@@ -154,6 +147,9 @@ extension ChatWebView {
                         if (typeof clearImagePreview === 'function') clearImagePreview();
                     })()
                     """, completionHandler: nil)
+            } else {
+                // Single escape → nothing
+                lastEscapeTime = now
             }
             return
         }
@@ -264,6 +260,14 @@ extension ChatWebView {
         guard let chars = event.characters, !chars.isEmpty else { return }
         // Handle Cmd key combos
         if event.modifierFlags.contains(.command) {
+            if event.charactersIgnoringModifiers == "z" {
+                // Cmd+Z → close chat session
+                wv.evaluateJavaScript(
+                    "window.webkit.messageHandlers.chatInput.postMessage('__escape__')",
+                    completionHandler: nil
+                )
+                return
+            }
             if event.charactersIgnoringModifiers == "v" {
                 if let paste = NSPasteboard.general.string(forType: .string) {
                     let escaped = paste
