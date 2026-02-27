@@ -120,27 +120,27 @@ impl SplitNode {
     }
 
     /// Swap two pane IDs in the tree. Both must exist for the swap to take effect.
-    pub fn swap_panes(&mut self, id_a: u32, id_b: u32) -> bool {
-        if !self.contains_pane(id_a) || !self.contains_pane(id_b) {
-            return false;
-        }
-        // Use a sentinel to avoid conflicts: a -> sentinel, b -> a, sentinel -> b
-        let sentinel = u32::MAX;
-        self.replace_id(id_a, sentinel);
-        self.replace_id(id_b, id_a);
-        self.replace_id(sentinel, id_b);
-        true
+    pub fn swap_panes(&mut self, a: u32, b: u32) -> bool {
+        let mut found_a = false;
+        let mut found_b = false;
+        self.for_each_leaf_mut(&mut |id: &mut u32| {
+            if *id == a {
+                *id = b;
+                found_a = true;
+            } else if *id == b {
+                *id = a;
+                found_b = true;
+            }
+        });
+        found_a && found_b
     }
 
-    fn replace_id(&mut self, from: u32, to: u32) {
+    fn for_each_leaf_mut(&mut self, f: &mut impl FnMut(&mut u32)) {
         match self {
-            SplitNode::Leaf { pane_id } if *pane_id == from => {
-                *pane_id = to;
-            }
-            SplitNode::Leaf { .. } => {}
+            SplitNode::Leaf { pane_id } => f(pane_id),
             SplitNode::Split { first, second, .. } => {
-                first.replace_id(from, to);
-                second.replace_id(from, to);
+                first.for_each_leaf_mut(f);
+                second.for_each_leaf_mut(f);
             }
         }
     }

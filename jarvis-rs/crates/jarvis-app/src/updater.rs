@@ -1,5 +1,6 @@
 //! Update checker — checks GitHub Releases for new versions.
 
+use semver::Version;
 use serde::Deserialize;
 
 /// A GitHub release entry.
@@ -65,8 +66,19 @@ impl UpdateChecker {
     }
 }
 
-/// Simple semver comparison: returns true if `a` > `b`.
+/// Semver comparison: returns true if `a` > `b`.
+///
+/// Uses the `semver` crate for proper pre-release handling (e.g. `1.0.0 > 1.0.0-beta.1`).
+/// Falls back to manual numeric comparison if either version string fails to parse.
 fn is_newer(a: &str, b: &str) -> bool {
+    match (Version::parse(a), Version::parse(b)) {
+        (Ok(va), Ok(vb)) => va > vb,
+        _ => is_newer_manual(a, b),
+    }
+}
+
+/// Manual numeric-only semver comparison (fallback for non-standard version strings).
+fn is_newer_manual(a: &str, b: &str) -> bool {
     let parse = |v: &str| -> Vec<u64> {
         v.split('.')
             .filter_map(|s| s.parse::<u64>().ok())
@@ -108,6 +120,16 @@ mod tests {
         assert!(is_newer("1.0.0", "0.9"));
         assert!(!is_newer("0.9", "1.0.0"));
         assert!(is_newer("1.1", "1.0.0"));
+    }
+
+    #[test]
+    fn version_comparison_prerelease() {
+        // Pre-release versions have lower precedence than the release (semver §11).
+        // The old manual comparison got this wrong — it ignored pre-release tags entirely.
+        assert!(is_newer("1.0.0", "1.0.0-beta.1"));
+        assert!(is_newer("1.0.0", "1.0.0-alpha.1"));
+        assert!(is_newer("1.0.0-beta.2", "1.0.0-beta.1"));
+        assert!(!is_newer("1.0.0-beta.1", "1.0.0"));
     }
 
     #[test]

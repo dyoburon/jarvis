@@ -10,11 +10,21 @@ use crate::AiError;
 const WHISPER_API_URL: &str = "https://api.openai.com/v1/audio/transcriptions";
 
 /// Whisper API client configuration.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct WhisperConfig {
     pub api_key: String,
     pub model: String,
     pub language: Option<String>,
+}
+
+impl std::fmt::Debug for WhisperConfig {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("WhisperConfig")
+            .field("api_key", &"[REDACTED]")
+            .field("model", &self.model)
+            .field("language", &self.language)
+            .finish()
+    }
 }
 
 impl WhisperConfig {
@@ -42,7 +52,11 @@ impl WhisperClient {
     pub fn new(config: WhisperConfig) -> Self {
         Self {
             config,
-            http: reqwest::Client::new(),
+            http: reqwest::Client::builder()
+                .connect_timeout(std::time::Duration::from_secs(10))
+                .timeout(std::time::Duration::from_secs(300))
+                .build()
+                .expect("failed to build HTTP client"),
         }
     }
 
@@ -62,9 +76,17 @@ impl WhisperClient {
             "Whisper transcription request"
         );
 
+        let mime = match filename.rsplit('.').next() {
+            Some("mp3") => "audio/mpeg",
+            Some("m4a") => "audio/mp4",
+            Some("webm") => "audio/webm",
+            Some("ogg") => "audio/ogg",
+            _ => "audio/wav",
+        };
+
         let file_part = reqwest::multipart::Part::bytes(audio_data)
             .file_name(filename.to_string())
-            .mime_str("audio/wav")
+            .mime_str(mime)
             .map_err(|e| AiError::ApiError(e.to_string()))?;
 
         let mut form = reqwest::multipart::Form::new()

@@ -3,6 +3,8 @@
 //! Stores lines that have scrolled off the top of the visible grid, up to a
 //! configurable maximum. Oldest lines are dropped when the capacity is exceeded.
 
+use std::collections::VecDeque;
+
 use crate::grid::Cell;
 
 /// Default maximum number of scrollback lines.
@@ -10,7 +12,7 @@ const DEFAULT_MAX_LINES: usize = 10_000;
 
 /// A buffer that stores lines that have scrolled off the visible terminal grid.
 pub struct ScrollbackBuffer {
-    lines: Vec<Vec<Cell>>,
+    lines: VecDeque<Vec<Cell>>,
     max_lines: usize,
 }
 
@@ -18,7 +20,7 @@ impl ScrollbackBuffer {
     /// Create an empty scrollback buffer with the given maximum capacity.
     pub fn new(max_lines: usize) -> Self {
         ScrollbackBuffer {
-            lines: Vec::new(),
+            lines: VecDeque::new(),
             max_lines,
         }
     }
@@ -27,9 +29,9 @@ impl ScrollbackBuffer {
     /// buffer is at capacity.
     pub fn push(&mut self, line: Vec<Cell>) {
         if self.lines.len() >= self.max_lines {
-            self.lines.remove(0);
+            self.lines.pop_front();
         }
-        self.lines.push(line);
+        self.lines.push_back(line);
     }
 
     /// Push multiple lines into the buffer, respecting capacity.
