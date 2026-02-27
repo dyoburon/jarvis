@@ -109,6 +109,7 @@ impl JarvisApp {
                         jarvis_platform::input::KeybindRegistry::from_config(&c.keybinds);
                     self.chrome = jarvis_renderer::UiChrome::from_config(&c.layout);
                     self.config = c;
+                    self.inject_theme_into_all_webviews();
                     self.event_bus.publish(Event::ConfigReloaded);
                     tracing::info!("Config reloaded");
                 }

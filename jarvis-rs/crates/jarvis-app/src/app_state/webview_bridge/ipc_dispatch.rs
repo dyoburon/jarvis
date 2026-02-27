@@ -95,13 +95,11 @@ impl JarvisApp {
                     "Presence IPC: will be handled in Phase 6"
                 );
             }
-            // Settings messages will be handled in Phase 5
-            "settings_init" | "settings_set_theme" => {
-                tracing::debug!(
-                    pane_id,
-                    kind = %msg.kind,
-                    "Settings IPC: will be handled in Phase 5"
-                );
+            "settings_init" => {
+                self.handle_settings_init(pane_id, &msg.payload);
+            }
+            "settings_set_theme" => {
+                self.handle_settings_set_theme(pane_id, &msg.payload);
             }
             _ => {
                 // Shouldn't happen — allowlist checked above

@@ -52,6 +52,8 @@ impl JarvisApp {
             tracing::error!(pane_id, error = %e, "Failed to create webview");
         } else {
             tracing::info!(pane_id, "WebView created for pane");
+            // Inject current theme into the new webview
+            self.inject_theme_into_all_webviews();
         }
     }
 

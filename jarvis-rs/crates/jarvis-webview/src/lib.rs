@@ -11,6 +11,7 @@ pub mod content;
 pub mod events;
 pub mod ipc;
 pub mod manager;
+pub mod theme_bridge;
 
 pub use content::ContentProvider;
 pub use events::{PageLoadState, WebViewEvent};

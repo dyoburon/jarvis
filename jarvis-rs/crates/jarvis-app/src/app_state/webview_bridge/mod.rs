@@ -8,3 +8,4 @@ mod ipc_dispatch;
 mod lifecycle;
 mod pty_handlers;
 mod pty_polling;
+mod theme_handlers;
