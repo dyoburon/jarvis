@@ -41,7 +41,10 @@ impl std::fmt::Debug for RealtimeConfig {
         f.debug_struct("RealtimeConfig")
             .field("project_ref", &self.project_ref)
             .field("api_key", &"[REDACTED]")
-            .field("access_token", &self.access_token.as_ref().map(|_| "[REDACTED]"))
+            .field(
+                "access_token",
+                &self.access_token.as_ref().map(|_| "[REDACTED]"),
+            )
             .field("heartbeat_interval_secs", &self.heartbeat_interval_secs)
             .field("reconnect_delay_secs", &self.reconnect_delay_secs)
             .field("max_reconnect_delay_secs", &self.max_reconnect_delay_secs)

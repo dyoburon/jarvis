@@ -10,8 +10,14 @@ pub enum Event {
     PaneOpened(PaneId),
     PaneClosed(PaneId),
     PaneFocused(PaneId),
-    PresenceUpdate { user_id: String, status: String },
-    ChatMessage { from: String, text: String },
+    PresenceUpdate {
+        user_id: String,
+        status: String,
+    },
+    ChatMessage {
+        from: String,
+        text: String,
+    },
     Notification(String),
     Shutdown,
     #[serde(other)]

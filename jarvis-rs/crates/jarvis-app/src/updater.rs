@@ -79,11 +79,8 @@ fn is_newer(a: &str, b: &str) -> bool {
 
 /// Manual numeric-only semver comparison (fallback for non-standard version strings).
 fn is_newer_manual(a: &str, b: &str) -> bool {
-    let parse = |v: &str| -> Vec<u64> {
-        v.split('.')
-            .filter_map(|s| s.parse::<u64>().ok())
-            .collect()
-    };
+    let parse =
+        |v: &str| -> Vec<u64> { v.split('.').filter_map(|s| s.parse::<u64>().ok()).collect() };
 
     let va = parse(a);
     let vb = parse(b);

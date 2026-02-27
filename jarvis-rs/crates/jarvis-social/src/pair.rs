@@ -218,9 +218,7 @@ impl PairManager {
 
         {
             let mut state = self.state.write().await;
-            state
-                .sessions
-                .insert(session_id.to_string(), session);
+            state.sessions.insert(session_id.to_string(), session);
             state
                 .user_sessions
                 .insert(user_id.to_string(), session_id.to_string());
@@ -393,9 +391,7 @@ impl PairManager {
                 .ok_or_else(|| format!("Session {session_id} not found"))?;
 
             // Only the host or current driver can reassign
-            if requester_id != session.host_user_id
-                && requester_id != session.driver_user_id
-            {
+            if requester_id != session.host_user_id && requester_id != session.driver_user_id {
                 if !session.allow_takeover {
                     return Err("Takeover not allowed in this session".into());
                 }
@@ -482,19 +478,14 @@ impl PairManager {
     }
 
     /// Update a participant's cursor position.
-    pub async fn update_cursor(
-        &self,
-        session_id: &str,
-        user_id: &str,
-        row: u16,
-        col: u16,
-    ) {
+    pub async fn update_cursor(&self, session_id: &str, user_id: &str, row: u16, col: u16) {
         {
             let mut state = self.state.write().await;
             if let Some(session) = state.sessions.get_mut(session_id) {
                 if let Some(p) = session.participants.get_mut(user_id) {
-                p.cursor_row = row;
-                p.cursor_col = col;
+                    p.cursor_row = row;
+                    p.cursor_col = col;
+                }
             }
         }
 

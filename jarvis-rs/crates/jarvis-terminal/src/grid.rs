@@ -361,6 +361,7 @@ impl Grid {
         let insert_at = bot - count + 1; // bot shifted down by `count` after drain
         let blanks = (0..count).map(|_| Self::blank_row(self.cols));
         self.cells.splice(insert_at..insert_at, blanks);
+        self.mark_range_dirty(top, bot + 1);
         scrolled
     }
 
@@ -381,6 +382,7 @@ impl Grid {
         // Insert `count` blank rows at the top of the region.
         let blanks = (0..count).map(|_| Self::blank_row(self.cols));
         self.cells.splice(top..top, blanks);
+        self.mark_range_dirty(top, bot + 1);
     }
 
     // -- erasing ------------------------------------------------------------
@@ -474,6 +476,7 @@ impl Grid {
         // Insert `count` blank rows at the cursor position.
         let blanks = (0..count).map(|_| Self::blank_row(self.cols));
         self.cells.splice(row..row, blanks);
+        self.mark_range_dirty(row, self.scroll_bottom + 1);
     }
 
     /// Delete `count` lines at the cursor row within the scroll region.

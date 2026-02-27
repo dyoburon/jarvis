@@ -335,16 +335,14 @@ impl AiClient for ClaudeClient {
                 "message_delta" => {
                     if let Ok(data) = serde_json::from_str::<serde_json::Value>(&event.data) {
                         if let Some(u) = data.get("usage") {
-                            usage.output_tokens =
-                                u["output_tokens"].as_u64().unwrap_or(0);
+                            usage.output_tokens = u["output_tokens"].as_u64().unwrap_or(0);
                         }
                     }
                 }
                 "message_start" => {
                     if let Ok(data) = serde_json::from_str::<serde_json::Value>(&event.data) {
                         if let Some(u) = data["message"].get("usage") {
-                            usage.input_tokens =
-                                u["input_tokens"].as_u64().unwrap_or(0);
+                            usage.input_tokens = u["input_tokens"].as_u64().unwrap_or(0);
                         }
                     }
                 }

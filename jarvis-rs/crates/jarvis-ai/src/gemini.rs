@@ -283,10 +283,8 @@ impl AiClient for GeminiClient {
 
                 // Extract usage
                 if let Some(meta) = data.get("usageMetadata") {
-                    usage.input_tokens =
-                        meta["promptTokenCount"].as_u64().unwrap_or(0);
-                    usage.output_tokens =
-                        meta["candidatesTokenCount"].as_u64().unwrap_or(0);
+                    usage.input_tokens = meta["promptTokenCount"].as_u64().unwrap_or(0);
+                    usage.output_tokens = meta["candidatesTokenCount"].as_u64().unwrap_or(0);
                 }
             }
 
