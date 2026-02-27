@@ -1,32 +1,10 @@
-//! PTY management using the `portable-pty` crate.
-//!
-//! Provides [`PtyManager`] for spawning a shell inside a pseudo-terminal,
-//! reading/writing data, resizing, and lifecycle management.
+//! PtyManager: spawning, reading, writing, resizing, and lifecycle.
 
 use portable_pty::{native_pty_system, Child, CommandBuilder, MasterPty, PtySize};
 use std::io::{Read, Write};
 use std::sync::mpsc;
 
-// ---------------------------------------------------------------------------
-// Error
-// ---------------------------------------------------------------------------
-
-/// Errors originating from PTY operations.
-#[derive(Debug, thiserror::Error)]
-pub enum PtyError {
-    #[error("failed to spawn process: {0}")]
-    SpawnFailed(String),
-
-    #[error(transparent)]
-    IoError(#[from] std::io::Error),
-
-    #[error("failed to resize PTY: {0}")]
-    ResizeFailed(String),
-}
-
-// ---------------------------------------------------------------------------
-// PtyManager
-// ---------------------------------------------------------------------------
+use super::types::PtyError;
 
 /// Owns a pseudo-terminal pair (master + spawned child process) and exposes
 /// helpers for reading, writing, resizing, and lifecycle queries.
@@ -185,55 +163,8 @@ impl PtyManager {
 impl Drop for PtyManager {
     fn drop(&mut self) {
         // Kill the child process so the PTY fd closes and the reader thread
-        // exits naturally.  Errors are intentionally ignored — the process may
+        // exits naturally.  Errors are intentionally ignored -- the process may
         // have already exited.
         let _ = self.child.kill();
-    }
-}
-
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::time::{Duration, Instant};
-
-    #[test]
-    #[cfg(unix)]
-    fn test_spawn_and_echo() {
-        // Spawn /bin/echo which prints "hello" and exits immediately.
-        // Spawn a shell, write a command, and read back the output.
-        let mut mgr = PtyManager::spawn("/bin/sh", 80, 24, None).expect("spawn sh");
-
-        // Write a command that echoes "hello" and exits.
-        mgr.write(b"echo hello\n").expect("write");
-        mgr.write(b"exit\n").expect("write exit");
-
-        let mut output = String::new();
-        let mut buf = [0u8; 4096];
-        let deadline = Instant::now() + Duration::from_secs(5);
-
-        while Instant::now() < deadline {
-            match mgr.read(&mut buf) {
-                Ok(0) => {
-                    // Non-blocking: no data yet, sleep briefly and retry
-                    std::thread::sleep(Duration::from_millis(10));
-                }
-                Ok(n) => {
-                    output.push_str(&String::from_utf8_lossy(&buf[..n]));
-                    if output.contains("hello") {
-                        break;
-                    }
-                }
-                Err(_) => break,
-            }
-        }
-
-        assert!(
-            output.contains("hello"),
-            "expected 'hello' in output, got: {output:?}"
-        );
     }
 }
