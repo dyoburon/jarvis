@@ -4,6 +4,7 @@
 //! Missing fields are filled with sensible defaults matching the Python schema.
 
 mod background;
+mod effects;
 mod font;
 mod games;
 mod keybind_config;
@@ -22,6 +23,7 @@ mod voice;
 mod window;
 
 pub use background::*;
+pub use effects::*;
 pub use font::*;
 pub use games::*;
 pub use keybind_config::*;
@@ -58,6 +60,7 @@ pub struct JarvisConfig {
     pub terminal: TerminalConfig,
     pub shell: ShellConfig,
     pub window: WindowConfig,
+    pub effects: EffectsSchemaConfig,
     pub layout: LayoutConfig,
     pub opacity: OpacityConfig,
     pub background: BackgroundConfig,
@@ -580,6 +583,68 @@ font_weight = 300
     }
 
     #[test]
+    fn default_config_has_correct_effects() {
+        let config = JarvisConfig::default();
+        assert!(config.effects.enabled);
+        assert!(config.effects.inactive_pane_dim);
+        assert!(config.effects.scanlines.enabled);
+        assert!((config.effects.scanlines.intensity - 0.08).abs() < f32::EPSILON);
+        assert!(config.effects.vignette.enabled);
+        assert!(config.effects.bloom.enabled);
+        assert_eq!(config.effects.bloom.passes, 2);
+        assert!(config.effects.glow.enabled);
+        assert_eq!(config.effects.glow.color, "#00d4ff");
+        assert!(config.effects.flicker.enabled);
+        assert!(!config.effects.crt_curvature);
+    }
+
+    #[test]
+    fn effects_config_in_toml() {
+        let toml_str = r##"
+[effects]
+enabled = true
+inactive_pane_dim = false
+
+[effects.scanlines]
+intensity = 0.15
+
+[effects.bloom]
+passes = 3
+intensity = 1.5
+
+[effects.glow]
+color = "#ff6b00"
+width = 4.0
+
+[effects.flicker]
+enabled = false
+"##;
+        let config: JarvisConfig = toml::from_str(toml_str).unwrap();
+        assert!(config.effects.enabled);
+        assert!(!config.effects.inactive_pane_dim);
+        assert!((config.effects.scanlines.intensity - 0.15).abs() < f32::EPSILON);
+        assert_eq!(config.effects.bloom.passes, 3);
+        assert_eq!(config.effects.glow.color, "#ff6b00");
+        assert!(!config.effects.flicker.enabled);
+        // Defaults preserved
+        assert!(config.effects.vignette.enabled);
+        assert_eq!(config.theme.name, "jarvis-dark");
+    }
+
+    #[test]
+    fn effects_disabled_in_toml() {
+        let toml_str = r#"
+[effects]
+enabled = false
+"#;
+        let config: JarvisConfig = toml::from_str(toml_str).unwrap();
+        assert!(!config.effects.enabled);
+        // Sub-configs still have defaults (master toggle is checked at runtime)
+        assert!(config.effects.scanlines.enabled);
+        assert!(config.effects.bloom.enabled);
+    }
+
+    #[test]
     fn empty_toml_still_gives_all_defaults_with_new_fields() {
         let config: JarvisConfig = toml::from_str("").unwrap();
         // New fields have defaults
@@ -587,5 +652,7 @@ font_weight = 300
         assert!(config.shell.program.is_empty());
         assert_eq!(config.window.title, "Jarvis");
         assert!(config.font.nerd_font);
+        assert!(config.effects.enabled);
+        assert_eq!(config.effects.bloom.passes, 2);
     }
 }
