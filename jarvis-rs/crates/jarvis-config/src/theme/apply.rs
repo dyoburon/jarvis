@@ -48,6 +48,65 @@ pub fn apply_theme(config: &mut JarvisConfig, theme: &ThemeOverrides) {
             config.background.solid_color = color.clone();
         }
     }
+
+    // Apply effects overrides
+    if let Some(ref fx) = theme.effects {
+        if let Some(v) = fx.scanline_intensity {
+            config.effects.scanlines.intensity = v;
+        }
+        if let Some(v) = fx.vignette_intensity {
+            config.effects.vignette.intensity = v;
+        }
+        if let Some(v) = fx.bloom_intensity {
+            config.effects.bloom.intensity = v;
+        }
+        if let Some(ref color) = fx.glow_color {
+            config.effects.glow.color = color.clone();
+        }
+        if let Some(v) = fx.glow_width {
+            config.effects.glow.width = v;
+        }
+    }
+
+    // Apply terminal overrides
+    if let Some(ref term) = theme.terminal {
+        if let Some(ref style) = term.cursor_style {
+            if let Ok(parsed) =
+                serde_json::from_str::<crate::schema::CursorStyle>(&format!("\"{style}\""))
+            {
+                config.terminal.cursor_style = parsed;
+            }
+        }
+        if let Some(blink) = term.cursor_blink {
+            config.terminal.cursor_blink = blink;
+        }
+    }
+
+    // Apply window overrides
+    if let Some(ref win) = theme.window {
+        if let Some(opacity) = win.opacity {
+            config.window.opacity = opacity;
+        }
+        if let Some(blur) = win.blur {
+            config.window.blur = blur;
+        }
+    }
+
+    // Apply extended font overrides
+    if let Some(ref font) = theme.font {
+        if let Some(nerd) = font.nerd_font {
+            config.font.nerd_font = nerd;
+        }
+        if let Some(lig) = font.ligatures {
+            config.font.ligatures = lig;
+        }
+        if let Some(w) = font.font_weight {
+            config.font.font_weight = w;
+        }
+        if let Some(w) = font.bold_weight {
+            config.font.bold_weight = w;
+        }
+    }
 }
 
 /// Replace color config fields with theme colors.
