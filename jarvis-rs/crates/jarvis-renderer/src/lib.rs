@@ -1,6 +1,7 @@
 pub mod assistant_panel;
 pub mod atlas;
 pub mod background;
+pub mod bloom;
 pub mod command_palette;
 pub mod effects;
 pub mod gpu;
