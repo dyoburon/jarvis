@@ -3,6 +3,8 @@
 //! A `Session` holds the conversation history (messages), manages
 //! context windows, and orchestrates the tool-call loop.
 
+use std::sync::atomic::{AtomicBool, Ordering};
+
 use tracing::debug;
 
 use crate::token_tracker::TokenTracker;
@@ -11,6 +13,33 @@ use crate::{AiClient, AiError, Message, Role, ToolCall, ToolDefinition};
 /// Callback for executing tool calls. Takes a tool name + arguments,
 /// returns the tool's output string.
 pub type ToolExecutor = Box<dyn Fn(&str, &serde_json::Value) -> String + Send + Sync>;
+
+/// Guard that clears the `busy` flag on drop, ensuring it is always released
+/// even if the future is cancelled or an early return occurs.
+struct BusyGuard<'a> {
+    flag: &'a AtomicBool,
+}
+
+impl<'a> BusyGuard<'a> {
+    /// Attempt to acquire the busy lock. Returns `Err` if already busy.
+    fn acquire(flag: &'a AtomicBool) -> Result<Self, AiError> {
+        if flag
+            .compare_exchange(false, true, Ordering::Acquire, Ordering::Relaxed)
+            .is_err()
+        {
+            return Err(AiError::ApiError(
+                "Session is busy with another request".into(),
+            ));
+        }
+        Ok(Self { flag })
+    }
+}
+
+impl Drop for BusyGuard<'_> {
+    fn drop(&mut self) {
+        self.flag.store(false, Ordering::Release);
+    }
+}
 
 /// A conversation session with message history and tool execution.
 pub struct Session {
@@ -28,6 +57,8 @@ pub struct Session {
     max_tool_rounds: u32,
     /// Provider name for token tracking.
     provider: String,
+    /// Whether the session is currently processing a request.
+    busy: AtomicBool,
 }
 
 impl Session {
@@ -40,6 +71,7 @@ impl Session {
             tracker: TokenTracker::new(),
             max_tool_rounds: 10,
             provider: provider.into(),
+            busy: AtomicBool::new(false),
         }
     }
 
@@ -70,6 +102,8 @@ impl Session {
         client: &dyn AiClient,
         user_message: impl Into<String>,
     ) -> Result<String, AiError> {
+        let _guard = BusyGuard::acquire(&self.busy)?;
+
         self.messages.push(Message {
             role: Role::User,
             content: user_message.into(),
@@ -130,6 +164,8 @@ impl Session {
         user_message: impl Into<String>,
         on_chunk: Box<dyn Fn(String) + Send + Sync>,
     ) -> Result<String, AiError> {
+        let _guard = BusyGuard::acquire(&self.busy)?;
+
         self.messages.push(Message {
             role: Role::User,
             content: user_message.into(),

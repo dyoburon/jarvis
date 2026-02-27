@@ -5,15 +5,13 @@ use unicode_width::UnicodeWidthChar;
 // TerminalColor
 // ---------------------------------------------------------------------------
 
-#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
-#[derive(Default)]
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize, Default)]
 pub enum TerminalColor {
     #[default]
     Default,
     Indexed(u8),
     Rgb(u8, u8, u8),
 }
-
 
 // ---------------------------------------------------------------------------
 // CellAttributes
@@ -59,15 +57,13 @@ impl Default for Cell {
 // Cursor
 // ---------------------------------------------------------------------------
 
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[derive(Default)]
+#[derive(Clone, Debug, PartialEq, Eq, Default)]
 pub enum CursorShape {
     #[default]
     Block,
     Underline,
     Bar,
 }
-
 
 #[derive(Clone, Debug)]
 pub struct CursorState {
@@ -218,19 +214,18 @@ impl Grid {
         }
 
         // If the character is wide and we are at the last column, wrap first.
-        if display_width == 2 && self.cursor.col + 1 >= self.cols
-            && self.auto_wrap {
-                // Fill current position with space, then wrap.
-                let row = self.cursor.row;
-                let col = self.cursor.col;
-                self.cells[row][col] = Cell {
-                    c: ' ',
-                    attrs: self.attrs,
-                    width: 1,
-                };
-                self.cursor.col = 0;
-                self.newline();
-            }
+        if display_width == 2 && self.cursor.col + 1 >= self.cols && self.auto_wrap {
+            // Fill current position with space, then wrap.
+            let row = self.cursor.row;
+            let col = self.cursor.col;
+            self.cells[row][col] = Cell {
+                c: ' ',
+                attrs: self.attrs,
+                width: 1,
+            };
+            self.cursor.col = 0;
+            self.newline();
+        }
 
         let row = self.cursor.row;
         let col = self.cursor.col;
@@ -307,6 +302,9 @@ impl Grid {
 
     /// Scroll the scroll-region up by `count` lines. Returns lines scrolled
     /// off the top of the region.
+    ///
+    /// Uses `drain` + `splice` for O(n) bulk moves instead of repeated
+    /// O(n) `remove`/`insert` calls (which would be O(count × n)).
     pub fn scroll_up(&mut self, count: usize) -> Vec<Vec<Cell>> {
         let top = self.scroll_top;
         let bot = self.scroll_bottom;
@@ -314,19 +312,19 @@ impl Grid {
             return Vec::new();
         }
         let count = count.min(bot - top + 1);
-        let mut scrolled: Vec<Vec<Cell>> = Vec::with_capacity(count);
-        for _ in 0..count {
-            let row = self.cells.remove(top);
-            scrolled.push(row);
-        }
-        for _ in 0..count {
-            self.cells
-                .insert(bot - count + 1, Self::blank_row(self.cols));
-        }
+        // Drain the top `count` rows from the scroll region in one shot.
+        let scrolled: Vec<Vec<Cell>> = self.cells.drain(top..top + count).collect();
+        // Insert `count` blank rows at the bottom of the (now-shorter) region.
+        let insert_at = bot - count + 1; // bot shifted down by `count` after drain
+        let blanks = (0..count).map(|_| Self::blank_row(self.cols));
+        self.cells.splice(insert_at..insert_at, blanks);
         scrolled
     }
 
     /// Scroll the scroll-region down by `count` lines.
+    ///
+    /// Uses `drain` + `splice` for O(n) bulk moves instead of repeated
+    /// O(n) `remove`/`insert` calls.
     pub fn scroll_down(&mut self, count: usize) {
         let top = self.scroll_top;
         let bot = self.scroll_bottom;
@@ -334,12 +332,12 @@ impl Grid {
             return;
         }
         let count = count.min(bot - top + 1);
-        for _ in 0..count {
-            self.cells.remove(bot);
-        }
-        for _ in 0..count {
-            self.cells.insert(top, Self::blank_row(self.cols));
-        }
+        // Remove `count` rows from the bottom of the scroll region.
+        let drain_start = bot + 1 - count;
+        self.cells.drain(drain_start..drain_start + count);
+        // Insert `count` blank rows at the top of the region.
+        let blanks = (0..count).map(|_| Self::blank_row(self.cols));
+        self.cells.splice(top..top, blanks);
     }
 
     // -- erasing ------------------------------------------------------------
@@ -419,18 +417,21 @@ impl Grid {
     // -- line insertion / deletion ------------------------------------------
 
     /// Insert `count` blank lines at the cursor row within the scroll region.
+    ///
+    /// Uses `drain` + `splice` for O(n) bulk moves instead of repeated
+    /// O(n) `remove`/`insert` calls.
     pub fn insert_lines(&mut self, count: usize) {
         let row = self.cursor.row;
         if row < self.scroll_top || row > self.scroll_bottom {
             return;
         }
         let count = count.min(self.scroll_bottom - row + 1);
-        for _ in 0..count {
-            self.cells.remove(self.scroll_bottom);
-        }
-        for _ in 0..count {
-            self.cells.insert(row, Self::blank_row(self.cols));
-        }
+        // Remove `count` rows from the bottom of the scroll region.
+        let drain_start = self.scroll_bottom + 1 - count;
+        self.cells.drain(drain_start..drain_start + count);
+        // Insert `count` blank rows at the cursor position.
+        let blanks = (0..count).map(|_| Self::blank_row(self.cols));
+        self.cells.splice(row..row, blanks);
     }
 
     /// Delete `count` lines at the cursor row within the scroll region.
@@ -1019,7 +1020,7 @@ mod tests {
         let mut g = Grid::new(5, 2);
         g.cursor.col = 4; // last column
         g.put_char('\u{4E16}'); // wide char width=2
-        // Should wrap to next line.
+                                // Should wrap to next line.
         assert_eq!(g.cursor.row, 1);
         assert_eq!(g.cells[1][0].c, '\u{4E16}');
         assert_eq!(g.cells[1][0].width, 2);

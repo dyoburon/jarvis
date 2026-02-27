@@ -136,16 +136,30 @@ impl Default for PairConfig {
 }
 
 // ---------------------------------------------------------------------------
+// Pair State (combined under a single lock)
+// ---------------------------------------------------------------------------
+
+/// Combined state for pair sessions and user-to-session mappings.
+///
+/// Both maps live under a single `RwLock` so they are always mutated
+/// atomically — eliminating the race condition where the two maps
+/// could get out of sync under concurrent access.
+pub struct PairState {
+    /// Active sessions keyed by session_id.
+    pub sessions: HashMap<String, PairSession>,
+    /// user_id → session_id (each user can only be in one session).
+    pub user_sessions: HashMap<String, String>,
+}
+
+// ---------------------------------------------------------------------------
 // Pair Manager
 // ---------------------------------------------------------------------------
 
 /// Manages pair programming sessions.
 pub struct PairManager {
     config: PairConfig,
-    /// Active sessions keyed by session_id.
-    sessions: Arc<RwLock<HashMap<String, PairSession>>>,
-    /// user_id → session_id (each user can only be in one session).
-    user_sessions: Arc<RwLock<HashMap<String, String>>>,
+    /// Combined sessions + user-session mapping under a single lock.
+    state: Arc<RwLock<PairState>>,
     event_tx: mpsc::Sender<PairEvent>,
 }
 
@@ -154,8 +168,10 @@ impl PairManager {
         let (event_tx, event_rx) = mpsc::channel(512);
         let mgr = Self {
             config,
-            sessions: Arc::new(RwLock::new(HashMap::new())),
-            user_sessions: Arc::new(RwLock::new(HashMap::new())),
+            state: Arc::new(RwLock::new(PairState {
+                sessions: HashMap::new(),
+                user_sessions: HashMap::new(),
+            })),
             event_tx,
         };
         (mgr, event_rx)
@@ -200,14 +216,15 @@ impl PairManager {
             allow_takeover: self.config.allow_takeover,
         };
 
-        self.sessions
-            .write()
-            .await
-            .insert(session_id.to_string(), session);
-        self.user_sessions
-            .write()
-            .await
-            .insert(user_id.to_string(), session_id.to_string());
+        {
+            let mut state = self.state.write().await;
+            state
+                .sessions
+                .insert(session_id.to_string(), session);
+            state
+                .user_sessions
+                .insert(user_id.to_string(), session_id.to_string());
+        }
 
         let _ = self
             .event_tx
@@ -238,31 +255,32 @@ impl PairManager {
         // Leave any existing session
         self.leave_session(user_id).await;
 
-        let mut sessions = self.sessions.write().await;
-        let session = sessions
-            .get_mut(session_id)
-            .ok_or_else(|| format!("Session {session_id} not found"))?;
+        {
+            let mut state = self.state.write().await;
+            let session = state
+                .sessions
+                .get_mut(session_id)
+                .ok_or_else(|| format!("Session {session_id} not found"))?;
 
-        if session.participants.len() >= self.config.max_participants {
-            return Err("Session is full".into());
+            if session.participants.len() >= self.config.max_participants {
+                return Err("Session is full".into());
+            }
+
+            session.participants.insert(
+                user_id.to_string(),
+                PairParticipant {
+                    user_id: user_id.to_string(),
+                    display_name: display_name.to_string(),
+                    role: PairRole::Navigator,
+                    cursor_row: 0,
+                    cursor_col: 0,
+                },
+            );
+
+            state
+                .user_sessions
+                .insert(user_id.to_string(), session_id.to_string());
         }
-
-        session.participants.insert(
-            user_id.to_string(),
-            PairParticipant {
-                user_id: user_id.to_string(),
-                display_name: display_name.to_string(),
-                role: PairRole::Navigator,
-                cursor_row: 0,
-                cursor_col: 0,
-            },
-        );
-        drop(sessions);
-
-        self.user_sessions
-            .write()
-            .await
-            .insert(user_id.to_string(), session_id.to_string());
 
         let _ = self
             .event_tx
@@ -280,13 +298,14 @@ impl PairManager {
 
     /// Leave the current pair session. If the host leaves, the session ends.
     pub async fn leave_session(&self, user_id: &str) {
-        let session_id = self.user_sessions.write().await.remove(user_id);
+        let mut state = self.state.write().await;
+
+        let session_id = state.user_sessions.remove(user_id);
         let Some(session_id) = session_id else {
             return;
         };
 
-        let mut sessions = self.sessions.write().await;
-        let should_end = if let Some(session) = sessions.get_mut(&session_id) {
+        let should_end = if let Some(session) = state.sessions.get_mut(&session_id) {
             session.participants.remove(user_id);
 
             // If the host left, end the session
@@ -301,6 +320,8 @@ impl PairManager {
                     if let Some(p) = session.participants.get_mut(&new_driver) {
                         p.role = PairRole::Driver;
                     }
+                    // Drop state before awaiting the channel send
+                    drop(state);
                     let _ = self
                         .event_tx
                         .send(PairEvent::DriverChanged {
@@ -309,8 +330,20 @@ impl PairManager {
                             old_driver,
                         })
                         .await;
+                    // Re-acquire for the UserLeft event below — but we already
+                    // mutated everything we needed, so just send UserLeft and return.
+                    let _ = self
+                        .event_tx
+                        .send(PairEvent::UserLeft {
+                            session_id: session_id.clone(),
+                            user_id: user_id.to_string(),
+                        })
+                        .await;
+                    return;
                 }
 
+                // Drop state before awaiting the channel send
+                drop(state);
                 let _ = self
                     .event_tx
                     .send(PairEvent::UserLeft {
@@ -319,25 +352,21 @@ impl PairManager {
                     })
                     .await;
 
-                false
+                return;
             }
         } else {
             false
         };
 
         if should_end {
-            let session = sessions.remove(&session_id);
+            let session = state.sessions.remove(&session_id);
             // Clean up all participants' user_sessions entries
             if let Some(session) = session {
-                drop(sessions);
-                let mut user_sessions = self.user_sessions.write().await;
                 for pid in session.participants.keys() {
-                    user_sessions.remove(pid);
+                    state.user_sessions.remove(pid);
                 }
-                drop(user_sessions);
-            } else {
-                drop(sessions);
             }
+            drop(state);
 
             let _ = self
                 .event_tx
@@ -356,42 +385,45 @@ impl PairManager {
         requester_id: &str,
         new_driver_id: &str,
     ) -> Result<(), String> {
-        let mut sessions = self.sessions.write().await;
-        let session = sessions
-            .get_mut(session_id)
-            .ok_or_else(|| format!("Session {session_id} not found"))?;
+        let old_driver = {
+            let mut state = self.state.write().await;
+            let session = state
+                .sessions
+                .get_mut(session_id)
+                .ok_or_else(|| format!("Session {session_id} not found"))?;
 
-        // Only the host or current driver can reassign
-        if requester_id != session.host_user_id
-            && requester_id != session.driver_user_id
-        {
-            if !session.allow_takeover {
-                return Err("Takeover not allowed in this session".into());
+            // Only the host or current driver can reassign
+            if requester_id != session.host_user_id
+                && requester_id != session.driver_user_id
+            {
+                if !session.allow_takeover {
+                    return Err("Takeover not allowed in this session".into());
+                }
+                // Navigator requesting takeover — only allowed if allow_takeover
+                if requester_id != new_driver_id {
+                    return Err("Navigators can only request control for themselves".into());
+                }
             }
-            // Navigator requesting takeover — only allowed if allow_takeover
-            if requester_id != new_driver_id {
-                return Err("Navigators can only request control for themselves".into());
+
+            if !session.participants.contains_key(new_driver_id) {
+                return Err("Target user not in session".into());
             }
-        }
 
-        if !session.participants.contains_key(new_driver_id) {
-            return Err("Target user not in session".into());
-        }
+            let old_driver = session.driver_user_id.clone();
 
-        let old_driver = session.driver_user_id.clone();
+            // Demote old driver
+            if let Some(p) = session.participants.get_mut(&old_driver) {
+                p.role = PairRole::Navigator;
+            }
 
-        // Demote old driver
-        if let Some(p) = session.participants.get_mut(&old_driver) {
-            p.role = PairRole::Navigator;
-        }
+            // Promote new driver
+            session.driver_user_id = new_driver_id.to_string();
+            if let Some(p) = session.participants.get_mut(new_driver_id) {
+                p.role = PairRole::Driver;
+            }
 
-        // Promote new driver
-        session.driver_user_id = new_driver_id.to_string();
-        if let Some(p) = session.participants.get_mut(new_driver_id) {
-            p.role = PairRole::Driver;
-        }
-
-        drop(sessions);
+            old_driver
+        };
 
         let _ = self
             .event_tx
@@ -425,15 +457,17 @@ impl PairManager {
         from_user: &str,
         data: Vec<u8>,
     ) -> Result<(), String> {
-        let sessions = self.sessions.read().await;
-        let session = sessions
-            .get(session_id)
-            .ok_or_else(|| format!("Session {session_id} not found"))?;
+        {
+            let state = self.state.read().await;
+            let session = state
+                .sessions
+                .get(session_id)
+                .ok_or_else(|| format!("Session {session_id} not found"))?;
 
-        if session.driver_user_id != from_user {
-            return Err("Only the driver can send input".into());
+            if session.driver_user_id != from_user {
+                return Err("Only the driver can send input".into());
+            }
         }
-        drop(sessions);
 
         let _ = self
             .event_tx
@@ -455,14 +489,15 @@ impl PairManager {
         row: u16,
         col: u16,
     ) {
-        let mut sessions = self.sessions.write().await;
-        if let Some(session) = sessions.get_mut(session_id)
-            && let Some(p) = session.participants.get_mut(user_id)
         {
-            p.cursor_row = row;
-            p.cursor_col = col;
+            let mut state = self.state.write().await;
+            if let Some(session) = state.sessions.get_mut(session_id)
+                && let Some(p) = session.participants.get_mut(user_id)
+            {
+                p.cursor_row = row;
+                p.cursor_col = col;
+            }
         }
-        drop(sessions);
 
         let _ = self
             .event_tx
@@ -477,12 +512,13 @@ impl PairManager {
 
     /// Notify that the host resized the terminal.
     pub async fn resize(&self, session_id: &str, cols: u16, rows: u16) {
-        let mut sessions = self.sessions.write().await;
-        if let Some(session) = sessions.get_mut(session_id) {
-            session.cols = cols;
-            session.rows = rows;
+        {
+            let mut state = self.state.write().await;
+            if let Some(session) = state.sessions.get_mut(session_id) {
+                session.cols = cols;
+                session.rows = rows;
+            }
         }
-        drop(sessions);
 
         let _ = self
             .event_tx
@@ -496,17 +532,17 @@ impl PairManager {
 
     /// Get a session snapshot.
     pub async fn get_session(&self, session_id: &str) -> Option<PairSession> {
-        self.sessions.read().await.get(session_id).cloned()
+        self.state.read().await.sessions.get(session_id).cloned()
     }
 
     /// List all active sessions.
     pub async fn list_sessions(&self) -> Vec<PairSession> {
-        self.sessions.read().await.values().cloned().collect()
+        self.state.read().await.sessions.values().cloned().collect()
     }
 
     /// Get which session a user is in.
     pub async fn user_session(&self, user_id: &str) -> Option<String> {
-        self.user_sessions.read().await.get(user_id).cloned()
+        self.state.read().await.user_sessions.get(user_id).cloned()
     }
 
     /// Clean up when a user goes offline.

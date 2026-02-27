@@ -10,10 +10,10 @@ const APP_NAME: &str = "jarvis";
 /// - macOS: `~/Library/Application Support/jarvis`
 /// - Linux: `$XDG_CONFIG_HOME/jarvis` (defaults to `~/.config/jarvis`)
 /// - Windows: `%APPDATA%\jarvis`
-pub fn config_dir() -> PathBuf {
-    dirs::config_dir()
-        .expect("could not determine config directory")
-        .join(APP_NAME)
+pub fn config_dir() -> Result<PathBuf, PlatformError> {
+    Ok(dirs::config_dir()
+        .ok_or_else(|| PlatformError::PathError("could not determine config directory".into()))?
+        .join(APP_NAME))
 }
 
 /// Returns the platform-specific data directory for Jarvis.
@@ -21,10 +21,10 @@ pub fn config_dir() -> PathBuf {
 /// - macOS: `~/Library/Application Support/jarvis`
 /// - Linux: `$XDG_DATA_HOME/jarvis` (defaults to `~/.local/share/jarvis`)
 /// - Windows: `%APPDATA%\jarvis`
-pub fn data_dir() -> PathBuf {
-    dirs::data_dir()
-        .expect("could not determine data directory")
-        .join(APP_NAME)
+pub fn data_dir() -> Result<PathBuf, PlatformError> {
+    Ok(dirs::data_dir()
+        .ok_or_else(|| PlatformError::PathError("could not determine data directory".into()))?
+        .join(APP_NAME))
 }
 
 /// Returns the platform-specific cache directory for Jarvis.
@@ -32,49 +32,49 @@ pub fn data_dir() -> PathBuf {
 /// - macOS: `~/Library/Caches/jarvis`
 /// - Linux: `$XDG_CACHE_HOME/jarvis` (defaults to `~/.cache/jarvis`)
 /// - Windows: `%LOCALAPPDATA%\jarvis`
-pub fn cache_dir() -> PathBuf {
-    dirs::cache_dir()
-        .expect("could not determine cache directory")
-        .join(APP_NAME)
+pub fn cache_dir() -> Result<PathBuf, PlatformError> {
+    Ok(dirs::cache_dir()
+        .ok_or_else(|| PlatformError::PathError("could not determine cache directory".into()))?
+        .join(APP_NAME))
 }
 
 /// Returns the path to the main configuration file.
 ///
 /// Located at `config_dir()/config.toml`.
-pub fn config_file() -> PathBuf {
-    config_dir().join("config.toml")
+pub fn config_file() -> Result<PathBuf, PlatformError> {
+    Ok(config_dir()?.join("config.toml"))
 }
 
 /// Returns the path to the identity file.
 ///
 /// Located at `data_dir()/identity.json`.
-pub fn identity_file() -> PathBuf {
-    data_dir().join("identity.json")
+pub fn identity_file() -> Result<PathBuf, PlatformError> {
+    Ok(data_dir()?.join("identity.json"))
 }
 
 /// Returns the path to the log directory.
 ///
 /// Located at `data_dir()/logs`.
-pub fn log_dir() -> PathBuf {
-    data_dir().join("logs")
+pub fn log_dir() -> Result<PathBuf, PlatformError> {
+    Ok(data_dir()?.join("logs"))
 }
 
 /// Returns the path to the crash report directory.
 ///
 /// Located at `log_dir()/crash-reports`.
-pub fn crash_report_dir() -> PathBuf {
-    log_dir().join("crash-reports")
+pub fn crash_report_dir() -> Result<PathBuf, PlatformError> {
+    Ok(log_dir()?.join("crash-reports"))
 }
 
 /// Creates all Jarvis directories if they do not already exist.
 ///
-/// Creates: config_dir, data_dir, cache_dir, and log_dir.
-pub fn ensure_dirs() -> Result<(), std::io::Error> {
-    fs::create_dir_all(config_dir())?;
-    fs::create_dir_all(data_dir())?;
-    fs::create_dir_all(cache_dir())?;
-    fs::create_dir_all(log_dir())?;
-    fs::create_dir_all(crash_report_dir())?;
+/// Creates: config_dir, data_dir, cache_dir, log_dir, and crash_report_dir.
+pub fn ensure_dirs() -> Result<(), PlatformError> {
+    fs::create_dir_all(config_dir()?).map_err(|e| PlatformError::PathError(e.to_string()))?;
+    fs::create_dir_all(data_dir()?).map_err(|e| PlatformError::PathError(e.to_string()))?;
+    fs::create_dir_all(cache_dir()?).map_err(|e| PlatformError::PathError(e.to_string()))?;
+    fs::create_dir_all(log_dir()?).map_err(|e| PlatformError::PathError(e.to_string()))?;
+    fs::create_dir_all(crash_report_dir()?).map_err(|e| PlatformError::PathError(e.to_string()))?;
     Ok(())
 }
 
@@ -92,7 +92,7 @@ mod tests {
 
     #[test]
     fn config_dir_ends_with_jarvis() {
-        let path = config_dir();
+        let path = config_dir().unwrap();
         assert!(
             path.ends_with("jarvis"),
             "config_dir should end with 'jarvis', got: {path:?}"
@@ -101,7 +101,7 @@ mod tests {
 
     #[test]
     fn data_dir_ends_with_jarvis() {
-        let path = data_dir();
+        let path = data_dir().unwrap();
         assert!(
             path.ends_with("jarvis"),
             "data_dir should end with 'jarvis', got: {path:?}"
@@ -110,7 +110,7 @@ mod tests {
 
     #[test]
     fn cache_dir_ends_with_jarvis() {
-        let path = cache_dir();
+        let path = cache_dir().unwrap();
         assert!(
             path.ends_with("jarvis"),
             "cache_dir should end with 'jarvis', got: {path:?}"
@@ -119,11 +119,8 @@ mod tests {
 
     #[test]
     fn config_file_has_correct_name() {
-        let path = config_file();
-        assert_eq!(
-            path.file_name().unwrap().to_str().unwrap(),
-            "config.toml"
-        );
+        let path = config_file().unwrap();
+        assert_eq!(path.file_name().unwrap().to_str().unwrap(), "config.toml");
         assert!(
             path.parent().unwrap().ends_with("jarvis"),
             "config_file parent should end with 'jarvis', got: {path:?}"
@@ -132,11 +129,8 @@ mod tests {
 
     #[test]
     fn identity_file_has_correct_name() {
-        let path = identity_file();
-        assert_eq!(
-            path.file_name().unwrap().to_str().unwrap(),
-            "identity.json"
-        );
+        let path = identity_file().unwrap();
+        assert_eq!(path.file_name().unwrap().to_str().unwrap(), "identity.json");
         assert!(
             path.parent().unwrap().ends_with("jarvis"),
             "identity_file parent should end with 'jarvis', got: {path:?}"
@@ -145,8 +139,8 @@ mod tests {
 
     #[test]
     fn log_dir_is_inside_data_dir() {
-        let log = log_dir();
-        let data = data_dir();
+        let log = log_dir().unwrap();
+        let data = data_dir().unwrap();
         assert!(
             log.starts_with(&data),
             "log_dir should be inside data_dir: log={log:?}, data={data:?}"

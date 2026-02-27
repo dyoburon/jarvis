@@ -1,0 +1,27 @@
+# Build
+/target
+/cache
+
+# Environment & secrets
+.env
+.env.*
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+
+# AI tooling state
+.serena/
+
+# Crash reports (generated at runtime)
+crash_*.json

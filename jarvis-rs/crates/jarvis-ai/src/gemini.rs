@@ -13,12 +13,23 @@ use crate::{AiClient, AiError, AiResponse, Message, Role, ToolCall, ToolDefiniti
 const GEMINI_API_BASE: &str = "https://generativelanguage.googleapis.com/v1beta/models";
 
 /// Gemini API client configuration.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct GeminiConfig {
     pub api_key: String,
     pub model: String,
     pub max_tokens: u32,
     pub temperature: f64,
+}
+
+impl std::fmt::Debug for GeminiConfig {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("GeminiConfig")
+            .field("api_key", &"[REDACTED]")
+            .field("model", &self.model)
+            .field("max_tokens", &self.max_tokens)
+            .field("temperature", &self.temperature)
+            .finish()
+    }
 }
 
 impl GeminiConfig {
@@ -57,7 +68,11 @@ impl GeminiClient {
     pub fn new(config: GeminiConfig) -> Self {
         Self {
             config,
-            http: reqwest::Client::new(),
+            http: reqwest::Client::builder()
+                .connect_timeout(std::time::Duration::from_secs(10))
+                .timeout(std::time::Duration::from_secs(120))
+                .build()
+                .expect("failed to build HTTP client"),
         }
     }
 
@@ -67,10 +82,7 @@ impl GeminiClient {
         } else {
             "generateContent"
         };
-        format!(
-            "{}/{}:{}?key={}",
-            GEMINI_API_BASE, self.config.model, method, self.config.api_key
-        )
+        format!("{}/{}:{}", GEMINI_API_BASE, self.config.model, method)
     }
 
     /// Build the JSON request body for the Gemini API.
@@ -155,10 +167,10 @@ impl GeminiClient {
         let usage = TokenUsage {
             input_tokens: json["usageMetadata"]["promptTokenCount"]
                 .as_u64()
-                .unwrap_or(0) as u32,
+                .unwrap_or(0),
             output_tokens: json["usageMetadata"]["candidatesTokenCount"]
                 .as_u64()
-                .unwrap_or(0) as u32,
+                .unwrap_or(0),
         };
 
         Ok(AiResponse {
@@ -185,6 +197,7 @@ impl AiClient for GeminiClient {
             .http
             .post(&url)
             .header("content-type", "application/json")
+            .header("x-goog-api-key", &self.config.api_key)
             .json(&body)
             .send()
             .await
@@ -214,7 +227,7 @@ impl AiClient for GeminiClient {
         on_chunk: Box<dyn Fn(String) + Send + Sync>,
     ) -> Result<AiResponse, AiError> {
         let body = self.build_request_body(messages, tools);
-        let url = format!("{}&alt=sse", self.api_url(true));
+        let url = format!("{}?alt=sse", self.api_url(true));
 
         debug!(model = %self.config.model, "Gemini API streaming request");
 
@@ -222,6 +235,7 @@ impl AiClient for GeminiClient {
             .http
             .post(&url)
             .header("content-type", "application/json")
+            .header("x-goog-api-key", &self.config.api_key)
             .json(&body)
             .send()
             .await
@@ -273,9 +287,9 @@ impl AiClient for GeminiClient {
                 // Extract usage
                 if let Some(meta) = data.get("usageMetadata") {
                     usage.input_tokens =
-                        meta["promptTokenCount"].as_u64().unwrap_or(0) as u32;
+                        meta["promptTokenCount"].as_u64().unwrap_or(0);
                     usage.output_tokens =
-                        meta["candidatesTokenCount"].as_u64().unwrap_or(0) as u32;
+                        meta["candidatesTokenCount"].as_u64().unwrap_or(0);
                 }
             }
 

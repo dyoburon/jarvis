@@ -12,4 +12,5 @@ chrono = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
 dirs = { workspace = true }
+regex = { workspace = true }
 arboard = "3"

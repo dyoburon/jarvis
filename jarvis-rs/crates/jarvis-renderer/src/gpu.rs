@@ -73,15 +73,29 @@ impl GpuContext {
             .create_surface(window)
             .map_err(|e| RendererError::SurfaceError(e.to_string()))?;
 
-        // 3. Request adapter (prefer high-performance GPU)
+        // 3. Request adapter (prefer high-performance GPU, fallback to software)
         let adapter = instance
             .request_adapter(&wgpu::RequestAdapterOptions {
                 power_preference: wgpu::PowerPreference::HighPerformance,
                 force_fallback_adapter: false,
                 compatible_surface: Some(&surface),
             })
-            .await
-            .ok_or(RendererError::AdapterNotFound)?;
+            .await;
+
+        let adapter = match adapter {
+            Some(a) => a,
+            None => {
+                tracing::warn!("No hardware GPU adapter found, trying software fallback");
+                instance
+                    .request_adapter(&wgpu::RequestAdapterOptions {
+                        power_preference: wgpu::PowerPreference::LowPower,
+                        force_fallback_adapter: true,
+                        compatible_surface: Some(&surface),
+                    })
+                    .await
+                    .ok_or(RendererError::AdapterNotFound)?
+            }
+        };
 
         let adapter_info = adapter.get_info();
         tracing::info!(

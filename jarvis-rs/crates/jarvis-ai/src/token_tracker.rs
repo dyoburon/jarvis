@@ -29,10 +29,7 @@ impl TokenTracker {
         self.total.output_tokens += usage.output_tokens;
         self.call_count += 1;
 
-        let entry = self
-            .by_provider
-            .entry(provider.to_string())
-            .or_default();
+        let entry = self.by_provider.entry(provider.to_string()).or_default();
         entry.input_tokens += usage.input_tokens;
         entry.output_tokens += usage.output_tokens;
     }
@@ -48,8 +45,10 @@ impl TokenTracker {
     }
 
     /// Get total tokens (input + output).
-    pub fn total_tokens(&self) -> u32 {
-        self.total.input_tokens + self.total.output_tokens
+    pub fn total_tokens(&self) -> u64 {
+        self.total
+            .input_tokens
+            .saturating_add(self.total.output_tokens)
     }
 
     /// Get number of API calls.

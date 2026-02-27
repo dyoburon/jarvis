@@ -91,16 +91,27 @@ impl Default for VoiceConfig {
 }
 
 // ---------------------------------------------------------------------------
+// Voice State (single lock target)
+// ---------------------------------------------------------------------------
+
+/// Combined voice state protected by a single lock to eliminate race conditions
+/// between room membership and user-room mapping.
+pub struct VoiceState {
+    /// All active rooms keyed by room_id.
+    pub rooms: HashMap<String, VoiceRoom>,
+    /// Which room each user is in (user_id → room_id).
+    pub user_rooms: HashMap<String, String>,
+}
+
+// ---------------------------------------------------------------------------
 // Voice Manager
 // ---------------------------------------------------------------------------
 
 /// Manages voice rooms and participant state.
 pub struct VoiceManager {
     config: VoiceConfig,
-    /// All active rooms keyed by room_id.
-    rooms: Arc<RwLock<HashMap<String, VoiceRoom>>>,
-    /// Which room each user is in (user_id → room_id).
-    user_rooms: Arc<RwLock<HashMap<String, String>>>,
+    /// Combined rooms + user-room mapping under a single lock.
+    state: Arc<RwLock<VoiceState>>,
     /// Event sender.
     event_tx: mpsc::Sender<VoiceEvent>,
 }
@@ -110,8 +121,10 @@ impl VoiceManager {
         let (event_tx, event_rx) = mpsc::channel(256);
         let mgr = Self {
             config,
-            rooms: Arc::new(RwLock::new(HashMap::new())),
-            user_rooms: Arc::new(RwLock::new(HashMap::new())),
+            state: Arc::new(RwLock::new(VoiceState {
+                rooms: HashMap::new(),
+                user_rooms: HashMap::new(),
+            })),
             event_tx,
         };
         (mgr, event_rx)
@@ -129,8 +142,8 @@ impl VoiceManager {
             return Err("Voice chat is disabled".into());
         }
 
-        let mut rooms = self.rooms.write().await;
-        if rooms.contains_key(room_id) {
+        let mut state = self.state.write().await;
+        if state.rooms.contains_key(room_id) {
             return Err(format!("Room {room_id} already exists"));
         }
 
@@ -150,13 +163,11 @@ impl VoiceManager {
                 speaking: false,
             },
         );
-        rooms.insert(room_id.to_string(), room);
-        drop(rooms);
-
-        self.user_rooms
-            .write()
-            .await
+        state.rooms.insert(room_id.to_string(), room);
+        state
+            .user_rooms
             .insert(user_id.to_string(), room_id.to_string());
+        drop(state);
 
         let _ = self
             .event_tx
@@ -181,11 +192,15 @@ impl VoiceManager {
             return Err("Voice chat is disabled".into());
         }
 
-        // Leave current room first
-        self.leave_current_room(user_id).await;
+        let mut state = self.state.write().await;
 
-        let mut rooms = self.rooms.write().await;
-        let room = rooms
+        // Leave current room first (inline to avoid deadlock from re-entrant lock)
+        if let Some(old_room_id) = state.user_rooms.remove(user_id) {
+            Self::remove_from_room_inner(&mut state, &old_room_id, user_id, &self.event_tx).await;
+        }
+
+        let room = state
+            .rooms
             .get_mut(room_id)
             .ok_or_else(|| format!("Room {room_id} not found"))?;
 
@@ -205,12 +220,11 @@ impl VoiceManager {
                 speaking: false,
             },
         );
-        drop(rooms);
 
-        self.user_rooms
-            .write()
-            .await
+        state
+            .user_rooms
             .insert(user_id.to_string(), room_id.to_string());
+        drop(state);
 
         let _ = self
             .event_tx
@@ -228,16 +242,21 @@ impl VoiceManager {
 
     /// Leave the current voice room.
     pub async fn leave_current_room(&self, user_id: &str) {
-        let room_id = self.user_rooms.write().await.remove(user_id);
-        if let Some(room_id) = room_id {
-            self.remove_from_room(&room_id, user_id).await;
+        let mut state = self.state.write().await;
+        if let Some(room_id) = state.user_rooms.remove(user_id) {
+            Self::remove_from_room_inner(&mut state, &room_id, user_id, &self.event_tx).await;
         }
     }
 
     /// Remove a user from a specific room, closing the room if empty.
-    async fn remove_from_room(&self, room_id: &str, user_id: &str) {
-        let mut rooms = self.rooms.write().await;
-        let should_close = if let Some(room) = rooms.get_mut(room_id) {
+    /// Operates on an already-acquired write guard to avoid deadlocks.
+    async fn remove_from_room_inner(
+        state: &mut VoiceState,
+        room_id: &str,
+        user_id: &str,
+        event_tx: &mpsc::Sender<VoiceEvent>,
+    ) {
+        let should_close = if let Some(room) = state.rooms.get_mut(room_id) {
             let display_name = room
                 .participants
                 .get(user_id)
@@ -245,8 +264,7 @@ impl VoiceManager {
                 .unwrap_or_default();
             room.participants.remove(user_id);
 
-            let _ = self
-                .event_tx
+            let _ = event_tx
                 .send(VoiceEvent::UserLeft {
                     room_id: room_id.to_string(),
                     user_id: user_id.to_string(),
@@ -260,10 +278,8 @@ impl VoiceManager {
         };
 
         if should_close {
-            rooms.remove(room_id);
-            drop(rooms);
-            let _ = self
-                .event_tx
+            state.rooms.remove(room_id);
+            let _ = event_tx
                 .send(VoiceEvent::RoomClosed {
                     room_id: room_id.to_string(),
                 })
@@ -274,16 +290,14 @@ impl VoiceManager {
 
     /// Toggle mute state for a user.
     pub async fn set_muted(&self, user_id: &str, muted: bool) {
-        let user_rooms = self.user_rooms.read().await;
-        if let Some(room_id) = user_rooms.get(user_id) {
-            let room_id = room_id.clone();
-            drop(user_rooms);
-            let mut rooms = self.rooms.write().await;
-            if let Some(room) = rooms.get_mut(&room_id)
+        let mut state = self.state.write().await;
+        if let Some(room_id) = state.user_rooms.get(user_id).cloned() {
+            if let Some(room) = state.rooms.get_mut(&room_id)
                 && let Some(p) = room.participants.get_mut(user_id)
             {
                 p.muted = muted;
             }
+            drop(state);
             let _ = self
                 .event_tx
                 .send(VoiceEvent::MuteChanged {
@@ -297,12 +311,9 @@ impl VoiceManager {
 
     /// Toggle deafen state for a user.
     pub async fn set_deafened(&self, user_id: &str, deafened: bool) {
-        let user_rooms = self.user_rooms.read().await;
-        if let Some(room_id) = user_rooms.get(user_id) {
-            let room_id = room_id.clone();
-            drop(user_rooms);
-            let mut rooms = self.rooms.write().await;
-            if let Some(room) = rooms.get_mut(&room_id)
+        let mut state = self.state.write().await;
+        if let Some(room_id) = state.user_rooms.get(user_id).cloned() {
+            if let Some(room) = state.rooms.get_mut(&room_id)
                 && let Some(p) = room.participants.get_mut(user_id)
             {
                 p.deafened = deafened;
@@ -311,6 +322,7 @@ impl VoiceManager {
                     p.muted = true;
                 }
             }
+            drop(state);
             let _ = self
                 .event_tx
                 .send(VoiceEvent::DeafenChanged {
@@ -324,16 +336,14 @@ impl VoiceManager {
 
     /// Update speaking indicator for a user (driven by voice activity detection).
     pub async fn set_speaking(&self, user_id: &str, speaking: bool) {
-        let user_rooms = self.user_rooms.read().await;
-        if let Some(room_id) = user_rooms.get(user_id) {
-            let room_id = room_id.clone();
-            drop(user_rooms);
-            let mut rooms = self.rooms.write().await;
-            if let Some(room) = rooms.get_mut(&room_id)
+        let mut state = self.state.write().await;
+        if let Some(room_id) = state.user_rooms.get(user_id).cloned() {
+            if let Some(room) = state.rooms.get_mut(&room_id)
                 && let Some(p) = room.participants.get_mut(user_id)
             {
                 p.speaking = speaking;
             }
+            drop(state);
             let _ = self
                 .event_tx
                 .send(VoiceEvent::SpeakingChanged {
@@ -359,17 +369,17 @@ impl VoiceManager {
 
     /// Get a snapshot of a room.
     pub async fn get_room(&self, room_id: &str) -> Option<VoiceRoom> {
-        self.rooms.read().await.get(room_id).cloned()
+        self.state.read().await.rooms.get(room_id).cloned()
     }
 
     /// List all active rooms.
     pub async fn list_rooms(&self) -> Vec<VoiceRoom> {
-        self.rooms.read().await.values().cloned().collect()
+        self.state.read().await.rooms.values().cloned().collect()
     }
 
     /// Get which room a user is in.
     pub async fn user_room(&self, user_id: &str) -> Option<String> {
-        self.user_rooms.read().await.get(user_id).cloned()
+        self.state.read().await.user_rooms.get(user_id).cloned()
     }
 
     /// Clean up when a user goes offline.

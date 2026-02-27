@@ -51,12 +51,15 @@ impl ContentProvider {
         // Resolve from filesystem
         let file_path = self.base_dir.join(clean);
 
-        // Prevent directory traversal
-        if !file_path.starts_with(&self.base_dir) {
+        // Prevent directory traversal (including symlink bypass).
+        // Canonicalize both paths to resolve symlinks, `..`, etc.
+        let canonical_base = std::fs::canonicalize(&self.base_dir).ok()?;
+        let canonical_file = std::fs::canonicalize(&file_path).ok()?;
+        if !canonical_file.starts_with(&canonical_base) {
             return None;
         }
 
-        let data = std::fs::read(&file_path).ok()?;
+        let data = std::fs::read(&canonical_file).ok()?;
         let mime = mime_from_extension(&file_path);
         Some((Cow::Owned(mime.to_string()), Cow::Owned(data)))
     }
