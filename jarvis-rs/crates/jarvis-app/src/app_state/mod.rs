@@ -11,6 +11,7 @@ mod event_handler;
 mod init;
 mod palette;
 mod polling;
+pub(super) mod pty_bridge;
 mod social;
 mod types;
 mod ui_state;

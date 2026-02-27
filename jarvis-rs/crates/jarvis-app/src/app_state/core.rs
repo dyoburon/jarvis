@@ -15,6 +15,7 @@ use jarvis_social::presence::PresenceEvent;
 use jarvis_tiling::TilingManager;
 use jarvis_webview::WebViewRegistry;
 
+use super::pty_bridge::PtyManager;
 use super::types::AssistantEvent;
 
 /// Top-level application state.
@@ -34,6 +35,9 @@ pub struct JarvisApp {
 
     // WebView panels
     pub(super) webviews: Option<WebViewRegistry>,
+
+    // PTY instances (one per terminal pane)
+    pub(super) ptys: PtyManager,
 
     // UI chrome
     pub(super) chrome: UiChrome,
@@ -78,6 +82,7 @@ impl JarvisApp {
             render_state: None,
             tiling: TilingManager::new(),
             webviews: None,
+            ptys: PtyManager::new(),
             chrome,
             modifiers: winit::keyboard::ModifiersState::empty(),
             command_palette: None,

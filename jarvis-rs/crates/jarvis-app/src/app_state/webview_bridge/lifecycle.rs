@@ -55,8 +55,15 @@ impl JarvisApp {
         }
     }
 
-    /// Destroy the webview for a pane.
+    /// Destroy the webview and PTY for a pane.
     pub(in crate::app_state) fn destroy_webview_for_pane(&mut self, pane_id: u32) {
+        // Kill PTY first (if any)
+        if self.ptys.contains(pane_id) {
+            let exit_code = self.ptys.kill_and_remove(pane_id);
+            tracing::info!(pane_id, ?exit_code, "PTY killed for pane");
+        }
+
+        // Then destroy the webview
         if let Some(ref mut registry) = self.webviews {
             if registry.destroy(pane_id) {
                 tracing::info!(pane_id, "WebView destroyed for pane");

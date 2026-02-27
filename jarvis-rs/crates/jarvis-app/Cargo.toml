@@ -27,4 +27,5 @@ clap = { workspace = true }
 pollster = { workspace = true }
 chrono = { workspace = true }
 reqwest = { workspace = true }
+portable-pty = { workspace = true }
 semver = "1"

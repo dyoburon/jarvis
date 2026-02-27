@@ -75,13 +75,17 @@ impl JarvisApp {
                 self.tiling.focus_pane(pane_id);
                 self.needs_redraw = true;
             }
-            // PTY-related messages will be handled in Phase 4
-            "pty_input" | "pty_resize" | "pty_restart" | "terminal_ready" => {
-                tracing::debug!(
-                    pane_id,
-                    kind = %msg.kind,
-                    "PTY IPC: will be handled in Phase 4"
-                );
+            "pty_input" => {
+                self.handle_pty_input(pane_id, &msg.payload);
+            }
+            "pty_resize" => {
+                self.handle_pty_resize(pane_id, &msg.payload);
+            }
+            "pty_restart" => {
+                self.handle_pty_restart(pane_id, &msg.payload);
+            }
+            "terminal_ready" => {
+                self.handle_terminal_ready(pane_id, &msg.payload);
             }
             // Presence messages will be handled in Phase 6
             "presence_request_users" | "presence_poke" => {

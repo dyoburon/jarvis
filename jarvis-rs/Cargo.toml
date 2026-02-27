@@ -48,6 +48,9 @@ arboard = "3"
 # WebView
 wry = "0.47"
 
+# PTY
+portable-pty = "0.9"
+
 # Config
 notify = "7"
 
