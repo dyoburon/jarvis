@@ -2181,14 +2181,8 @@ name = "jarvis-terminal"
 version = "0.1.0"
 dependencies = [
  "alacritty_terminal",
- "jarvis-common",
  "portable-pty",
- "regex",
- "serde",
  "thiserror 2.0.18",
- "tokio",
- "tracing",
- "unicode-width 0.2.2",
  "vte",
 ]
 

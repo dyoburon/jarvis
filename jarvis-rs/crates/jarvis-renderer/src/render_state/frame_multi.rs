@@ -10,11 +10,14 @@ use crate::ui::UiChrome;
 use super::helpers::log_first_frame;
 use super::state::RenderState;
 
+/// A terminal pane ready for rendering: (id, rect, grid, colors, dirty_flags).
+pub type PaneRenderData<'a> = (u32, Rect, &'a Grid<Cell>, &'a Colors, Vec<bool>);
+
 impl RenderState {
     /// Render multiple terminal panes with UI chrome (status bar, tab bar, borders).
     pub fn render_frame_multi(
         &mut self,
-        panes: &[(u32, Rect, &Grid<Cell>, &Colors, Vec<bool>)],
+        panes: &[PaneRenderData<'_>],
         focused_id: u32,
         chrome: &UiChrome,
         assistant: Option<&AssistantPanel>,

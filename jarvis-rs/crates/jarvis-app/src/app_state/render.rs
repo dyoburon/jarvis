@@ -1,6 +1,6 @@
 //! Frame rendering logic.
 
-use jarvis_terminal::{Cell, Colors, Dimensions, Grid};
+use jarvis_terminal::Dimensions;
 
 use super::core::JarvisApp;
 
@@ -17,13 +17,7 @@ impl JarvisApp {
             // For now, mark all rows as dirty on every frame.
             // TODO: Use alacritty's damage tracking (term.damage() / term.reset_damage())
             // to only re-render changed rows.
-            let pane_grids: Vec<(
-                u32,
-                jarvis_common::types::Rect,
-                &Grid<Cell>,
-                &Colors,
-                Vec<bool>,
-            )> = layout
+            let pane_grids: Vec<_> = layout
                 .iter()
                 .filter_map(|(id, rect)| {
                     let pane = self.panes.get(id)?;
