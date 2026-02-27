@@ -1,7 +1,7 @@
-//! Live config reload manager.
+//! Core reload manager implementation.
 //!
-//! Combines the file watcher with config loading to provide automatic
-//! config reloading when the config file changes on disk.
+//! Contains the [`ReloadManager`] struct and its methods for loading,
+//! watching, and reloading configuration from disk.
 
 use crate::schema::JarvisConfig;
 use crate::theme;
@@ -133,36 +133,5 @@ impl ReloadManager {
         validation::validate(&config)?;
 
         Ok(config)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[tokio::test]
-    async fn start_with_nonexistent_path_uses_defaults() {
-        let path = PathBuf::from("/tmp/nonexistent_jarvis_reload_test.toml");
-        let (config, _rx) = ReloadManager::start(path).await;
-        assert_eq!(config.theme.name, "jarvis-dark");
-        assert_eq!(config.colors.primary, "#00d4ff");
-    }
-
-    #[tokio::test]
-    async fn start_with_valid_config() {
-        let dir = tempfile::tempdir().unwrap();
-        let path = dir.path().join("config.toml");
-        std::fs::write(
-            &path,
-            r#"
-[font]
-family = "Fira Code"
-"#,
-        )
-        .unwrap();
-
-        let (config, _rx) = ReloadManager::start(path).await;
-        assert_eq!(config.font.family, "Fira Code");
-        assert_eq!(config.colors.primary, "#00d4ff"); // default
     }
 }
