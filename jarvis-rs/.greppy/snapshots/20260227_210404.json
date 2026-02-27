@@ -1,0 +1,121 @@
+{
+  "id": "20260227_210404",
+  "name": null,
+  "created_at": "2026-02-27T21:04:04.302434Z",
+  "project": "jarvis-rs",
+  "metrics": {
+    "files": 245,
+    "symbols": 1433,
+    "dead": 775,
+    "cycles": 132,
+    "entry_points": 124,
+    "by_kind": {
+      "0": 1187,
+      "5": 2,
+      "3": 184,
+      "4": 60
+    },
+    "top_files": [
+      {
+        "path": "crates/jarvis-terminal/src/grid/mod.rs",
+        "symbols": 40,
+        "dead": 40
+      },
+      {
+        "path": "crates/jarvis-config/src/schema/mod.rs",
+        "symbols": 31,
+        "dead": 30
+      },
+      {
+        "path": "crates/jarvis-config/src/schema/visualizer.rs",
+        "symbols": 25,
+        "dead": 5
+      },
+      {
+        "path": "crates/jarvis-tiling/src/manager/mod.rs",
+        "symbols": 24,
+        "dead": 21
+      },
+      {
+        "path": "crates/jarvis-terminal/src/vte_handler/mod.rs",
+        "symbols": 24,
+        "dead": 23
+      },
+      {
+        "path": "crates/jarvis-tiling/src/tree/mod.rs",
+        "symbols": 22,
+        "dead": 21
+      },
+      {
+        "path": "crates/jarvis-renderer/src/assistant_panel.rs",
+        "symbols": 21,
+        "dead": 3
+      },
+      {
+        "path": "crates/jarvis-platform/src/input_processor/mod.rs",
+        "symbols": 19,
+        "dead": 17
+      },
+      {
+        "path": "crates/jarvis-common/src/id.rs",
+        "symbols": 18,
+        "dead": 13
+      },
+      {
+        "path": "crates/jarvis-common/src/types/mod.rs",
+        "symbols": 18,
+        "dead": 18
+      },
+      {
+        "path": "crates/jarvis-config/src/validation/tests.rs",
+        "symbols": 17,
+        "dead": 0
+      },
+      {
+        "path": "crates/jarvis-webview/src/manager/handle.rs",
+        "symbols": 16,
+        "dead": 6
+      },
+      {
+        "path": "crates/jarvis-config/src/schema/startup.rs",
+        "symbols": 16,
+        "dead": 4
+      },
+      {
+        "path": "crates/jarvis-renderer/src/ui/mod.rs",
+        "symbols": 15,
+        "dead": 15
+      },
+      {
+        "path": "crates/jarvis-platform/src/keymap/mod.rs",
+        "symbols": 15,
+        "dead": 15
+      },
+      {
+        "path": "crates/jarvis-social/src/voice/manager.rs",
+        "symbols": 14,
+        "dead": 13
+      },
+      {
+        "path": "crates/jarvis-common/src/notifications.rs",
+        "symbols": 14,
+        "dead": 5
+      },
+      {
+        "path": "crates/jarvis-tiling/src/platform/mod.rs",
+        "symbols": 14,
+        "dead": 10
+      },
+      {
+        "path": "crates/jarvis-config/src/schema/background.rs",
+        "symbols": 14,
+        "dead": 0
+      },
+      {
+        "path": "crates/jarvis-social/src/pair/manager.rs",
+        "symbols": 14,
+        "dead": 12
+      }
+    ]
+  }
+}

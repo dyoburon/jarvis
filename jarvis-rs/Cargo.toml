@@ -43,6 +43,9 @@ tokio-tungstenite = { version = "0.26", features = ["native-tls"] }
 tokio-util = { version = "0.7", features = ["io"] }
 futures-util = "0.3"
 
+# Terminal
+alacritty_terminal = "0.25.1"
+
 # Platform
 arboard = "3"
 

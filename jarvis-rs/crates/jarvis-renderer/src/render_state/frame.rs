@@ -1,3 +1,5 @@
+use jarvis_terminal::{Cell, Colors, Grid};
+
 use crate::gpu::RendererError;
 
 use super::helpers::log_first_frame;
@@ -5,7 +7,11 @@ use super::state::RenderState;
 
 impl RenderState {
     /// Render a complete frame: clear, prepare text, draw.
-    pub fn render_frame(&mut self, grid: &jarvis_terminal::Grid) -> Result<(), RendererError> {
+    pub fn render_frame(
+        &mut self,
+        grid: &Grid<Cell>,
+        colors: &Colors,
+    ) -> Result<(), RendererError> {
         let output = match self.gpu.current_texture() {
             Ok(t) => t,
             Err(e) => {
@@ -33,6 +39,7 @@ impl RenderState {
             &self.gpu.device,
             &self.gpu.queue,
             grid,
+            colors,
             0.0,
             0.0,
             viewport_width,

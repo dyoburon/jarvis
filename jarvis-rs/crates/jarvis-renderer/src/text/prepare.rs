@@ -3,7 +3,9 @@ use glyphon::{
     TextArea, TextBounds,
 };
 
-use super::colors::terminal_color_to_glyphon;
+use jarvis_terminal::{Cell, CellFlags, Colors, Column, Dimensions, Grid, Line};
+
+use super::colors::vte_color_to_glyphon;
 use super::renderer::TextRenderer;
 
 impl TextRenderer {
@@ -15,7 +17,8 @@ impl TextRenderer {
         &mut self,
         device: &wgpu::Device,
         queue: &wgpu::Queue,
-        grid: &jarvis_terminal::Grid,
+        grid: &Grid<Cell>,
+        colors: &Colors,
         offset_x: f32,
         offset_y: f32,
         viewport_width: f32,
@@ -34,10 +37,12 @@ impl TextRenderer {
 
         let metrics = Metrics::new(self.font_size, self.line_height);
         let mono_attrs = Attrs::new().family(Family::Monospace);
-        let mut buffers: Vec<TextBuffer> = Vec::with_capacity(grid.rows);
+        let screen_lines = grid.screen_lines();
+        let cols = grid.columns();
+        let mut buffers: Vec<TextBuffer> = Vec::with_capacity(screen_lines);
 
-        for row_idx in 0..grid.rows {
-            let row = &grid.cells[row_idx];
+        for row_idx in 0..screen_lines {
+            let row = &grid[Line(row_idx as i32)];
             let mut buffer = TextBuffer::new(&mut self.font_system, metrics);
             buffer.set_size(
                 &mut self.font_system,
@@ -47,22 +52,22 @@ impl TextRenderer {
 
             // Build color-batched spans: merge consecutive cells with the same
             // foreground color into a single span to minimize shaping work.
-            let mut row_text = String::with_capacity(grid.cols);
+            let mut row_text = String::with_capacity(cols);
             let mut spans: Vec<(usize, usize, GlyphonColor)> = Vec::new();
             let mut current_color: Option<GlyphonColor> = None;
             let mut span_start = 0;
 
-            let mut col = 0;
-            while col < row.len() {
-                let cell = &row[col];
-                if cell.width == 0 {
-                    col += 1;
+            for col_idx in 0..cols {
+                let cell = &row[Column(col_idx)];
+                // Skip wide-char spacers (the trailing cell of a double-width char).
+                if cell.flags.contains(CellFlags::WIDE_CHAR_SPACER) {
                     continue;
                 }
-                let fg = if cell.attrs.inverse {
-                    terminal_color_to_glyphon(&cell.attrs.bg, false)
+                let is_inverse = cell.flags.contains(CellFlags::INVERSE);
+                let fg = if is_inverse {
+                    vte_color_to_glyphon(cell.bg, colors, false)
                 } else {
-                    terminal_color_to_glyphon(&cell.attrs.fg, true)
+                    vte_color_to_glyphon(cell.fg, colors, true)
                 };
 
                 if let Some(cur) = current_color {
@@ -78,7 +83,6 @@ impl TextRenderer {
                 }
 
                 row_text.push(cell.c);
-                col += 1;
             }
             // Close final span
             if let Some(cur) = current_color {
@@ -139,14 +143,14 @@ impl TextRenderer {
 
     /// Prepare multiple terminal grids for rendering, only reshaping dirty rows.
     ///
-    /// Each pane is described by its id, grid, dirty flags, pixel offset, and
-    /// clip dimensions. Cached `TextBuffer`s are reused for clean rows.
+    /// Each pane is described by its id, grid, colors, dirty flags, pixel offset,
+    /// and clip dimensions. Cached `TextBuffer`s are reused for clean rows.
     #[allow(clippy::too_many_arguments, clippy::type_complexity)]
     pub fn prepare_multi_grid(
         &mut self,
         device: &wgpu::Device,
         queue: &wgpu::Queue,
-        panes: &[(u32, &jarvis_terminal::Grid, &[bool], f32, f32, f32, f32)],
+        panes: &[(u32, &Grid<Cell>, &Colors, &[bool], f32, f32, f32, f32)],
         extra_text_areas: Vec<TextArea<'_>>,
         viewport_width: f32,
         viewport_height: f32,
@@ -179,9 +183,11 @@ impl TextRenderer {
         let mut active_pane_ids: Vec<u32> = Vec::new();
 
         // First pass: update dirty buffers in the cache
-        for &(pane_id, grid, dirty_rows, offset_x, offset_y, pane_w, pane_h) in panes {
+        for &(pane_id, grid, colors, dirty_rows, offset_x, offset_y, pane_w, pane_h) in panes {
             active_pane_ids.push(pane_id);
-            let visible_rows = ((pane_h / self.line_height).floor() as usize).min(grid.rows);
+            let screen_lines = grid.screen_lines();
+            let cols = grid.columns();
+            let visible_rows = ((pane_h / self.line_height).floor() as usize).min(screen_lines);
 
             let cached = self.pane_buffer_cache.entry(pane_id).or_default();
 
@@ -201,26 +207,25 @@ impl TextRenderer {
                 let is_dirty = dirty_rows.get(row_idx).copied().unwrap_or(true);
 
                 if is_dirty {
-                    let row = &grid.cells[row_idx];
+                    let row = &grid[Line(row_idx as i32)];
                     buffer.set_size(&mut self.font_system, Some(pane_w), Some(self.line_height));
 
                     // Build color-batched spans
-                    let mut row_text = String::with_capacity(grid.cols);
+                    let mut row_text = String::with_capacity(cols);
                     let mut spans: Vec<(usize, usize, GlyphonColor)> = Vec::new();
                     let mut current_color: Option<GlyphonColor> = None;
                     let mut span_start = 0;
 
-                    let mut col = 0;
-                    while col < row.len() {
-                        let cell = &row[col];
-                        if cell.width == 0 {
-                            col += 1;
+                    for col_idx in 0..cols {
+                        let cell = &row[Column(col_idx)];
+                        if cell.flags.contains(CellFlags::WIDE_CHAR_SPACER) {
                             continue;
                         }
-                        let fg = if cell.attrs.inverse {
-                            terminal_color_to_glyphon(&cell.attrs.bg, false)
+                        let is_inverse = cell.flags.contains(CellFlags::INVERSE);
+                        let fg = if is_inverse {
+                            vte_color_to_glyphon(cell.bg, colors, false)
                         } else {
-                            terminal_color_to_glyphon(&cell.attrs.fg, true)
+                            vte_color_to_glyphon(cell.fg, colors, true)
                         };
 
                         if let Some(cur) = current_color {
@@ -235,7 +240,6 @@ impl TextRenderer {
                         }
 
                         row_text.push(cell.c);
-                        col += 1;
                     }
                     if let Some(cur) = current_color {
                         if row_text.len() > span_start {

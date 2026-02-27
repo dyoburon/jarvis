@@ -1,5 +1,6 @@
 use glyphon::{Color as GlyphonColor, TextArea, TextBounds};
 use jarvis_common::types::Rect;
+use jarvis_terminal::{Cell, Colors, Grid};
 
 use crate::assistant_panel::AssistantPanel;
 use crate::gpu::RendererError;
@@ -13,7 +14,7 @@ impl RenderState {
     /// Render multiple terminal panes with UI chrome (status bar, tab bar, borders).
     pub fn render_frame_multi(
         &mut self,
-        panes: &[(u32, Rect, &jarvis_terminal::Grid, Vec<bool>)],
+        panes: &[(u32, Rect, &Grid<Cell>, &Colors, Vec<bool>)],
         focused_id: u32,
         chrome: &UiChrome,
         assistant: Option<&AssistantPanel>,
@@ -76,7 +77,7 @@ impl RenderState {
 
         // Pane borders (thin colored lines around each pane)
         if panes.len() > 1 {
-            for &(pane_id, ref rect, _, _) in panes {
+            for &(pane_id, ref rect, _, _, _) in panes {
                 let is_focused = pane_id == focused_id;
                 let border_color = if is_focused {
                     [0.0, 0.83, 1.0, 0.5] // cyan glow for focused
@@ -122,12 +123,13 @@ impl RenderState {
 
         // 2. Build text for terminal panes
         #[allow(clippy::type_complexity)]
-        let pane_data: Vec<(u32, &jarvis_terminal::Grid, &[bool], f32, f32, f32, f32)> = panes
+        let pane_data: Vec<(u32, &Grid<Cell>, &Colors, &[bool], f32, f32, f32, f32)> = panes
             .iter()
-            .map(|(id, rect, grid, dirty)| {
+            .map(|(id, rect, grid, colors, dirty)| {
                 (
                     *id,
                     *grid,
+                    *colors,
                     dirty.as_slice(),
                     rect.x as f32,
                     rect.y as f32,

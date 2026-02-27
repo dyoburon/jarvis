@@ -1,0 +1,98 @@
+//! JarvisApp struct definition and constructor.
+
+use std::collections::HashMap;
+use std::sync::Arc;
+use std::time::Instant;
+
+use winit::window::Window;
+
+use jarvis_common::events::EventBus;
+use jarvis_common::notifications::NotificationQueue;
+use jarvis_config::schema::JarvisConfig;
+use jarvis_platform::input::KeybindRegistry;
+use jarvis_platform::input_processor::InputProcessor;
+use jarvis_renderer::{AssistantPanel, RenderState, UiChrome};
+use jarvis_social::presence::PresenceEvent;
+use jarvis_tiling::TilingManager;
+
+use super::types::{AssistantEvent, PaneState};
+
+/// Top-level application state.
+pub struct JarvisApp {
+    pub(super) config: JarvisConfig,
+    pub(super) registry: KeybindRegistry,
+    pub(super) input: InputProcessor,
+    pub(super) event_bus: EventBus,
+    pub(super) notifications: NotificationQueue,
+
+    // Windowing
+    pub(super) window: Option<Arc<Window>>,
+    pub(super) render_state: Option<RenderState>,
+
+    // Terminal + tiling
+    pub(super) tiling: TilingManager,
+    pub(super) panes: HashMap<u32, PaneState>,
+
+    // UI chrome
+    pub(super) chrome: UiChrome,
+
+    // Modifier tracking (winit sends these separately)
+    pub(super) modifiers: winit::keyboard::ModifiersState,
+
+    // Command palette
+    pub(super) command_palette: Option<jarvis_renderer::CommandPalette>,
+    pub(super) command_palette_open: bool,
+
+    // Social presence
+    pub(super) online_count: u32,
+    pub(super) presence_rx: Option<std::sync::mpsc::Receiver<PresenceEvent>>,
+    #[allow(dead_code)]
+    pub(super) tokio_runtime: Option<tokio::runtime::Runtime>,
+
+    // AI assistant panel
+    pub(super) assistant_panel: Option<AssistantPanel>,
+    pub(super) assistant_open: bool,
+    pub(super) assistant_rx: Option<std::sync::mpsc::Receiver<AssistantEvent>>,
+    pub(super) assistant_tx: Option<std::sync::mpsc::Sender<String>>,
+
+    // Whether the app should exit
+    pub(super) should_exit: bool,
+
+    // Dirty flag -- set when content changes and a redraw is needed
+    pub(super) needs_redraw: bool,
+    pub(super) last_poll: Instant,
+    /// Timestamp of last keystroke sent to PTY, for adaptive polling.
+    pub(super) last_pty_write: Instant,
+}
+
+impl JarvisApp {
+    pub fn new(config: JarvisConfig, registry: KeybindRegistry) -> Self {
+        let chrome = UiChrome::from_config(&config.layout);
+        Self {
+            config,
+            registry,
+            input: InputProcessor::new(),
+            event_bus: EventBus::new(256),
+            notifications: NotificationQueue::new(16),
+            window: None,
+            render_state: None,
+            tiling: TilingManager::new(),
+            panes: HashMap::new(),
+            chrome,
+            modifiers: winit::keyboard::ModifiersState::empty(),
+            command_palette: None,
+            command_palette_open: false,
+            online_count: 0,
+            presence_rx: None,
+            tokio_runtime: None,
+            assistant_panel: None,
+            assistant_open: false,
+            assistant_rx: None,
+            assistant_tx: None,
+            should_exit: false,
+            needs_redraw: false,
+            last_poll: Instant::now(),
+            last_pty_write: Instant::now(),
+        }
+    }
+}
