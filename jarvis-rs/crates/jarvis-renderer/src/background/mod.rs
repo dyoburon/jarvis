@@ -4,10 +4,12 @@
 //! GPU pipeline creation is deferred until a wgpu device is available.
 
 mod helpers;
+mod pipeline;
 mod renderer;
 mod types;
 
 pub use helpers::*;
+pub use pipeline::*;
 pub use renderer::*;
 pub use types::*;
 
