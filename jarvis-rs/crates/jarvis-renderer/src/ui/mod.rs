@@ -4,182 +4,18 @@
 //! terminal grid. Layout calculations determine the content area available
 //! after subtracting chrome elements.
 
-use jarvis_common::types::Rect;
-use jarvis_config::schema::LayoutConfig;
+mod chrome;
+mod layout;
+mod types;
 
-/// Default tab bar height in pixels.
-const DEFAULT_TAB_BAR_HEIGHT: f32 = 32.0;
-
-/// Default status bar height in pixels.
-const DEFAULT_STATUS_BAR_HEIGHT: f32 = 24.0;
-
-/// A border drawn around a terminal pane.
-#[derive(Debug, Clone)]
-pub struct PaneBorder {
-    /// Bounding rectangle of the border.
-    pub rect: Rect,
-    /// Border color as RGBA (each component 0.0..=1.0).
-    pub color: [f32; 4],
-    /// Border line width in pixels.
-    pub width: f32,
-    /// Whether this pane currently has keyboard focus.
-    pub is_focused: bool,
-}
-
-/// A single tab in the tab bar.
-#[derive(Debug, Clone)]
-pub struct Tab {
-    /// Display title for the tab.
-    pub title: String,
-    /// Whether this tab is the currently active one.
-    pub is_active: bool,
-}
-
-/// The tab bar shown at the top of the window.
-#[derive(Debug, Clone)]
-pub struct TabBar {
-    /// All tabs in order.
-    pub tabs: Vec<Tab>,
-    /// Index of the active tab.
-    pub active_tab: usize,
-    /// Height of the tab bar in pixels.
-    pub height: f32,
-}
-
-/// The status bar shown at the bottom of the window.
-#[derive(Debug, Clone)]
-pub struct StatusBar {
-    /// Text aligned to the left.
-    pub left_text: String,
-    /// Text aligned to the center.
-    pub center_text: String,
-    /// Text aligned to the right.
-    pub right_text: String,
-    /// Height of the status bar in pixels.
-    pub height: f32,
-    /// Background color as RGBA.
-    pub bg_color: [f32; 4],
-    /// Foreground (text) color as RGBA.
-    pub fg_color: [f32; 4],
-}
-
-/// All UI chrome elements that surround the terminal content area.
-pub struct UiChrome {
-    /// Optional tab bar at the top of the window.
-    pub tab_bar: Option<TabBar>,
-    /// Optional status bar at the bottom of the window.
-    pub status_bar: Option<StatusBar>,
-    /// Borders around individual panes.
-    pub borders: Vec<PaneBorder>,
-    /// Gap between adjacent panes in pixels.
-    pub pane_gap: f32,
-}
-
-impl UiChrome {
-    /// Create a new `UiChrome` with no tab bar, no status bar, and default gap.
-    pub fn new() -> Self {
-        Self {
-            tab_bar: None,
-            status_bar: None,
-            borders: Vec::new(),
-            pane_gap: 2.0,
-        }
-    }
-
-    /// Create `UiChrome` from the layout configuration.
-    pub fn from_config(config: &LayoutConfig) -> Self {
-        Self {
-            tab_bar: None,
-            status_bar: None,
-            borders: Vec::new(),
-            pane_gap: config.panel_gap as f32,
-        }
-    }
-
-    /// Set the tabs displayed in the tab bar.
-    ///
-    /// Creates the tab bar if it does not yet exist. Each tab's `is_active`
-    /// field is set based on the `active` index.
-    pub fn set_tabs(&mut self, mut tabs: Vec<Tab>, active: usize) {
-        let active = active.min(tabs.len().saturating_sub(1));
-        for (i, tab) in tabs.iter_mut().enumerate() {
-            tab.is_active = i == active;
-        }
-        self.tab_bar = Some(TabBar {
-            tabs,
-            active_tab: active,
-            height: DEFAULT_TAB_BAR_HEIGHT,
-        });
-    }
-
-    /// Update the status bar text fields.
-    ///
-    /// Creates the status bar with default styling if it does not yet exist.
-    pub fn set_status(&mut self, left: &str, center: &str, right: &str) {
-        if let Some(ref mut bar) = self.status_bar {
-            bar.left_text = left.to_owned();
-            bar.center_text = center.to_owned();
-            bar.right_text = right.to_owned();
-        } else {
-            self.status_bar = Some(StatusBar {
-                left_text: left.to_owned(),
-                center_text: center.to_owned(),
-                right_text: right.to_owned(),
-                height: DEFAULT_STATUS_BAR_HEIGHT,
-                bg_color: [0.1, 0.1, 0.1, 0.9],
-                fg_color: [0.9, 0.9, 0.9, 1.0],
-            });
-        }
-    }
-
-    /// Replace all pane borders.
-    pub fn set_borders(&mut self, borders: Vec<PaneBorder>) {
-        self.borders = borders;
-    }
-
-    /// Compute the rectangle available for terminal content after subtracting
-    /// chrome elements (tab bar, status bar).
-    pub fn content_rect(&self, window_width: f32, window_height: f32) -> Rect {
-        let top = self.tab_bar.as_ref().map(|tb| tb.height).unwrap_or(0.0);
-        let bottom = self.status_bar.as_ref().map(|sb| sb.height).unwrap_or(0.0);
-        Rect {
-            x: 0.0,
-            y: top as f64,
-            width: window_width as f64,
-            height: (window_height - top - bottom).max(0.0) as f64,
-        }
-    }
-
-    /// Compute the rectangle for the tab bar, if present.
-    pub fn tab_bar_rect(&self, window_width: f32) -> Option<Rect> {
-        self.tab_bar.as_ref().map(|tb| Rect {
-            x: 0.0,
-            y: 0.0,
-            width: window_width as f64,
-            height: tb.height as f64,
-        })
-    }
-
-    /// Compute the rectangle for the status bar, if present.
-    pub fn status_bar_rect(&self, window_width: f32, window_height: f32) -> Option<Rect> {
-        self.status_bar.as_ref().map(|sb| Rect {
-            x: 0.0,
-            y: (window_height - sb.height) as f64,
-            width: window_width as f64,
-            height: sb.height as f64,
-        })
-    }
-}
-
-impl Default for UiChrome {
-    fn default() -> Self {
-        Self::new()
-    }
-}
+pub use chrome::*;
+pub use types::{PaneBorder, StatusBar, Tab, TabBar};
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use jarvis_common::types::Rect;
+    use jarvis_config::schema::LayoutConfig;
 
     #[test]
     fn content_rect_subtracts_tab_and_status_bar() {

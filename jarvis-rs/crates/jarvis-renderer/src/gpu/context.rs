@@ -1,51 +1,9 @@
 use std::sync::Arc;
 use winit::window::Window;
 
-// ---------------------------------------------------------------------------
-// RendererError
-// ---------------------------------------------------------------------------
+use super::types::{PhysicalSize, RendererError};
 
-#[derive(Debug, thiserror::Error)]
-pub enum RendererError {
-    #[error("surface error: {0}")]
-    SurfaceError(String),
-
-    #[error("no suitable GPU adapter found")]
-    AdapterNotFound,
-
-    #[error("device error: {0}")]
-    DeviceError(String),
-
-    #[error("text rendering error: {0}")]
-    TextError(String),
-}
-
-impl From<wgpu::SurfaceError> for RendererError {
-    fn from(e: wgpu::SurfaceError) -> Self {
-        RendererError::SurfaceError(e.to_string())
-    }
-}
-
-impl From<wgpu::RequestDeviceError> for RendererError {
-    fn from(e: wgpu::RequestDeviceError) -> Self {
-        RendererError::DeviceError(e.to_string())
-    }
-}
-
-// ---------------------------------------------------------------------------
-// PhysicalSize
-// ---------------------------------------------------------------------------
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub struct PhysicalSize {
-    pub width: u32,
-    pub height: u32,
-}
-
-// ---------------------------------------------------------------------------
-// GpuContext
-// ---------------------------------------------------------------------------
-
+/// Holds the wgpu device, queue, surface, and configuration.
 pub struct GpuContext {
     pub device: wgpu::Device,
     pub queue: wgpu::Queue,
@@ -171,48 +129,5 @@ impl GpuContext {
     /// Return the surface texture format.
     pub fn format(&self) -> wgpu::TextureFormat {
         self.surface_config.format
-    }
-}
-
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn renderer_error_adapter_not_found_display() {
-        let err = RendererError::AdapterNotFound;
-        assert_eq!(err.to_string(), "no suitable GPU adapter found");
-    }
-
-    #[test]
-    fn renderer_error_surface_display() {
-        let err = RendererError::SurfaceError("timeout".to_string());
-        assert_eq!(err.to_string(), "surface error: timeout");
-    }
-
-    #[test]
-    fn renderer_error_device_display() {
-        let err = RendererError::DeviceError("out of memory".to_string());
-        assert_eq!(err.to_string(), "device error: out of memory");
-    }
-
-    #[test]
-    fn renderer_error_text_display() {
-        let err = RendererError::TextError("atlas full".to_string());
-        assert_eq!(err.to_string(), "text rendering error: atlas full");
-    }
-
-    #[test]
-    fn physical_size_copy_and_eq() {
-        let a = PhysicalSize {
-            width: 800,
-            height: 600,
-        };
-        let b = a;
-        assert_eq!(a, b);
     }
 }

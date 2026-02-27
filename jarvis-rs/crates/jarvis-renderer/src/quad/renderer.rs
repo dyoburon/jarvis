@@ -1,27 +1,7 @@
-//! GPU-accelerated filled rectangle renderer using instanced drawing.
-//!
-//! Draws colored quads for UI chrome elements like status bar backgrounds,
-//! tab bar backgrounds, and pane borders.
-
 use wgpu::util::DeviceExt;
 
-// ---------------------------------------------------------------------------
-// QuadInstance
-// ---------------------------------------------------------------------------
-
-/// A single filled rectangle to draw.
-#[derive(Debug, Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
-#[repr(C)]
-pub struct QuadInstance {
-    /// Position and size in pixels: [x, y, width, height].
-    pub rect: [f32; 4],
-    /// RGBA color, each component 0.0..=1.0.
-    pub color: [f32; 4],
-}
-
-// ---------------------------------------------------------------------------
-// QuadRenderer
-// ---------------------------------------------------------------------------
+use super::pipeline::SHADER_SOURCE;
+use super::types::{QuadInstance, Uniforms, Vertex, MAX_INSTANCES, QUAD_INDICES, QUAD_VERTICES};
 
 /// Renders filled rectangles via instanced drawing.
 pub struct QuadRenderer {
@@ -34,86 +14,6 @@ pub struct QuadRenderer {
     instance_count: u32,
     max_instances: u32,
 }
-
-/// Unit quad vertices (2D position).
-#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
-#[repr(C)]
-struct Vertex {
-    position: [f32; 2],
-}
-
-/// Uniform buffer for viewport resolution.
-#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
-#[repr(C)]
-struct Uniforms {
-    resolution: [f32; 2],
-    _pad: [f32; 2],
-}
-
-const QUAD_VERTICES: &[Vertex] = &[
-    Vertex {
-        position: [0.0, 0.0],
-    }, // top-left
-    Vertex {
-        position: [1.0, 0.0],
-    }, // top-right
-    Vertex {
-        position: [1.0, 1.0],
-    }, // bottom-right
-    Vertex {
-        position: [0.0, 1.0],
-    }, // bottom-left
-];
-
-const QUAD_INDICES: &[u16] = &[0, 1, 2, 0, 2, 3];
-
-const MAX_INSTANCES: u32 = 256;
-
-const SHADER_SOURCE: &str = r#"
-struct Uniforms {
-    resolution: vec2<f32>,
-    _pad: vec2<f32>,
-};
-
-@group(0) @binding(0)
-var<uniform> uniforms: Uniforms;
-
-struct VertexInput {
-    @location(0) position: vec2<f32>,
-};
-
-struct InstanceInput {
-    @location(1) rect: vec4<f32>,
-    @location(2) color: vec4<f32>,
-};
-
-struct VertexOutput {
-    @builtin(position) clip_position: vec4<f32>,
-    @location(0) color: vec4<f32>,
-};
-
-@vertex
-fn vs_main(vertex: VertexInput, instance: InstanceInput) -> VertexOutput {
-    var out: VertexOutput;
-
-    // Scale unit quad by instance rect size and translate by instance position
-    let pixel_x = instance.rect.x + vertex.position.x * instance.rect.z;
-    let pixel_y = instance.rect.y + vertex.position.y * instance.rect.w;
-
-    // Convert from pixel coordinates to NDC (-1..1)
-    let ndc_x = (pixel_x / uniforms.resolution.x) * 2.0 - 1.0;
-    let ndc_y = 1.0 - (pixel_y / uniforms.resolution.y) * 2.0;
-
-    out.clip_position = vec4<f32>(ndc_x, ndc_y, 0.0, 1.0);
-    out.color = instance.color;
-    return out;
-}
-
-@fragment
-fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
-    return in.color;
-}
-"#;
 
 impl QuadRenderer {
     /// Create a new QuadRenderer with the given surface format.
@@ -298,50 +198,5 @@ impl QuadRenderer {
         pass.set_vertex_buffer(1, self.instance_buffer.slice(..));
         pass.set_index_buffer(self.index_buffer.slice(..), wgpu::IndexFormat::Uint16);
         pass.draw_indexed(0..6, 0, 0..self.instance_count);
-    }
-}
-
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn quad_instance_size() {
-        assert_eq!(std::mem::size_of::<QuadInstance>(), 32); // 8 floats * 4 bytes
-    }
-
-    #[test]
-    fn vertex_size() {
-        assert_eq!(std::mem::size_of::<Vertex>(), 8); // 2 floats * 4 bytes
-    }
-
-    #[test]
-    fn uniforms_size() {
-        assert_eq!(std::mem::size_of::<Uniforms>(), 16); // 4 floats * 4 bytes
-    }
-
-    #[test]
-    fn quad_indices_form_two_triangles() {
-        assert_eq!(QUAD_INDICES.len(), 6);
-        // Triangle 1: 0-1-2, Triangle 2: 0-2-3
-        assert_eq!(QUAD_INDICES[0], 0);
-        assert_eq!(QUAD_INDICES[1], 1);
-        assert_eq!(QUAD_INDICES[2], 2);
-        assert_eq!(QUAD_INDICES[3], 0);
-        assert_eq!(QUAD_INDICES[4], 2);
-        assert_eq!(QUAD_INDICES[5], 3);
-    }
-
-    #[test]
-    fn quad_vertices_form_unit_quad() {
-        assert_eq!(QUAD_VERTICES.len(), 4);
-        assert_eq!(QUAD_VERTICES[0].position, [0.0, 0.0]);
-        assert_eq!(QUAD_VERTICES[1].position, [1.0, 0.0]);
-        assert_eq!(QUAD_VERTICES[2].position, [1.0, 1.0]);
-        assert_eq!(QUAD_VERTICES[3].position, [0.0, 1.0]);
     }
 }
