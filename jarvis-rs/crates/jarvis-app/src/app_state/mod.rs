@@ -14,5 +14,6 @@ mod polling;
 mod social;
 mod types;
 mod ui_state;
+mod webview_bridge;
 
 pub use core::JarvisApp;

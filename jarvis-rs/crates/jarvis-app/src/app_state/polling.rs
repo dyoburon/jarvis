@@ -16,6 +16,7 @@ impl JarvisApp {
             self.last_poll = now;
             self.poll_presence();
             self.poll_assistant();
+            self.poll_webview_events();
         }
 
         if self.needs_redraw {

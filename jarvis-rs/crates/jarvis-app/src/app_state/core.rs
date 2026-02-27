@@ -13,6 +13,7 @@ use jarvis_platform::input_processor::InputProcessor;
 use jarvis_renderer::{AssistantPanel, RenderState, UiChrome};
 use jarvis_social::presence::PresenceEvent;
 use jarvis_tiling::TilingManager;
+use jarvis_webview::WebViewRegistry;
 
 use super::types::AssistantEvent;
 
@@ -30,6 +31,9 @@ pub struct JarvisApp {
 
     // Tiling layout
     pub(super) tiling: TilingManager,
+
+    // WebView panels
+    pub(super) webviews: Option<WebViewRegistry>,
 
     // UI chrome
     pub(super) chrome: UiChrome,
@@ -73,6 +77,7 @@ impl JarvisApp {
             window: None,
             render_state: None,
             tiling: TilingManager::new(),
+            webviews: None,
             chrome,
             modifiers: winit::keyboard::ModifiersState::empty(),
             command_palette: None,

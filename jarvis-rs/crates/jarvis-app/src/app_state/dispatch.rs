@@ -16,18 +16,30 @@ impl JarvisApp {
         match action {
             Action::NewPane => {
                 self.tiling.split(Direction::Horizontal);
+                let new_id = self.tiling.focused_id();
+                self.create_webview_for_pane(new_id);
+                self.sync_webview_bounds();
                 self.needs_redraw = true;
             }
             Action::ClosePane => {
+                let closing_id = self.tiling.focused_id();
                 self.tiling.close_focused();
+                self.destroy_webview_for_pane(closing_id);
+                self.sync_webview_bounds();
                 self.needs_redraw = true;
             }
             Action::SplitHorizontal => {
                 self.tiling.execute(TilingCommand::SplitHorizontal);
+                let new_id = self.tiling.focused_id();
+                self.create_webview_for_pane(new_id);
+                self.sync_webview_bounds();
                 self.needs_redraw = true;
             }
             Action::SplitVertical => {
                 self.tiling.execute(TilingCommand::SplitVertical);
+                let new_id = self.tiling.focused_id();
+                self.create_webview_for_pane(new_id);
+                self.sync_webview_bounds();
                 self.needs_redraw = true;
             }
             Action::FocusPane(n) => {
@@ -44,6 +56,7 @@ impl JarvisApp {
             }
             Action::ZoomPane => {
                 self.tiling.execute(TilingCommand::Zoom);
+                self.sync_webview_bounds();
                 self.needs_redraw = true;
             }
             Action::ToggleFullscreen => {

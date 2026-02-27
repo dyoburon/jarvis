@@ -1918,6 +1918,7 @@ dependencies = [
  "jarvis-renderer",
  "jarvis-social",
  "jarvis-tiling",
+ "jarvis-webview",
  "pollster",
  "reqwest",
  "semver",
@@ -1927,6 +1928,7 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "winit",
+ "wry",
 ]
 
 [[package]]

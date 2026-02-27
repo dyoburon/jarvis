@@ -43,6 +43,7 @@ impl ApplicationHandler for JarvisApp {
                     if let Some(ref mut rs) = self.render_state {
                         rs.resize(size.width, size.height);
                     }
+                    self.sync_webview_bounds();
                     self.needs_redraw = true;
                 }
             }
