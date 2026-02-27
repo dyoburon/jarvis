@@ -1,6 +1,5 @@
 //! JarvisApp struct definition and constructor.
 
-use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Instant;
 
@@ -15,7 +14,7 @@ use jarvis_renderer::{AssistantPanel, RenderState, UiChrome};
 use jarvis_social::presence::PresenceEvent;
 use jarvis_tiling::TilingManager;
 
-use super::types::{AssistantEvent, PaneState};
+use super::types::AssistantEvent;
 
 /// Top-level application state.
 pub struct JarvisApp {
@@ -29,9 +28,8 @@ pub struct JarvisApp {
     pub(super) window: Option<Arc<Window>>,
     pub(super) render_state: Option<RenderState>,
 
-    // Terminal + tiling
+    // Tiling layout
     pub(super) tiling: TilingManager,
-    pub(super) panes: HashMap<u32, PaneState>,
 
     // UI chrome
     pub(super) chrome: UiChrome,
@@ -61,8 +59,6 @@ pub struct JarvisApp {
     // Dirty flag -- set when content changes and a redraw is needed
     pub(super) needs_redraw: bool,
     pub(super) last_poll: Instant,
-    /// Timestamp of last keystroke sent to PTY, for adaptive polling.
-    pub(super) last_pty_write: Instant,
 }
 
 impl JarvisApp {
@@ -77,7 +73,6 @@ impl JarvisApp {
             window: None,
             render_state: None,
             tiling: TilingManager::new(),
-            panes: HashMap::new(),
             chrome,
             modifiers: winit::keyboard::ModifiersState::empty(),
             command_palette: None,
@@ -92,7 +87,6 @@ impl JarvisApp {
             should_exit: false,
             needs_redraw: false,
             last_poll: Instant::now(),
-            last_pty_write: Instant::now(),
         }
     }
 }

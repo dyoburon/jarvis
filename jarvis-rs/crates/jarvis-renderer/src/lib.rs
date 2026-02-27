@@ -1,5 +1,4 @@
 pub mod assistant_panel;
-pub mod atlas;
 pub mod background;
 pub mod bloom;
 pub mod command_palette;
@@ -9,7 +8,6 @@ pub mod perf;
 pub mod quad;
 pub mod render_state;
 pub mod sphere;
-pub mod text;
 pub mod ui;
 pub mod visualizer;
 
@@ -19,5 +17,4 @@ pub use gpu::GpuContext;
 pub use perf::FrameTimer;
 pub use quad::{QuadInstance, QuadRenderer};
 pub use render_state::RenderState;
-pub use text::TextRenderer;
 pub use ui::{PaneBorder, StatusBar, Tab, TabBar, UiChrome};

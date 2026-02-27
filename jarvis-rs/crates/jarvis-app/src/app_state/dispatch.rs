@@ -16,23 +16,18 @@ impl JarvisApp {
         match action {
             Action::NewPane => {
                 self.tiling.split(Direction::Horizontal);
-                self.spawn_pty_for_focused();
                 self.needs_redraw = true;
             }
             Action::ClosePane => {
-                let id = self.tiling.focused_id();
                 self.tiling.close_focused();
-                self.panes.remove(&id);
                 self.needs_redraw = true;
             }
             Action::SplitHorizontal => {
                 self.tiling.execute(TilingCommand::SplitHorizontal);
-                self.spawn_pty_for_focused();
                 self.needs_redraw = true;
             }
             Action::SplitVertical => {
                 self.tiling.execute(TilingCommand::SplitVertical);
-                self.spawn_pty_for_focused();
                 self.needs_redraw = true;
             }
             Action::FocusPane(n) => {
@@ -91,11 +86,9 @@ impl JarvisApp {
             Action::OpenSettings => {
                 self.input.set_mode(InputMode::Settings);
             }
-            Action::Copy => {
-                self.copy_selection();
-            }
-            Action::Paste => {
-                self.paste_from_clipboard();
+            Action::Copy | Action::Paste => {
+                // Will be handled by webview panels in future phases
+                tracing::debug!("clipboard action: will be handled by webview");
             }
             Action::ReloadConfig => match jarvis_config::load_config() {
                 Ok(c) => {
@@ -114,25 +107,9 @@ impl JarvisApp {
                     ));
                 }
             },
-            Action::ScrollUp(n) => {
-                let focused = self.tiling.focused_id();
-                if let Some(pane) = self.panes.get_mut(&focused) {
-                    pane.term
-                        .scroll_display(jarvis_terminal::Scroll::Delta(n as i32));
-                }
-            }
-            Action::ScrollDown(n) => {
-                let focused = self.tiling.focused_id();
-                if let Some(pane) = self.panes.get_mut(&focused) {
-                    pane.term
-                        .scroll_display(jarvis_terminal::Scroll::Delta(-(n as i32)));
-                }
-            }
-            Action::ClearTerminal => {
-                let focused = self.tiling.focused_id();
-                if let Some(pane) = self.panes.get_mut(&focused) {
-                    let _ = pane.pty.write(b"\x1b[2J\x1b[H");
-                }
+            Action::ScrollUp(_) | Action::ScrollDown(_) | Action::ClearTerminal => {
+                // Will be handled by xterm.js in webview panels
+                tracing::debug!("terminal action: will be handled by webview");
             }
             Action::Quit => {
                 self.event_bus.publish(Event::Shutdown);

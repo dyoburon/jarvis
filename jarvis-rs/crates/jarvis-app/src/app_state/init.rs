@@ -25,12 +25,7 @@ impl JarvisApp {
             }
         };
 
-        let render_state = pollster::block_on(RenderState::new(
-            window.clone(),
-            &self.config.font.family,
-            self.config.font.size as f32,
-            self.config.font.line_height as f32,
-        ));
+        let render_state = pollster::block_on(RenderState::new(window.clone()));
 
         match render_state {
             Ok(mut rs) => {
@@ -43,7 +38,6 @@ impl JarvisApp {
                     );
                 }
                 self.render_state = Some(rs);
-                self.spawn_pty_for_focused();
             }
             Err(e) => {
                 tracing::error!("Failed to initialize renderer: {e}");

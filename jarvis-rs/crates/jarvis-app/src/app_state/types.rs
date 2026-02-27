@@ -2,16 +2,6 @@
 
 use std::time::Duration;
 
-use jarvis_terminal::pty::PtyManager;
-use jarvis_terminal::{JarvisEventProxy, Term, VteProcessor};
-
-/// Per-pane state: terminal emulator and PTY process.
-pub(super) struct PaneState {
-    pub term: Term<JarvisEventProxy>,
-    pub processor: VteProcessor,
-    pub pty: PtyManager,
-}
-
 /// Events received from the async AI task.
 pub(super) enum AssistantEvent {
     /// A streaming text chunk arrived.
@@ -22,5 +12,5 @@ pub(super) enum AssistantEvent {
     Error(String),
 }
 
-/// How often to poll PTY output (approx 120 Hz).
+/// How often to poll for events (approx 120 Hz).
 pub(super) const POLL_INTERVAL: Duration = Duration::from_millis(8);

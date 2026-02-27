@@ -5,7 +5,6 @@ members = [
     "crates/jarvis-common",
     "crates/jarvis-config",
     "crates/jarvis-platform",
-    "crates/jarvis-terminal",
     "crates/jarvis-tiling",
     "crates/jarvis-renderer",
     "crates/jarvis-ai",
@@ -43,9 +42,6 @@ tokio-tungstenite = { version = "0.26", features = ["native-tls"] }
 tokio-util = { version = "0.7", features = ["io"] }
 futures-util = "0.3"
 
-# Terminal
-alacritty_terminal = "0.25.1"
-
 # Platform
 arboard = "3"
 
@@ -59,7 +55,6 @@ notify = "7"
 jarvis-common = { path = "crates/jarvis-common" }
 jarvis-config = { path = "crates/jarvis-config" }
 jarvis-platform = { path = "crates/jarvis-platform" }
-jarvis-terminal = { path = "crates/jarvis-terminal" }
 jarvis-tiling = { path = "crates/jarvis-tiling" }
 jarvis-renderer = { path = "crates/jarvis-renderer" }
 jarvis-ai = { path = "crates/jarvis-ai" }

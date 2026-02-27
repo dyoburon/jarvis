@@ -1,7 +1,5 @@
 //! `ApplicationHandler` implementation for the winit event loop.
 
-use std::time::Instant;
-
 use winit::application::ApplicationHandler;
 use winit::event::{ElementState, KeyEvent, WindowEvent};
 use winit::event_loop::ActiveEventLoop;
@@ -45,7 +43,6 @@ impl ApplicationHandler for JarvisApp {
                     if let Some(ref mut rs) = self.render_state {
                         rs.resize(size.width, size.height);
                     }
-                    self.resize_all_panes();
                     self.needs_redraw = true;
                 }
             }
@@ -123,14 +120,19 @@ impl JarvisApp {
             InputResult::Action(action) => {
                 self.dispatch(action);
             }
-            InputResult::TerminalInput(bytes) => {
-                let focused = self.tiling.focused_id();
-                if let Some(pane) = self.panes.get_mut(&focused) {
-                    let _ = pane.pty.write(&bytes);
-                }
-                self.last_pty_write = Instant::now();
+            InputResult::TerminalInput(_bytes) => {
+                // Will be forwarded to xterm.js webview in future phases
             }
             InputResult::Consumed => {}
+        }
+    }
+
+    /// Render a single frame (background only — panels are webviews).
+    fn render_frame(&mut self) {
+        if let Some(ref mut rs) = self.render_state {
+            if let Err(e) = rs.render_background() {
+                tracing::error!("Render error: {e}");
+            }
         }
     }
 }
