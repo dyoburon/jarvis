@@ -20,6 +20,29 @@ impl EffectsRenderer {
         }
     }
 
+    /// Create an effects renderer from the application config schema.
+    ///
+    /// Bridges `EffectsSchemaConfig` (TOML-configurable) to the renderer's
+    /// internal `EffectsConfig`.
+    pub fn from_config(config: &jarvis_config::schema::JarvisConfig) -> Self {
+        let fx = &config.effects;
+        let glow_color = crate::background::hex_to_rgb(&fx.glow.color)
+            .map(|[r, g, b]| [r as f32, g as f32, b as f32, 0.5])
+            .unwrap_or([0.0, 0.83, 1.0, 0.5]);
+
+        Self {
+            config: EffectsConfig {
+                active_pane_glow: fx.enabled && fx.glow.enabled,
+                inactive_pane_dim: fx.enabled && fx.inactive_pane_dim,
+                dim_opacity: fx.dim_opacity,
+                glow_color,
+                glow_width: fx.glow.width,
+                scanlines: fx.enabled && fx.scanlines.enabled,
+            },
+            enabled: fx.enabled,
+        }
+    }
+
     /// Create an effects renderer tuned for the given performance preset.
     ///
     /// - `"low"` — disables all effects.

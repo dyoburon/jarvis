@@ -103,4 +103,44 @@ mod tests {
         let renderer = EffectsRenderer::default();
         assert!(renderer.enabled);
     }
+
+    #[test]
+    fn from_config_default_maps_all_fields() {
+        let config = jarvis_config::schema::JarvisConfig::default();
+        let renderer = EffectsRenderer::from_config(&config);
+        assert!(renderer.enabled);
+        assert!(renderer.config.active_pane_glow);
+        assert!(renderer.config.inactive_pane_dim);
+        assert!((renderer.config.dim_opacity - 0.6).abs() < 1e-6);
+        assert!(renderer.config.scanlines);
+        assert!((renderer.config.glow_width - 2.0).abs() < 1e-6);
+        // Default glow color #00d4ff → normalized [0.0, ~0.831, 1.0, 0.5]
+        assert!(renderer.config.glow_color[0] < 0.01); // R ≈ 0
+        assert!(renderer.config.glow_color[1] > 0.8); // G ≈ 0.831
+        assert!(renderer.config.glow_color[2] > 0.99); // B ≈ 1.0
+        assert!((renderer.config.glow_color[3] - 0.5).abs() < 1e-3);
+    }
+
+    #[test]
+    fn from_config_disabled_master_disables_all() {
+        let mut config = jarvis_config::schema::JarvisConfig::default();
+        config.effects.enabled = false;
+        let renderer = EffectsRenderer::from_config(&config);
+        assert!(!renderer.enabled);
+        assert!(!renderer.config.active_pane_glow);
+        assert!(!renderer.config.inactive_pane_dim);
+        assert!(!renderer.config.scanlines);
+    }
+
+    #[test]
+    fn from_config_invalid_glow_color_uses_fallback() {
+        let mut config = jarvis_config::schema::JarvisConfig::default();
+        config.effects.glow.color = "not-a-color".into();
+        let renderer = EffectsRenderer::from_config(&config);
+        // Fallback is cyan-ish [0.0, 0.83, 1.0, 0.5]
+        assert!((renderer.config.glow_color[0] - 0.0).abs() < 1e-3);
+        assert!((renderer.config.glow_color[1] - 0.83).abs() < 1e-3);
+        assert!((renderer.config.glow_color[2] - 1.0).abs() < 1e-3);
+        assert!((renderer.config.glow_color[3] - 0.5).abs() < 1e-3);
+    }
 }
