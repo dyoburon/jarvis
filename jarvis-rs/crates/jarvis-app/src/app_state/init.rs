@@ -81,6 +81,22 @@ impl JarvisApp {
         // Initialize webview subsystem
         self.initialize_webviews();
 
+        // Initialize crypto identity (load or generate)
+        match jarvis_platform::identity_file() {
+            Ok(path) => match jarvis_platform::CryptoService::load_or_generate(&path) {
+                Ok(svc) => {
+                    tracing::info!(fingerprint = %svc.fingerprint, "Crypto identity loaded");
+                    self.crypto = Some(svc);
+                }
+                Err(e) => {
+                    tracing::error!(error = %e, "Failed to initialize crypto service");
+                }
+            },
+            Err(e) => {
+                tracing::error!(error = %e, "Failed to resolve identity file path");
+            }
+        }
+
         self.window = Some(window);
         tracing::info!("Window created and renderer initialized");
         true

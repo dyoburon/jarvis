@@ -66,6 +66,9 @@ pub struct JarvisApp {
     pub(super) assistant_rx: Option<std::sync::mpsc::Receiver<AssistantEvent>>,
     pub(super) assistant_tx: Option<std::sync::mpsc::Sender<String>>,
 
+    // Crypto service (identity + encryption)
+    pub(super) crypto: Option<jarvis_platform::CryptoService>,
+
     // Boot sequence
     pub(super) boot: Option<BootSequence>,
     pub(super) boot_webview_active: bool,
@@ -114,6 +117,7 @@ impl JarvisApp {
             assistant_open: false,
             assistant_rx: None,
             assistant_tx: None,
+            crypto: None,
             boot: None,
             boot_webview_active: false,
             should_exit: false,

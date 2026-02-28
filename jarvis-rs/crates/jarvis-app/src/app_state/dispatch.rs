@@ -99,6 +99,8 @@ impl JarvisApp {
                 self.command_palette_open = true;
                 self.command_palette = Some(jarvis_renderer::CommandPalette::new(&self.registry));
                 self.input.set_mode(InputMode::CommandPalette);
+                self.send_palette_to_webview("palette_show");
+                self.needs_redraw = true;
             }
             Action::OpenAssistant => {
                 if self.assistant_open {
@@ -118,6 +120,7 @@ impl JarvisApp {
                     self.assistant_open = false;
                     self.assistant_panel = None;
                 } else {
+                    self.send_palette_hide();
                     self.command_palette_open = false;
                     self.command_palette = None;
                 }
@@ -183,6 +186,18 @@ impl JarvisApp {
                                 ), escaped);
                                 let _ = handle.evaluate_script(&js);
                             }
+                        }
+                    }
+                }
+            }
+            Action::LaunchGame(ref game) => {
+                let focused = self.tiling.focused_id();
+                let url = format!("jarvis://localhost/games/{}.html", game);
+                if let Some(ref registry) = self.webviews {
+                    if let Some(handle) = registry.get(focused) {
+                        let js = format!("window.showFullscreenGame('{}')", url);
+                        if let Err(e) = handle.evaluate_script(&js) {
+                            tracing::warn!(error = %e, "Failed to launch game");
                         }
                     }
                 }

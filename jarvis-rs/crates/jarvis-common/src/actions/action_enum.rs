@@ -32,6 +32,9 @@ pub enum Action {
     OpenSettings,
     CloseOverlay,
 
+    // -- Games --
+    LaunchGame(String),
+
     // -- AI / Voice --
     OpenAssistant,
     PushToTalk,

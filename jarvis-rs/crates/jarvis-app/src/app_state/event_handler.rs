@@ -73,6 +73,23 @@ impl ApplicationHandler for JarvisApp {
                 }
             }
 
+            WindowEvent::ScaleFactorChanged { .. } => {
+                // Monitor changed (e.g. dragged to a different DPI display).
+                // winit will follow up with a Resized event using the new
+                // physical size, but we also need to re-sync webview bounds
+                // and redraw immediately to avoid visual glitches.
+                if let Some(ref w) = self.window {
+                    let size = w.inner_size();
+                    if size.width > 0 && size.height > 0 {
+                        if let Some(ref mut rs) = self.render_state {
+                            rs.resize(size.width, size.height);
+                        }
+                        self.sync_webview_bounds();
+                        self.needs_redraw = true;
+                    }
+                }
+            }
+
             WindowEvent::CursorMoved { position, .. } => {
                 self.handle_cursor_moved(position.x, position.y);
             }
@@ -131,6 +148,10 @@ impl JarvisApp {
         };
 
         let normalized = normalize_winit_key(&key_name);
+
+        if is_press && self.modifiers.super_key() {
+            tracing::info!(key = %normalized, shift = self.modifiers.shift_key(), "Cmd+key received by winit");
+        }
 
         // If command palette is open, route keys there first
         if self.command_palette_open && is_press && self.handle_palette_key(&normalized, is_press) {
@@ -298,6 +319,39 @@ impl JarvisApp {
                         border: border.clone(),
                         start_pos,
                     });
+                } else {
+                    // Click is not on a resize border — check if it's in a
+                    // draggable zone and initiate window drag.
+                    let is_booting = self
+                        .boot
+                        .as_ref()
+                        .is_some_and(|b| b.phase() == crate::boot::BootPhase::Splash);
+
+                    let should_drag = if is_booting {
+                        // During boot: anywhere drags the window
+                        true
+                    } else {
+                        // After loaded: the titlebar area (top 38px) or
+                        // chrome gaps between/around panels are drag zones
+                        let titlebar_h = self.config.window.titlebar_height as f64;
+                        if y < titlebar_h {
+                            true
+                        } else {
+                            let layout = self.tiling.compute_layout(viewport);
+                            !layout.iter().any(|(_, rect)| {
+                                x >= rect.x
+                                    && x < rect.x + rect.width
+                                    && y >= rect.y
+                                    && y < rect.y + rect.height
+                            })
+                        }
+                    };
+
+                    if should_drag {
+                        if let Some(ref w) = self.window {
+                            let _ = w.drag_window();
+                        }
+                    }
                 }
             }
             ElementState::Released => {

@@ -34,6 +34,9 @@ pub enum PlatformError {
 
     #[error("not supported: {0}")]
     NotSupported(String),
+
+    #[error("crypto error: {0}")]
+    CryptoError(String),
 }
 
 #[derive(Debug, thiserror::Error)]
