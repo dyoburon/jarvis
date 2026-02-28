@@ -22,19 +22,22 @@ pub struct LayoutConfig {
     pub border_width: f64,
     /// Screen-edge padding in pixels (valid range: 0-40).
     pub outer_padding: u32,
+    /// Opacity for unfocused panels (valid range: 0.0-1.0).
+    pub inactive_opacity: f64,
 }
 
 impl Default for LayoutConfig {
     fn default() -> Self {
         Self {
-            panel_gap: 8,
+            panel_gap: 6,
             border_radius: 8,
             padding: 10,
             max_panels: 5,
             default_panel_width: 0.72,
             scrollbar_width: 3,
-            border_width: 0.5,
-            outer_padding: 10,
+            border_width: 0.0,
+            outer_padding: 0,
+            inactive_opacity: 1.0,
         }
     }
 }
@@ -54,7 +57,7 @@ impl Default for OpacityConfig {
     fn default() -> Self {
         Self {
             background: 1.0,
-            panel: 0.72,
+            panel: 0.85,
             orb: 1.0,
             hex_grid: 0.8,
             hud: 1.0,
@@ -73,21 +76,22 @@ mod tests {
     #[test]
     fn layout_config_defaults() {
         let config = LayoutConfig::default();
-        assert_eq!(config.panel_gap, 8);
+        assert_eq!(config.panel_gap, 6);
         assert_eq!(config.border_radius, 8);
         assert_eq!(config.padding, 10);
         assert_eq!(config.max_panels, 5);
         assert!((config.default_panel_width - 0.72).abs() < f64::EPSILON);
         assert_eq!(config.scrollbar_width, 3);
-        assert!((config.border_width - 0.5).abs() < f64::EPSILON);
-        assert_eq!(config.outer_padding, 10);
+        assert!((config.border_width - 0.0).abs() < f64::EPSILON);
+        assert_eq!(config.outer_padding, 0);
+        assert!((config.inactive_opacity - 1.0).abs() < f64::EPSILON);
     }
 
     #[test]
     fn opacity_config_defaults() {
         let config = OpacityConfig::default();
         assert!((config.background - 1.0).abs() < f64::EPSILON);
-        assert!((config.panel - 0.72).abs() < f64::EPSILON);
+        assert!((config.panel - 0.85).abs() < f64::EPSILON);
         assert!((config.orb - 1.0).abs() < f64::EPSILON);
         assert!((config.hex_grid - 0.8).abs() < f64::EPSILON);
         assert!((config.hud - 1.0).abs() < f64::EPSILON);

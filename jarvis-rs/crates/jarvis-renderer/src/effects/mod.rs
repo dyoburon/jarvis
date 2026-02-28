@@ -114,10 +114,10 @@ mod tests {
         assert!((renderer.config.dim_opacity - 0.6).abs() < 1e-6);
         assert!(renderer.config.scanlines);
         assert!((renderer.config.glow_width - 2.0).abs() < 1e-6);
-        // Default glow color #00d4ff → normalized [0.0, ~0.831, 1.0, 0.5]
-        assert!(renderer.config.glow_color[0] < 0.01); // R ≈ 0
-        assert!(renderer.config.glow_color[1] > 0.8); // G ≈ 0.831
-        assert!(renderer.config.glow_color[2] > 0.99); // B ≈ 1.0
+        // Default glow color #ffcc66 → normalized [1.0, 0.8, 0.4, 0.5]
+        assert!((renderer.config.glow_color[0] - 1.0).abs() < 1e-3); // R = 1.0
+        assert!((renderer.config.glow_color[1] - 0.8).abs() < 1e-3); // G ≈ 0.8
+        assert!((renderer.config.glow_color[2] - 0.4).abs() < 1e-3); // B ≈ 0.4
         assert!((renderer.config.glow_color[3] - 0.5).abs() < 1e-3);
     }
 

@@ -14,3 +14,5 @@ thiserror = { workspace = true }
 serde = { workspace = true }
 bytemuck = { version = "1", features = ["derive"] }
 image = { version = "0.25", default-features = false, features = ["png"] }
+glyphon = "0.8"
+cosmic-text = "0.12"

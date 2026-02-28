@@ -27,7 +27,11 @@ const ALLOWED_IPC_KINDS: &[&str] = &[
     "assistant_input",
     "open_panel",
     "panel_close",
+    "panel_toggle",
+    "open_settings",
+    "status_bar_init",
     "ping",
+    "boot_complete",
 ];
 
 /// Check whether an IPC message kind is in the allowlist.
@@ -66,6 +70,9 @@ impl JarvisApp {
         tracing::debug!(pane_id, kind = %msg.kind, "IPC message dispatched");
 
         match msg.kind.as_str() {
+            "boot_complete" => {
+                self.handle_boot_complete();
+            }
             "ping" => {
                 // Respond with pong — used for IPC round-trip testing
                 if let Some(ref registry) = self.webviews {
@@ -79,6 +86,7 @@ impl JarvisApp {
             }
             "panel_focus" => {
                 self.tiling.focus_pane(pane_id);
+                self.notify_focus_changed();
                 self.needs_redraw = true;
             }
             "pty_input" => {
@@ -123,6 +131,15 @@ impl JarvisApp {
             "panel_close" => {
                 self.handle_panel_close(pane_id);
             }
+            "panel_toggle" => {
+                self.handle_panel_toggle(pane_id, &msg.payload);
+            }
+            "open_settings" => {
+                self.handle_open_settings(pane_id);
+            }
+            "status_bar_init" => {
+                self.handle_status_bar_init(pane_id);
+            }
             _ => {
                 // Shouldn't happen — allowlist checked above
                 tracing::warn!(pane_id, kind = %msg.kind, "Unhandled IPC kind");
@@ -151,6 +168,10 @@ mod tests {
         assert!(is_ipc_kind_allowed("assistant_input"));
         assert!(is_ipc_kind_allowed("open_panel"));
         assert!(is_ipc_kind_allowed("panel_close"));
+        assert!(is_ipc_kind_allowed("panel_toggle"));
+        assert!(is_ipc_kind_allowed("open_settings"));
+        assert!(is_ipc_kind_allowed("status_bar_init"));
+        assert!(is_ipc_kind_allowed("boot_complete"));
     }
 
     #[test]

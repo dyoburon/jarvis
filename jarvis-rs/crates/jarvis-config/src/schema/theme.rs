@@ -44,23 +44,24 @@ pub struct ColorConfig {
 impl Default for ColorConfig {
     fn default() -> Self {
         Self {
-            primary: "#00d4ff".into(),
-            secondary: "#ff6b00".into(),
-            background: "#000000".into(),
-            panel_bg: "rgba(10,14,20,0.72)".into(),
-            text: "#f0ece4".into(),
-            text_muted: "#888888".into(),
-            border: "rgba(0,212,255,0.06)".into(),
-            border_focused: "rgba(0,212,255,0.20)".into(),
-            user_text: "rgba(140,190,220,0.65)".into(),
-            tool_read: "rgba(100,180,255,0.9)".into(),
-            tool_edit: "rgba(255,180,80,0.9)".into(),
-            tool_write: "rgba(255,180,80,0.9)".into(),
-            tool_run: "rgba(80,220,120,0.9)".into(),
-            tool_search: "rgba(200,150,255,0.9)".into(),
-            success: "#00ff88".into(),
-            warning: "#ff6b00".into(),
-            error: "#ff4444".into(),
+            // Ayu Mirage palette (https://github.com/ayu-theme/ayu-colors)
+            primary: "#ffcc66".into(),
+            secondary: "#ffa659".into(),
+            background: "#1f2430".into(),
+            panel_bg: "rgba(36,41,54,0.88)".into(),
+            text: "#cccac2".into(),
+            text_muted: "#707a8c".into(),
+            border: "#171B24".into(),
+            border_focused: "rgba(255,204,102,0.12)".into(),
+            user_text: "rgba(115,208,255,0.75)".into(),
+            tool_read: "rgba(115,208,255,0.9)".into(),
+            tool_edit: "rgba(255,213,128,0.9)".into(),
+            tool_write: "rgba(255,166,89,0.9)".into(),
+            tool_run: "rgba(186,230,126,0.9)".into(),
+            tool_search: "rgba(223,191,255,0.9)".into(),
+            success: "#87d96c".into(),
+            warning: "#ffa659".into(),
+            error: "#ff6666".into(),
         }
     }
 }

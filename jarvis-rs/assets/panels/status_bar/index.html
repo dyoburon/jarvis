@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Jarvis Status Bar</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html {
+  background: transparent !important;
+  overflow: hidden;
+}
+
+body {
+  font-family: var(--font-ui);
+  font-size: 11px;
+  color: var(--color-text-muted);
+  height: var(--status-bar-height);
+  overflow: hidden;
+  background: var(--status-bar-bg);
+  border-top: var(--border-width) solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* ================================================================ */
+/* PANEL TOGGLE BUTTONS (LEFT)                                       */
+/* ================================================================ */
+
+#left-items {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.panel-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 22px;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all var(--transition-speed) ease;
+  padding: 0;
+}
+
+.panel-btn svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.panel-btn:hover {
+  background: rgba(255,255,255,0.04);
+  color: var(--color-text);
+}
+
+.panel-btn.active {
+  color: var(--color-text);
+}
+
+.panel-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 12px;
+  height: 1.5px;
+  background: var(--color-primary);
+  border-radius: 1px;
+  opacity: 0.6;
+}
+
+.panel-btn {
+  position: relative;
+}
+
+/* Divider between left groups */
+.divider {
+  width: 1px;
+  height: 12px;
+  background: var(--color-border);
+  margin: 0 4px;
+}
+
+/* ================================================================ */
+/* APP INFO (RIGHT)                                                  */
+/* ================================================================ */
+
+#right-items {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.info-item {
+  color: var(--color-text-muted);
+  font-size: 11px;
+  white-space: nowrap;
+  transition: color var(--transition-speed) ease;
+}
+
+.info-item:hover {
+  color: var(--color-text);
+}
+
+#active-panel {
+  font-weight: 500;
+}
+
+.separator {
+  color: rgba(255,255,255,0.1);
+  font-size: 10px;
+}
+
+#connection-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-success);
+  transition: background var(--transition-speed) ease;
+}
+
+#connection-dot.disconnected {
+  background: var(--color-error);
+}
+
+#connection-dot.connecting {
+  background: var(--color-warning);
+  animation: pulse 1.5s ease infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+#settings-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all var(--transition-speed) ease;
+  padding: 0;
+}
+
+#settings-btn svg {
+  width: 13px;
+  height: 13px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+#settings-btn:hover {
+  background: rgba(255,255,255,0.04);
+  color: var(--color-text);
+}
+
+/* Hidden until theme injected */
+body { visibility: hidden; }
+body.themed { visibility: visible; }
+</style>
+</head>
+<body>
+
+<div id="left-items">
+  <!-- Terminal -->
+  <button class="panel-btn active" data-panel="terminal" title="Terminal">
+    <svg viewBox="0 0 16 16">
+      <polyline points="4 6 7 9 4 12"/>
+      <line x1="9" y1="12" x2="12" y2="12"/>
+    </svg>
+  </button>
+
+  <!-- Assistant -->
+  <button class="panel-btn active" data-panel="assistant" title="Assistant">
+    <svg viewBox="0 0 16 16">
+      <path d="M8 2 L9.5 6 L14 6.5 L10.5 9.5 L11.5 14 L8 11.5 L4.5 14 L5.5 9.5 L2 6.5 L6.5 6 Z"/>
+    </svg>
+  </button>
+
+  <!-- Chat -->
+  <button class="panel-btn" data-panel="chat" title="Chat">
+    <svg viewBox="0 0 16 16">
+      <path d="M3 3h10a1 1 0 011 1v6a1 1 0 01-1 1H6l-3 3V4a1 1 0 011-1z"/>
+    </svg>
+  </button>
+
+  <!-- Presence -->
+  <button class="panel-btn" data-panel="presence" title="Presence">
+    <svg viewBox="0 0 16 16">
+      <circle cx="6" cy="5" r="2.5"/>
+      <path d="M2 13c0-2.2 1.8-4 4-4s4 1.8 4 4"/>
+      <circle cx="11" cy="5.5" r="1.8"/>
+      <path d="M10 13c0-1.7 1-3.1 2.5-3.7"/>
+    </svg>
+  </button>
+</div>
+
+<div id="right-items">
+  <span id="active-panel" class="info-item">Terminal</span>
+  <span class="separator">&middot;</span>
+  <span id="online-count" class="info-item">0 online</span>
+  <span id="connection-dot"></span>
+
+  <!-- Settings gear -->
+  <button id="settings-btn" title="Settings">
+    <svg viewBox="0 0 16 16">
+      <circle cx="8" cy="8" r="2"/>
+      <path d="M8 1.5v1.8M8 12.7v1.8M1.5 8h1.8M12.7 8h1.8M3.4 3.4l1.3 1.3M11.3 11.3l1.3 1.3M3.4 12.6l1.3-1.3M11.3 4.7l1.3-1.3"/>
+    </svg>
+  </button>
+</div>
+
+<script>
+// =============================================================================
+// IPC BRIDGE
+// =============================================================================
+
+function sendIpc(kind, payload) {
+  if (window.ipc && window.ipc.postMessage) {
+    window.ipc.postMessage(JSON.stringify(Object.assign({ kind: kind }, payload || {})));
+  }
+}
+
+function onIpc(kind, handler) {
+  if (!window._ipcHandlers) window._ipcHandlers = {};
+  window._ipcHandlers[kind] = handler;
+}
+
+// Global dispatch — called by Rust via evaluate_script
+window.jarvisDispatch = function(kind, data) {
+  if (window._ipcHandlers && window._ipcHandlers[kind]) {
+    window._ipcHandlers[kind](data);
+  }
+};
+
+// =============================================================================
+// STATE
+// =============================================================================
+
+var panelState = {
+  terminal: true,
+  assistant: true,
+  chat: false,
+  presence: false
+};
+
+var activePanel = 'terminal';
+var onlineCount = 0;
+
+// =============================================================================
+// PANEL TOGGLE BUTTONS
+// =============================================================================
+
+document.querySelectorAll('.panel-btn').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    var panel = btn.getAttribute('data-panel');
+    sendIpc('panel_toggle', { panel: panel });
+  });
+});
+
+function updatePanelButtons(panels) {
+  if (!panels) return;
+  panelState = panels;
+  document.querySelectorAll('.panel-btn').forEach(function(btn) {
+    var panel = btn.getAttribute('data-panel');
+    if (panels[panel]) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+}
+
+// =============================================================================
+// SETTINGS BUTTON
+// =============================================================================
+
+document.getElementById('settings-btn').addEventListener('click', function() {
+  sendIpc('open_settings', {});
+});
+
+// =============================================================================
+// STATUS UPDATES
+// =============================================================================
+
+function updateStatus(data) {
+  if (data.online_count !== undefined) {
+    onlineCount = data.online_count;
+    var el = document.getElementById('online-count');
+    el.textContent = onlineCount + ' online';
+  }
+
+  if (data.active_panel) {
+    activePanel = data.active_panel;
+    var el = document.getElementById('active-panel');
+    // Capitalize first letter
+    el.textContent = activePanel.charAt(0).toUpperCase() + activePanel.slice(1);
+  }
+
+  if (data.panels) {
+    updatePanelButtons(data.panels);
+  }
+
+  if (data.connection) {
+    var dot = document.getElementById('connection-dot');
+    dot.className = '';
+    if (data.connection === 'connected') {
+      // default green, no extra class
+    } else if (data.connection === 'connecting') {
+      dot.classList.add('connecting');
+    } else {
+      dot.classList.add('disconnected');
+    }
+  }
+}
+
+// =============================================================================
+// IPC LISTENERS
+// =============================================================================
+
+onIpc('status_update', function(data) {
+  updateStatus(data);
+});
+
+onIpc('theme', function() {
+  document.body.classList.add('themed');
+});
+
+// =============================================================================
+// INIT
+// =============================================================================
+
+sendIpc('status_bar_init', {});
+</script>
+</body>
+</html>

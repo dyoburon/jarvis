@@ -7,51 +7,17 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html { background: transparent !important; border-radius: var(--border-radius); overflow: hidden; }
 
-:root {
-  --color-primary: #00d4ff;
-  --color-secondary: #ff6b00;
-  --color-text: #f0ece4;
-  --color-text-muted: #888888;
-  --color-background: #000000;
-  --color-panel-bg: rgba(10, 14, 20, 0.72);
-  --color-border: rgba(0, 212, 255, 0.06);
-  --color-border-focused: rgba(0, 212, 255, 0.20);
-  --color-success: #00ff88;
-  --color-error: #ff4444;
-  --font-family: 'Menlo', monospace;
-  --font-ui: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
-  --font-ui-size: 13px;
-  --border-radius: 8px;
-  --border-width: 0.5px;
-  --transition-speed: 150ms;
-  --glow-intensity: 0.15;
-  --scrollbar-width: 3px;
-
-  --primary: var(--color-primary);
-  --accent: var(--color-secondary);
-  --text: var(--color-text);
-  --text-muted: var(--color-text-muted);
-  --panel-bg: var(--color-panel-bg);
-  --input-bg: rgba(0, 0, 0, 0.3);
-  --border: var(--color-border);
-  --border-focus: var(--color-border-focused);
-  --success: var(--color-success);
-  --error: var(--color-error);
-  --user-bubble: rgba(0, 212, 255, 0.06);
-  --assistant-bubble: rgba(255, 255, 255, 0.03);
-}
-
 body {
-  background: var(--panel-bg);
+  background: var(--color-panel-bg);
   font-family: var(--font-ui);
-  color: var(--text);
+  color: var(--color-text);
   height: 100vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
   font-size: var(--font-ui-size);
   line-height: 1.5;
-  border: var(--border-width) solid var(--border);
+  border: var(--border-width) solid var(--color-border);
   border-radius: var(--border-radius);
   transition: border-color var(--transition-speed) ease;
 }
@@ -65,7 +31,7 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 6px 12px;
-  border-bottom: var(--border-width) solid var(--border);
+  border-bottom: var(--border-width) solid var(--color-border);
   min-height: 32px;
   flex-shrink: 0;
 }
@@ -73,13 +39,13 @@ body {
 #header-title {
   font-size: 12px;
   font-weight: 500;
-  color: var(--text-muted);
+  color: var(--color-text-muted);
   letter-spacing: 0.02em;
 }
 
 #header-status {
   font-size: 11px;
-  color: var(--text-muted);
+  color: var(--color-text-muted);
   display: flex;
   align-items: center;
   gap: 6px;
@@ -89,14 +55,14 @@ body {
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: var(--success);
+  background: var(--color-success);
   animation: pulse-dot 2.5s ease-in-out infinite;
 }
 
 #close-btn {
   background: none;
   border: none;
-  color: var(--text-muted);
+  color: var(--color-text-muted);
   font-size: 16px;
   cursor: pointer;
   padding: 0 4px;
@@ -107,7 +73,7 @@ body {
 }
 #close-btn:hover {
   opacity: 1;
-  color: var(--error);
+  color: var(--color-error);
 }
 
 @keyframes pulse-dot {
@@ -160,22 +126,22 @@ body {
 
 .message.assistant {
   align-self: flex-start;
-  background: var(--assistant-bubble);
-  border: var(--border-width) solid var(--border);
-  color: var(--text);
+  background: rgba(255,255,255,0.03);
+  border: var(--border-width) solid var(--color-border);
+  color: var(--color-text);
 }
 
 .message.user {
   align-self: flex-end;
-  background: var(--user-bubble);
+  background: rgba(115,208,255,0.06);
   border: var(--border-width) solid rgba(0, 212, 255, 0.10);
-  color: var(--text);
+  color: var(--color-text);
 }
 
 .message.system {
   align-self: center;
   background: transparent;
-  color: var(--text-muted);
+  color: var(--color-text-muted);
   font-size: 11px;
   padding: 4px 0;
 }
@@ -184,13 +150,13 @@ body {
   align-self: center;
   background: rgba(255, 68, 68, 0.06);
   border: var(--border-width) solid rgba(255, 68, 68, 0.15);
-  color: var(--error);
+  color: var(--color-error);
   font-size: 12px;
 }
 
 .message pre {
   background: rgba(0, 0, 0, 0.3);
-  border: var(--border-width) solid var(--border);
+  border: var(--border-width) solid var(--color-border);
   border-radius: 4px;
   padding: 8px 12px;
   margin: 8px 0 4px;
@@ -212,11 +178,11 @@ body {
 #welcome {
   text-align: center;
   padding: 40px 20px;
-  color: var(--text-muted);
+  color: var(--color-text-muted);
 }
 
 #welcome h2 {
-  color: var(--text);
+  color: var(--color-text);
   font-size: 14px;
   font-weight: 500;
   margin-bottom: 8px;
@@ -230,12 +196,12 @@ body {
 #welcome .hint {
   margin-top: 16px;
   font-size: 11px;
-  color: var(--text-muted);
+  color: var(--color-text-muted);
   opacity: 0.6;
 }
 
 #welcome .hint span {
-  color: var(--accent);
+  color: var(--color-primary);
   font-weight: 500;
 }
 
@@ -251,7 +217,7 @@ body {
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: var(--text-muted);
+  background: var(--color-text-muted);
   opacity: 0.4;
   animation: typing 1.2s ease-in-out infinite;
 }
@@ -270,7 +236,7 @@ body {
 
 #input-area {
   padding: 10px 12px;
-  border-top: var(--border-width) solid var(--border);
+  border-top: var(--border-width) solid var(--color-border);
   flex-shrink: 0;
 }
 
@@ -282,10 +248,10 @@ body {
 
 #input {
   flex: 1;
-  background: var(--input-bg);
-  border: var(--border-width) solid var(--border);
+  background: transparent;
+  border: var(--border-width) solid var(--color-border);
   border-radius: 6px;
-  color: var(--text);
+  color: var(--color-text);
   font-family: var(--font-ui);
   font-size: var(--font-ui-size);
   padding: 8px 12px;
@@ -298,19 +264,19 @@ body {
 }
 
 #input:focus {
-  border-color: var(--border-focus);
+  border-color: var(--color-border-focused);
 }
 
 #input::placeholder {
-  color: var(--text-muted);
+  color: var(--color-text-muted);
   opacity: 0.5;
 }
 
 #send-btn {
   background: transparent;
-  border: var(--border-width) solid var(--border);
+  border: var(--border-width) solid var(--color-border);
   border-radius: 6px;
-  color: var(--text-muted);
+  color: var(--color-text-muted);
   font-family: var(--font-ui);
   font-size: 12px;
   padding: 8px 14px;
@@ -321,8 +287,8 @@ body {
 }
 
 #send-btn:hover {
-  color: var(--text);
-  border-color: var(--border-focus);
+  color: var(--color-text);
+  border-color: var(--color-border-focused);
 }
 
 #send-btn:active {
@@ -340,7 +306,7 @@ body {
   left: 12px;
   right: 12px;
   background: rgba(10, 14, 20, 0.95);
-  border: var(--border-width) solid var(--border);
+  border: var(--border-width) solid var(--color-border);
   border-radius: 6px;
   padding: 4px 0;
   box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.3);
@@ -363,18 +329,19 @@ body {
 }
 
 .cmd-option .cmd-name {
-  color: var(--accent);
+  color: var(--color-primary);
   font-weight: 500;
 }
 
 .cmd-option .cmd-desc {
-  color: var(--text-muted);
+  color: var(--color-text-muted);
   font-size: 11px;
 }
+
+
 </style>
 </head>
 <body>
-
 <div id="header">
   <span id="header-title">Assistant</span>
   <div id="header-status">

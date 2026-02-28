@@ -80,9 +80,9 @@ impl Default for GlowConfig {
     fn default() -> Self {
         Self {
             enabled: true,
-            color: "#00d4ff".into(),
+            color: "#ffcc66".into(),
             width: 2.0,
-            intensity: 0.15,
+            intensity: 0.0,
         }
     }
 }
@@ -145,8 +145,8 @@ impl Default for EffectsSchemaConfig {
             glow: GlowConfig::default(),
             flicker: FlickerConfig::default(),
             crt_curvature: false,
-            blur_radius: 20,
-            saturate: 1.2,
+            blur_radius: 12,
+            saturate: 1.1,
             transition_speed: 150,
         }
     }
@@ -174,14 +174,14 @@ mod tests {
         assert!((config.bloom.intensity - 0.9).abs() < f32::EPSILON);
         assert_eq!(config.bloom.passes, 2);
         assert!(config.glow.enabled);
-        assert_eq!(config.glow.color, "#00d4ff");
+        assert_eq!(config.glow.color, "#ffcc66");
         assert!((config.glow.width - 2.0).abs() < f32::EPSILON);
-        assert!((config.glow.intensity - 0.15).abs() < f64::EPSILON);
+        assert!((config.glow.intensity - 0.0).abs() < f64::EPSILON);
         assert!(config.flicker.enabled);
         assert!((config.flicker.amplitude - 0.004).abs() < f32::EPSILON);
         assert!(!config.crt_curvature);
-        assert_eq!(config.blur_radius, 20);
-        assert!((config.saturate - 1.2).abs() < f64::EPSILON);
+        assert_eq!(config.blur_radius, 12);
+        assert!((config.saturate - 1.1).abs() < f64::EPSILON);
         assert_eq!(config.transition_speed, 150);
     }
 

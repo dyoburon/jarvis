@@ -13,6 +13,8 @@ use jarvis_platform::input_processor::InputProcessor;
 use jarvis_renderer::{AssistantPanel, RenderState, UiChrome};
 use jarvis_social::presence::PresenceEvent;
 use jarvis_social::OnlineUser;
+
+use crate::boot::BootSequence;
 use jarvis_tiling::layout::LayoutEngine;
 use jarvis_tiling::TilingManager;
 use jarvis_webview::WebViewRegistry;
@@ -64,6 +66,10 @@ pub struct JarvisApp {
     pub(super) assistant_rx: Option<std::sync::mpsc::Receiver<AssistantEvent>>,
     pub(super) assistant_tx: Option<std::sync::mpsc::Sender<String>>,
 
+    // Boot sequence
+    pub(super) boot: Option<BootSequence>,
+    pub(super) boot_webview_active: bool,
+
     // Whether the app should exit
     pub(super) should_exit: bool,
 
@@ -108,6 +114,8 @@ impl JarvisApp {
             assistant_open: false,
             assistant_rx: None,
             assistant_tx: None,
+            boot: None,
+            boot_webview_active: false,
             should_exit: false,
             needs_redraw: false,
             last_poll: Instant::now(),

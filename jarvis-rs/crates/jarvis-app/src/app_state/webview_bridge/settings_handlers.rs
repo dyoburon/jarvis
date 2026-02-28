@@ -153,6 +153,7 @@ const VALID_PATHS: &[&str] = &[
     "layout.scrollbar_width",
     "layout.border_width",
     "layout.outer_padding",
+    "layout.inactive_opacity",
     // Background
     "background.mode",
     "background.solid_color",
@@ -223,6 +224,14 @@ const VALID_PATHS: &[&str] = &[
     "advanced.developer.show_fps",
     "advanced.developer.show_debug_hud",
     "advanced.developer.inspector_enabled",
+    // Window
+    "window.titlebar_height",
+    // Status bar
+    "status_bar.enabled",
+    "status_bar.height",
+    "status_bar.show_panel_buttons",
+    "status_bar.show_online_count",
+    "status_bar.bg",
     // Auto-open (special: value is an array)
     "auto_open.panels",
 ];
@@ -281,6 +290,7 @@ fn apply_setting(
         "layout.default_panel_width" => set_f64(&mut config.layout.default_panel_width, value),
         "layout.scrollbar_width" => set_u32(&mut config.layout.scrollbar_width, value),
         "layout.border_width" => set_f64(&mut config.layout.border_width, value),
+        "layout.inactive_opacity" => set_f64(&mut config.layout.inactive_opacity, value),
         "layout.outer_padding" => {
             set_u32(&mut config.layout.outer_padding, value);
             layout_changed = true;
@@ -385,6 +395,24 @@ fn apply_setting(
         "advanced.developer.inspector_enabled" => {
             set_bool(&mut config.advanced.developer.inspector_enabled, value);
         }
+        // -- Window --
+        "window.titlebar_height" => {
+            set_u32(&mut config.window.titlebar_height, value);
+            layout_changed = true;
+        }
+        // -- Status bar --
+        "status_bar.enabled" => set_bool(&mut config.status_bar.enabled, value),
+        "status_bar.height" => {
+            set_u32(&mut config.status_bar.height, value);
+            layout_changed = true;
+        }
+        "status_bar.show_panel_buttons" => {
+            set_bool(&mut config.status_bar.show_panel_buttons, value);
+        }
+        "status_bar.show_online_count" => {
+            set_bool(&mut config.status_bar.show_online_count, value);
+        }
+        "status_bar.bg" => set_str(&mut config.status_bar.bg, value),
         // -- Auto-open panels (special: array value) --
         "auto_open.panels" => {
             if let Some(arr) = value.as_array() {
@@ -420,6 +448,8 @@ fn reset_section(config: &mut jarvis_config::schema::JarvisConfig, section: &str
         "performance" => config.performance = Default::default(),
         "advanced" => config.advanced = Default::default(),
         "auto_open" => config.auto_open = Default::default(),
+        "status_bar" => config.status_bar = Default::default(),
+        "window" => config.window = Default::default(),
         _ => tracing::warn!(section, "reset_section: unknown section"),
     }
 }
@@ -546,6 +576,12 @@ mod tests {
         assert!(is_valid_settings_path("games.enabled.wordle"));
         assert!(is_valid_settings_path("auto_open.panels"));
         assert!(is_valid_settings_path("advanced.developer.show_fps"));
+        assert!(is_valid_settings_path("window.titlebar_height"));
+        assert!(is_valid_settings_path("status_bar.enabled"));
+        assert!(is_valid_settings_path("status_bar.height"));
+        assert!(is_valid_settings_path("status_bar.show_panel_buttons"));
+        assert!(is_valid_settings_path("status_bar.show_online_count"));
+        assert!(is_valid_settings_path("status_bar.bg"));
     }
 
     #[test]
@@ -679,6 +715,15 @@ mod tests {
     }
 
     #[test]
+    fn apply_setting_window_titlebar_height() {
+        let mut config = jarvis_config::schema::JarvisConfig::default();
+        let val = serde_json::json!(48);
+        let changed = apply_setting(&mut config, "window.titlebar_height", &val);
+        assert_eq!(config.window.titlebar_height, 48);
+        assert!(changed); // titlebar_height affects tiling layout
+    }
+
+    #[test]
     fn apply_setting_layout_outer_padding_triggers_layout() {
         let mut config = jarvis_config::schema::JarvisConfig::default();
         let val = serde_json::json!(20);
@@ -693,7 +738,7 @@ mod tests {
         config.colors.primary = "#ff0000".into();
         config.colors.secondary = "#00ff00".into();
         reset_section(&mut config, "colors");
-        assert_eq!(config.colors.primary, "#00d4ff");
-        assert_eq!(config.colors.secondary, "#ff6b00");
+        assert_eq!(config.colors.primary, "#ffcc66");
+        assert_eq!(config.colors.secondary, "#ffa659");
     }
 }

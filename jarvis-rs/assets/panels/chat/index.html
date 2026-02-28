@@ -7,44 +7,17 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html { background: transparent !important; border-radius: var(--border-radius); overflow: hidden; }
 
-:root {
-  /* Defaults — overridden by theme bridge --color-* injections */
-  --color-background: rgba(0, 0, 0, 0.85);
-  --color-panel-bg: rgba(13, 17, 23, 0.90);
-  --color-primary: #00d4ff;
-  --color-secondary: #ff6b00;
-  --color-success: #00ff88;
-  --color-error: #ff4444;
-  --color-text-muted: #888;
-  --color-border: rgba(0, 212, 255, 0.12);
-  --color-border-focused: rgba(0, 212, 255, 0.5);
-  --border-radius: 8px;
-
-  /* Short aliases used throughout this file */
-  --bg: var(--color-panel-bg);
-  --panel-bg: var(--color-panel-bg);
-  --primary: var(--color-primary);
-  --accent: var(--color-secondary);
-  --success: var(--color-success);
-  --danger: var(--color-error);
-  --muted: var(--color-text-muted);
-  --border: var(--color-border);
-  --border-lit: var(--color-border-focused);
-  --glow-cyan: rgba(0, 229, 255, 0.5);
-  --glow-orange: rgba(255, 107, 0, 0.5);
-  --glow-green: rgba(0, 255, 136, 0.5);
-}
-
 body {
-  background: var(--bg);
-  font-family: 'Menlo', 'Courier New', monospace;
-  color: var(--primary);
+  background: var(--color-panel-bg);
+  font-family: var(--font-ui);
+  color: var(--color-text);
   height: 100vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid var(--border);
+  border: var(--border-width) solid var(--color-border);
   border-radius: var(--border-radius);
+  transition: border-color var(--transition-speed) ease;
 }
 
 /* ================================================================ */
@@ -55,83 +28,79 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 16px;
-  border-bottom: 1px solid var(--border);
-  background: var(--panel-bg);
-  min-height: 44px;
+  padding: 6px 12px;
+  border-bottom: var(--border-width) solid var(--color-border);
+  min-height: 32px;
   flex-shrink: 0;
 }
 
 #header h1 {
-  font-size: 14px;
-  font-weight: bold;
-  text-shadow: 0 0 10px var(--glow-cyan);
-  letter-spacing: 1px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-text-muted);
+  letter-spacing: 0.02em;
 }
 
 #header-meta {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
   font-size: 11px;
 }
 
 #close-btn {
   background: none;
   border: none;
-  color: var(--text-muted);
-  font-size: 18px;
+  color: var(--color-text-muted);
+  font-size: 16px;
   cursor: pointer;
   padding: 0 4px;
   line-height: 1;
-  opacity: 0.5;
-  transition: opacity 0.15s, color 0.15s;
+  opacity: 0.4;
+  transition: opacity var(--transition-speed) ease,
+              color var(--transition-speed) ease;
 }
 #close-btn:hover {
   opacity: 1;
-  color: var(--error);
+  color: var(--color-error);
 }
 
 #my-nick {
-  color: var(--primary);
+  color: var(--color-text);
   cursor: pointer;
   font-size: 11px;
-  font-weight: bold;
-  letter-spacing: 0.5px;
+  font-weight: 500;
 }
 #my-nick:hover {
-  text-shadow: 0 0 8px var(--glow-cyan);
   text-decoration: underline;
 }
 
 #status-dot {
-  width: 8px;
-  height: 8px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
-  background: var(--muted);
+  background: var(--color-text-muted);
   display: inline-block;
   margin-right: 4px;
-  transition: background 0.3s;
+  transition: background var(--transition-speed) ease;
 }
 
 #status-dot.connected {
-  background: var(--success);
-  box-shadow: 0 0 6px var(--glow-green);
+  background: var(--color-success);
 }
 
 #status-dot.connecting {
-  background: var(--accent);
-  box-shadow: 0 0 6px var(--glow-orange);
-  animation: pulse 1s infinite;
+  background: var(--color-primary);
+  animation: pulse 1.5s infinite;
 }
 
 @keyframes pulse {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+  50% { opacity: 0.3; }
 }
 
 #user-count {
-  color: var(--muted);
+  color: var(--color-text-muted);
 }
 
 /* ================================================================ */
@@ -141,56 +110,80 @@ body {
 #messages {
   flex: 1;
   overflow-y: auto;
-  padding: 12px 16px;
+  padding: 8px 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 0;
+  font-family: var(--font-ui);
+  font-size: var(--font-ui-size);
 }
 
-#messages::-webkit-scrollbar { width: 4px; }
-#messages::-webkit-scrollbar-track { background: var(--bg); }
-#messages::-webkit-scrollbar-thumb { background: var(--border-lit); border-radius: 2px; }
+#messages::-webkit-scrollbar { width: var(--scrollbar-width); }
+#messages::-webkit-scrollbar-track { background: transparent; }
+#messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+#messages::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.18); }
 
 .msg {
   display: flex;
-  gap: 8px;
-  font-size: 13px;
-  line-height: 1.4;
+  gap: 6px;
+  font-family: var(--font-ui);
+  font-size: var(--font-ui-size);
+  line-height: 1.5;
   word-break: break-word;
+  padding: 3px 12px;
+  border-bottom: var(--border-width) solid var(--color-border);
+  transition: background var(--transition-speed) ease;
+}
+
+.msg:hover {
+  background: rgba(255,255,255,0.02);
+}
+
+.msg.own {
+  background: rgba(0,212,255,0.03);
 }
 
 .msg-time {
-  color: var(--muted);
+  color: var(--color-text-muted);
+  font-family: var(--font-ui);
   font-size: 10px;
   flex-shrink: 0;
-  min-width: 42px;
-  padding-top: 2px;
+  min-width: 38px;
+  padding-top: 3px;
+  opacity: 0.7;
 }
 
 .msg-nick {
-  font-weight: bold;
+  font-family: var(--font-ui);
+  font-weight: 600;
+  font-size: 12px;
   flex-shrink: 0;
   cursor: default;
 }
 
 .msg-text {
-  color: #ccc;
+  color: var(--color-text);
+  font-family: var(--font-ui);
 }
 
 .msg-system {
-  color: var(--muted);
+  color: var(--color-text-muted);
+  font-family: var(--font-ui);
   font-size: 11px;
   font-style: italic;
-  padding: 2px 0;
+  padding: 2px 12px;
+  opacity: 0.8;
 }
 
-.msg-system.join { color: var(--success); }
-.msg-system.leave { color: var(--accent); }
+.msg-system.join { color: var(--color-success); opacity: 0.7; }
+.msg-system.leave { color: var(--color-primary); opacity: 0.7; }
 .msg-blocked {
-  color: var(--danger);
+  color: var(--color-error);
+  font-family: var(--font-ui);
   font-size: 11px;
   font-style: italic;
-  opacity: 0.6;
+  opacity: 0.5;
+  padding: 2px 12px;
 }
 
 #empty-state {
@@ -199,16 +192,18 @@ body {
   align-items: center;
   justify-content: center;
   flex: 1;
-  color: var(--muted);
-  font-size: 13px;
-  gap: 8px;
+  color: var(--color-text-muted);
+  font-family: var(--font-ui);
+  font-size: var(--font-ui-size);
+  gap: 6px;
   padding: 40px;
   text-align: center;
+  opacity: 0.6;
 }
 
 #empty-state .icon {
-  font-size: 32px;
-  opacity: 0.4;
+  font-size: 28px;
+  opacity: 0.3;
 }
 
 /* ================================================================ */
@@ -217,72 +212,71 @@ body {
 
 #input-bar {
   display: flex;
+  align-items: center;
   gap: 8px;
-  padding: 10px 16px;
-  border-top: 1px solid var(--border);
-  background: var(--panel-bg);
+  padding: 8px 12px;
+  border-top: var(--border-width) solid var(--color-border);
   flex-shrink: 0;
 }
 
 #msg-input {
   flex: 1;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  color: #ccc;
-  font-family: 'Courier New', monospace;
-  font-size: 13px;
-  padding: 8px 12px;
+  background: transparent;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--border-radius);
+  color: var(--color-text);
+  font-family: var(--font-ui);
+  font-size: var(--font-ui-size);
+  padding: 7px 12px;
   outline: none;
-  transition: border-color 0.2s;
+  transition: border-color var(--transition-speed) ease;
 }
 
 #msg-input:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 8px rgba(0, 229, 255, 0.15);
+  border-color: var(--color-border-focused);
 }
 
-#msg-input::placeholder { color: #555; }
+#msg-input::placeholder { color: var(--color-text-muted); opacity: 0.5; }
 
 #send-btn {
   background: transparent;
-  border: 1px solid var(--primary);
-  border-radius: 4px;
-  color: var(--primary);
-  font-family: 'Courier New', monospace;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--border-radius);
+  color: var(--color-text-muted);
+  font-family: var(--font-ui);
   font-size: 12px;
-  font-weight: bold;
-  padding: 8px 16px;
+  font-weight: 500;
+  padding: 7px 14px;
   cursor: pointer;
-  transition: all 0.2s;
-  text-shadow: 0 0 8px var(--glow-cyan);
+  transition: all var(--transition-speed) ease;
 }
 
 #send-btn:hover {
-  background: rgba(0, 229, 255, 0.1);
-  box-shadow: 0 0 12px rgba(0, 229, 255, 0.2);
+  color: var(--color-text);
+  border-color: var(--color-border-focused);
 }
 
 #send-btn:active {
-  background: rgba(0, 229, 255, 0.2);
+  background: rgba(255,255,255,0.03);
 }
 
 #send-btn:disabled {
-  opacity: 0.3;
+  opacity: 0.25;
   cursor: not-allowed;
-  box-shadow: none;
 }
 
 #char-count {
-  color: var(--muted);
+  color: var(--color-text-muted);
+  font-family: var(--font-ui);
   font-size: 10px;
   align-self: center;
   min-width: 36px;
   text-align: right;
+  opacity: 0.6;
 }
 
-#char-count.warn { color: var(--accent); }
-#char-count.over { color: var(--danger); }
+#char-count.warn { color: var(--color-primary); opacity: 1; }
+#char-count.over { color: var(--color-error); opacity: 1; }
 
 /* ================================================================ */
 /* NICKNAME OVERLAY                                                 */
@@ -291,7 +285,8 @@ body {
 #nick-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.85);
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -302,64 +297,67 @@ body {
 .hidden { display: none !important; }
 
 #nick-panel {
-  background: var(--panel-bg);
-  border: 1px solid var(--border-lit);
-  border-radius: 8px;
-  padding: 32px;
-  width: 320px;
-  box-shadow: 0 0 40px rgba(0, 229, 255, 0.15);
+  background: var(--color-panel-bg);
+  border: var(--border-width) solid var(--color-border-focused);
+  border-radius: var(--border-radius);
+  padding: 28px 24px;
+  width: 280px;
   text-align: center;
 }
 
 #nick-panel h2 {
-  font-size: 16px;
-  margin-bottom: 6px;
-  text-shadow: 0 0 10px var(--glow-cyan);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 4px;
 }
 
 #nick-panel p {
+  font-family: var(--font-ui);
   font-size: 11px;
-  color: var(--muted);
-  margin-bottom: 20px;
+  color: var(--color-text-muted);
+  margin-bottom: 18px;
 }
 
 #nick-input {
   width: 100%;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  color: #ccc;
-  font-family: 'Courier New', monospace;
-  font-size: 14px;
-  padding: 10px 12px;
+  background: transparent;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--border-radius);
+  color: var(--color-text);
+  font-family: var(--font-ui);
+  font-size: var(--font-ui-size);
+  padding: 8px 12px;
   outline: none;
   text-align: center;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
+  transition: border-color var(--transition-speed) ease;
 }
 
 #nick-input:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 8px rgba(0, 229, 255, 0.15);
+  border-color: var(--color-border-focused);
 }
+
+#nick-input::placeholder { color: var(--color-text-muted); opacity: 0.5; }
 
 #nick-join-btn {
   width: 100%;
   background: transparent;
-  border: 1px solid var(--primary);
-  border-radius: 4px;
-  color: var(--primary);
-  font-family: 'Courier New', monospace;
-  font-size: 13px;
-  font-weight: bold;
-  padding: 10px;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--border-radius);
+  color: var(--color-text);
+  font-family: var(--font-ui);
+  font-size: var(--font-ui-size);
+  font-weight: 500;
+  padding: 8px;
   cursor: pointer;
-  transition: all 0.2s;
-  text-shadow: 0 0 8px var(--glow-cyan);
+  transition: all var(--transition-speed) ease;
 }
 
 #nick-join-btn:hover {
-  background: rgba(0, 229, 255, 0.1);
-  box-shadow: 0 0 16px rgba(0, 229, 255, 0.3);
+  border-color: var(--color-border-focused);
+  background: rgba(255,255,255,0.03);
 }
 
 /* ================================================================ */
@@ -368,32 +366,37 @@ body {
 
 #rate-feedback {
   position: fixed;
-  top: 50px;
+  top: 42px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(255, 68, 68, 0.15);
-  border: 1px solid var(--danger);
-  color: var(--danger);
+  background: rgba(255, 68, 68, 0.08);
+  border: var(--border-width) solid rgba(255, 68, 68, 0.2);
+  color: var(--color-text-muted);
+  font-family: var(--font-ui);
   font-size: 11px;
-  padding: 6px 16px;
-  border-radius: 4px;
+  padding: 5px 14px;
+  border-radius: var(--border-radius);
   z-index: 50;
   opacity: 0;
-  transition: opacity 0.3s;
+  transition: opacity var(--transition-speed) ease;
   pointer-events: none;
 }
 
 #rate-feedback.show { opacity: 1; }
+
+
 </style>
 </head>
 <body>
+
+
 
 <!-- ============================================================== -->
 <!-- HEADER                                                         -->
 <!-- ============================================================== -->
 
 <div id="header">
-  <h1>JARVIS LIVECHAT</h1>
+  <h1>Livechat</h1>
   <div id="header-meta">
     <span id="my-nick" title="Click to change nickname"></span>
     <span><span id="status-dot"></span><span id="status-text">offline</span></span>
@@ -421,7 +424,7 @@ body {
 <div id="input-bar">
   <input id="msg-input" type="text" placeholder="Type a message..." maxlength="500" autocomplete="off" disabled>
   <span id="char-count">0/500</span>
-  <button id="send-btn" disabled>SEND</button>
+  <button id="send-btn" disabled>Send</button>
 </div>
 
 <!-- ============================================================== -->
@@ -431,11 +434,11 @@ body {
 <div id="rate-feedback">Slow down! Rate limit reached.</div>
 <button id="retry-btn" class="hidden" style="
   position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%);
-  background: transparent; border: 1px solid var(--accent); border-radius: 4px;
-  color: var(--accent); font-family: 'Courier New', monospace; font-size: 13px;
-  padding: 8px 24px; cursor: pointer; z-index: 50;
-  text-shadow: 0 0 8px var(--glow-orange);
-">RETRY</button>
+  background: transparent; border: 0.5px solid var(--color-border); border-radius: 6px;
+  color: var(--color-text-muted); font-family: var(--font-ui); font-size: 12px; font-weight: 500;
+  padding: 7px 20px; cursor: pointer; z-index: 50;
+  transition: all 150ms ease;
+">Retry</button>
 
 <!-- ============================================================== -->
 <!-- NICKNAME OVERLAY                                               -->
@@ -443,10 +446,10 @@ body {
 
 <div id="nick-overlay">
   <div id="nick-panel">
-    <h2>ENTER CHAT</h2>
+    <h2>Enter Chat</h2>
     <p>Choose a nickname to join the room.</p>
     <input id="nick-input" type="text" placeholder="Agent-XXXX" maxlength="20" autocomplete="off">
-    <button id="nick-join-btn">JOIN</button>
+    <button id="nick-join-btn">Join</button>
   </div>
 </div>
 

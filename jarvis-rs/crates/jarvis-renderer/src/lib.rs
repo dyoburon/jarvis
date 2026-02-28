@@ -1,15 +1,13 @@
 pub mod assistant_panel;
 pub mod background;
-pub mod bloom;
+pub mod boot_screen;
 pub mod command_palette;
 pub mod effects;
 pub mod gpu;
 pub mod perf;
 pub mod quad;
 pub mod render_state;
-pub mod sphere;
 pub mod ui;
-pub mod visualizer;
 
 pub use assistant_panel::{AssistantPanel, ChatMessage, ChatRole};
 pub use command_palette::CommandPalette;

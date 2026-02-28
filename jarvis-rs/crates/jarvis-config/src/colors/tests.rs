@@ -87,21 +87,23 @@ fn validate_color_rejects_invalid() {
 fn parse_all_default_colors() {
     // Verify all default colors from the schema are parseable
     let colors = [
-        "#00d4ff",
-        "#ff6b00",
-        "#000000",
-        "rgba(10,14,20,0.72)",
-        "#f0ece4",
-        "#888888",
-        "rgba(0,212,255,0.06)",
-        "rgba(0,212,255,0.20)",
-        "rgba(140,190,220,0.65)",
-        "rgba(100,180,255,0.9)",
-        "rgba(255,180,80,0.9)",
-        "rgba(80,220,120,0.9)",
-        "rgba(200,150,255,0.9)",
-        "#00ff88",
-        "#ff4444",
+        "#ffcc66",
+        "#ffa659",
+        "#1f2430",
+        "rgba(36,41,54,0.88)",
+        "#cccac2",
+        "#707a8c",
+        "#171B24",
+        "rgba(255,204,102,0.12)",
+        "rgba(115,208,255,0.75)",
+        "rgba(115,208,255,0.9)",
+        "rgba(255,213,128,0.9)",
+        "rgba(255,166,89,0.9)",
+        "rgba(186,230,126,0.9)",
+        "rgba(223,191,255,0.9)",
+        "#87d96c",
+        "#ffa659",
+        "#ff6666",
     ];
     for c in &colors {
         assert!(parse_color(c).is_ok(), "failed to parse default color: {c}");

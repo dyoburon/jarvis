@@ -53,6 +53,9 @@ pub struct WindowConfig {
     /// Update title bar with shell-reported title.
     pub dynamic_title: bool,
     pub padding: WindowPadding,
+    /// Height of the custom titlebar area in pixels (macOS).
+    /// Traffic lights render in this space. Set 0 to disable.
+    pub titlebar_height: u32,
 }
 
 impl Default for WindowConfig {
@@ -65,6 +68,7 @@ impl Default for WindowConfig {
             title: "Jarvis".into(),
             dynamic_title: true,
             padding: WindowPadding::default(),
+            titlebar_height: 38,
         }
     }
 }
@@ -86,6 +90,7 @@ mod tests {
         assert_eq!(config.startup_mode, StartupMode::Windowed);
         assert_eq!(config.title, "Jarvis");
         assert!(config.dynamic_title);
+        assert_eq!(config.titlebar_height, 38);
     }
 
     #[test]

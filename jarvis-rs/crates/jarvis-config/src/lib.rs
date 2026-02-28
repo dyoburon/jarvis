@@ -107,7 +107,7 @@ mod tests {
         let json = config_to_json(&config);
         let parsed: JarvisConfig = serde_json::from_str(&json).unwrap();
         assert_eq!(parsed.theme.name, "jarvis-dark");
-        assert_eq!(parsed.colors.primary, "#00d4ff");
+        assert_eq!(parsed.colors.primary, "#ffcc66");
         assert_eq!(parsed.font.size, 13);
     }
 }

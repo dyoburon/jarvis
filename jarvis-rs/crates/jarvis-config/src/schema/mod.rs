@@ -16,6 +16,7 @@ mod performance;
 mod shell;
 mod social;
 mod startup;
+mod status_bar;
 mod system;
 mod terminal;
 mod theme;
@@ -36,6 +37,7 @@ pub use performance::*;
 pub use shell::*;
 pub use social::*;
 pub use startup::*;
+pub use status_bar::*;
 pub use system::*;
 pub use terminal::*;
 pub use theme::*;
@@ -79,6 +81,7 @@ pub struct JarvisConfig {
     pub logging: LoggingConfig,
     pub advanced: AdvancedConfig,
     pub auto_open: AutoOpenConfig,
+    pub status_bar: StatusBarConfig,
 }
 
 // =============================================================================
@@ -98,23 +101,23 @@ mod tests {
     #[test]
     fn default_config_has_correct_colors() {
         let config = JarvisConfig::default();
-        assert_eq!(config.colors.primary, "#00d4ff");
-        assert_eq!(config.colors.secondary, "#ff6b00");
-        assert_eq!(config.colors.background, "#000000");
-        assert_eq!(config.colors.panel_bg, "rgba(10,14,20,0.72)");
-        assert_eq!(config.colors.text, "#f0ece4");
-        assert_eq!(config.colors.text_muted, "#888888");
-        assert_eq!(config.colors.border, "rgba(0,212,255,0.06)");
-        assert_eq!(config.colors.border_focused, "rgba(0,212,255,0.20)");
-        assert_eq!(config.colors.user_text, "rgba(140,190,220,0.65)");
-        assert_eq!(config.colors.tool_read, "rgba(100,180,255,0.9)");
-        assert_eq!(config.colors.tool_edit, "rgba(255,180,80,0.9)");
-        assert_eq!(config.colors.tool_write, "rgba(255,180,80,0.9)");
-        assert_eq!(config.colors.tool_run, "rgba(80,220,120,0.9)");
-        assert_eq!(config.colors.tool_search, "rgba(200,150,255,0.9)");
-        assert_eq!(config.colors.success, "#00ff88");
-        assert_eq!(config.colors.warning, "#ff6b00");
-        assert_eq!(config.colors.error, "#ff4444");
+        assert_eq!(config.colors.primary, "#ffcc66");
+        assert_eq!(config.colors.secondary, "#ffa659");
+        assert_eq!(config.colors.background, "#1f2430");
+        assert_eq!(config.colors.panel_bg, "rgba(36,41,54,0.88)");
+        assert_eq!(config.colors.text, "#cccac2");
+        assert_eq!(config.colors.text_muted, "#707a8c");
+        assert_eq!(config.colors.border, "#171B24");
+        assert_eq!(config.colors.border_focused, "rgba(255,204,102,0.12)");
+        assert_eq!(config.colors.user_text, "rgba(115,208,255,0.75)");
+        assert_eq!(config.colors.tool_read, "rgba(115,208,255,0.9)");
+        assert_eq!(config.colors.tool_edit, "rgba(255,213,128,0.9)");
+        assert_eq!(config.colors.tool_write, "rgba(255,166,89,0.9)");
+        assert_eq!(config.colors.tool_run, "rgba(186,230,126,0.9)");
+        assert_eq!(config.colors.tool_search, "rgba(223,191,255,0.9)");
+        assert_eq!(config.colors.success, "#87d96c");
+        assert_eq!(config.colors.warning, "#ffa659");
+        assert_eq!(config.colors.error, "#ff6666");
     }
 
     #[test]
@@ -131,21 +134,22 @@ mod tests {
     #[test]
     fn default_config_has_correct_layout() {
         let config = JarvisConfig::default();
-        assert_eq!(config.layout.panel_gap, 8);
+        assert_eq!(config.layout.panel_gap, 6);
         assert_eq!(config.layout.border_radius, 8);
         assert_eq!(config.layout.padding, 10);
         assert_eq!(config.layout.max_panels, 5);
         assert!((config.layout.default_panel_width - 0.72).abs() < f64::EPSILON);
         assert_eq!(config.layout.scrollbar_width, 3);
-        assert!((config.layout.border_width - 0.5).abs() < f64::EPSILON);
-        assert_eq!(config.layout.outer_padding, 10);
+        assert!((config.layout.border_width - 0.0).abs() < f64::EPSILON);
+        assert_eq!(config.layout.outer_padding, 0);
+        assert!((config.layout.inactive_opacity - 1.0).abs() < f64::EPSILON);
     }
 
     #[test]
     fn default_config_has_correct_opacity() {
         let config = JarvisConfig::default();
         assert!((config.opacity.background - 1.0).abs() < f64::EPSILON);
-        assert!((config.opacity.panel - 0.72).abs() < f64::EPSILON);
+        assert!((config.opacity.panel - 0.85).abs() < f64::EPSILON);
         assert!((config.opacity.orb - 1.0).abs() < f64::EPSILON);
         assert!((config.opacity.hex_grid - 0.8).abs() < f64::EPSILON);
         assert!((config.opacity.hud - 1.0).abs() < f64::EPSILON);
@@ -196,7 +200,7 @@ mod tests {
     fn default_config_has_correct_startup() {
         let config = JarvisConfig::default();
         assert!(config.startup.boot_animation.enabled);
-        assert!((config.startup.boot_animation.duration - 27.0).abs() < f64::EPSILON);
+        assert!((config.startup.boot_animation.duration - 4.5).abs() < f64::EPSILON);
         assert!(!config.startup.fast_start.enabled);
         assert_eq!(config.startup.on_ready.action, OnReadyAction::Listening);
     }
@@ -290,6 +294,16 @@ mod tests {
     }
 
     #[test]
+    fn default_config_has_correct_status_bar() {
+        let config = JarvisConfig::default();
+        assert!(config.status_bar.enabled);
+        assert_eq!(config.status_bar.height, 28);
+        assert!(config.status_bar.show_panel_buttons);
+        assert!(config.status_bar.show_online_count);
+        assert_eq!(config.status_bar.bg, "rgba(23,27,36,0.95)");
+    }
+
+    #[test]
     fn default_config_has_correct_advanced() {
         let config = JarvisConfig::default();
         assert!(!config.advanced.experimental.web_rendering);
@@ -316,8 +330,8 @@ primary = "#ff0000"
         // Defaults preserved
         assert!((config.font.line_height - 1.6).abs() < f64::EPSILON);
         assert_eq!(config.font.title_size, 14);
-        assert_eq!(config.colors.background, "#000000");
-        assert_eq!(config.colors.text, "#f0ece4");
+        assert_eq!(config.colors.background, "#1f2430");
+        assert_eq!(config.colors.text, "#cccac2");
         assert_eq!(config.theme.name, "jarvis-dark");
         assert_eq!(config.background.mode, BackgroundMode::HexGrid);
         assert!(config.visualizer.enabled);
@@ -600,12 +614,12 @@ font_weight = 300
         assert!(config.effects.bloom.enabled);
         assert_eq!(config.effects.bloom.passes, 2);
         assert!(config.effects.glow.enabled);
-        assert_eq!(config.effects.glow.color, "#00d4ff");
-        assert!((config.effects.glow.intensity - 0.15).abs() < f64::EPSILON);
+        assert_eq!(config.effects.glow.color, "#ffcc66");
+        assert!((config.effects.glow.intensity - 0.0).abs() < f64::EPSILON);
         assert!(config.effects.flicker.enabled);
         assert!(!config.effects.crt_curvature);
-        assert_eq!(config.effects.blur_radius, 20);
-        assert!((config.effects.saturate - 1.2).abs() < f64::EPSILON);
+        assert_eq!(config.effects.blur_radius, 12);
+        assert!((config.effects.saturate - 1.1).abs() < f64::EPSILON);
         assert_eq!(config.effects.transition_speed, 150);
     }
 

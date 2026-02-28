@@ -103,7 +103,8 @@ pub fn generate_css_injection_js(variables: &[(&str, &str, CssValueKind)]) -> St
 pub fn generate_xterm_theme_js(xterm_theme: &serde_json::Value) -> String {
     let json_str = serde_json::to_string(xterm_theme).unwrap_or_else(|_| "{}".to_string());
     format!(
-        "if (window.jarvis && window.jarvis.ipc) {{ \
+        "window.__jarvis_theme = {json_str}; \
+        if (window.jarvis && window.jarvis.ipc) {{ \
             window.jarvis.ipc._dispatch('theme', {json_str}); \
         }}"
     )

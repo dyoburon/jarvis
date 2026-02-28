@@ -44,16 +44,20 @@ impl JarvisApp {
             }
             Action::FocusPane(n) => {
                 self.tiling.focus_pane(n);
+                self.notify_focus_changed();
                 self.needs_redraw = true;
             }
             Action::FocusNextPane => {
                 self.tiling.execute(TilingCommand::FocusNext);
+                self.notify_focus_changed();
                 self.needs_redraw = true;
             }
             Action::FocusPrevPane => {
                 self.tiling.execute(TilingCommand::FocusPrev);
+                self.notify_focus_changed();
                 self.needs_redraw = true;
             }
+
             Action::ZoomPane => {
                 self.tiling.execute(TilingCommand::Zoom);
                 self.sync_webview_bounds();

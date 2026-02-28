@@ -52,6 +52,7 @@ pub fn config_to_css_variables(config: &JarvisConfig) -> Vec<(String, String, Cs
         css_numeric("--scrollbar-width", &format!("{}px", l.scrollbar_width)),
         css_numeric("--border-width", &format!("{}px", l.border_width)),
         css_numeric("--outer-padding", &format!("{}px", l.outer_padding)),
+        css_numeric("--inactive-opacity", &format!("{}", l.inactive_opacity)),
         // Effects (glassmorphic)
         css_numeric("--blur-radius", &format!("{}px", e.blur_radius)),
         css_numeric("--saturate", &format!("{}", e.saturate)),
@@ -59,6 +60,17 @@ pub fn config_to_css_variables(config: &JarvisConfig) -> Vec<(String, String, Cs
         css_numeric("--glow-intensity", &format!("{}", e.glow.intensity)),
         // Opacity
         css_numeric("--panel-opacity", &format!("{}", config.opacity.panel)),
+        // Window
+        css_numeric(
+            "--titlebar-height",
+            &format!("{}px", config.window.titlebar_height),
+        ),
+        // Status bar
+        css_numeric(
+            "--status-bar-height",
+            &format!("{}px", config.status_bar.height),
+        ),
+        css_color("--status-bar-bg", &config.status_bar.bg),
     ]
 }
 
@@ -77,18 +89,27 @@ pub fn config_to_xterm_theme(config: &JarvisConfig) -> serde_json::Value {
             "foreground": c.text,
             "cursor": c.primary,
             "cursorAccent": c.background,
-            "selectionBackground": format!("rgba({}, 0.2)",
-                hex_to_rgb_args(&c.primary).unwrap_or_else(|| "0, 229, 255".to_string())
+            "selectionBackground": format!("rgba({}, 0.25)",
+                hex_to_rgb_args(&c.primary).unwrap_or_else(|| "255, 204, 102".to_string())
             ),
             "selectionForeground": "#ffffff",
-            "black": "#000000",
-            "red": c.error,
-            "green": c.success,
-            "yellow": c.warning,
-            "blue": c.primary,
-            "magenta": "#ff44ff",
-            "cyan": c.primary,
-            "white": c.text
+            // Ayu Mirage ANSI palette
+            "black": "#171b24",
+            "red": "#f28779",
+            "green": "#bae67e",
+            "yellow": "#ffd580",
+            "blue": "#73d0ff",
+            "magenta": "#d4bfff",
+            "cyan": "#95e6cb",
+            "white": c.text,
+            "brightBlack": "#707a8c",
+            "brightRed": "#f28779",
+            "brightGreen": "#bae67e",
+            "brightYellow": "#ffd580",
+            "brightBlue": "#73d0ff",
+            "brightMagenta": "#d4bfff",
+            "brightCyan": "#95e6cb",
+            "brightWhite": "#f3f4f5"
         },
         "fontSize": f.size,
         "fontFamily": format!("'{}', monospace", f.family),
@@ -280,6 +301,10 @@ mod tests {
         assert!(names.contains(&"--transition-speed"));
         assert!(names.contains(&"--glow-intensity"));
         assert!(names.contains(&"--panel-opacity"));
+        assert!(names.contains(&"--titlebar-height"));
+        assert!(names.contains(&"--status-bar-height"));
+        assert!(names.contains(&"--status-bar-bg"));
+        assert!(names.contains(&"--inactive-opacity"));
     }
 
     #[test]
@@ -291,8 +316,8 @@ mod tests {
             .map(|(n, v, _)| (n.as_str(), v.as_str()))
             .collect();
 
-        assert_eq!(map["--color-primary"], "#00d4ff");
-        assert_eq!(map["--color-background"], "#000000");
+        assert_eq!(map["--color-primary"], "#ffcc66");
+        assert_eq!(map["--color-background"], "#1f2430");
         assert_eq!(map["--font-size"], "13px");
         assert_eq!(map["--line-height"], "1.6");
         assert_eq!(map["--font-family"], "Menlo");
@@ -302,7 +327,7 @@ mod tests {
     fn config_to_css_variables_count() {
         let config = JarvisConfig::default();
         let vars = config_to_css_variables(&config);
-        assert_eq!(vars.len(), 29);
+        assert_eq!(vars.len(), 33);
     }
 
     #[test]
@@ -331,9 +356,9 @@ mod tests {
         let config = JarvisConfig::default();
         let theme = config_to_xterm_theme(&config);
 
-        assert_eq!(theme["xterm"]["background"], "#000000");
-        assert_eq!(theme["xterm"]["foreground"], "#f0ece4");
-        assert_eq!(theme["xterm"]["cursor"], "#00d4ff");
+        assert_eq!(theme["xterm"]["background"], "#1f2430");
+        assert_eq!(theme["xterm"]["foreground"], "#cccac2");
+        assert_eq!(theme["xterm"]["cursor"], "#ffcc66");
         assert_eq!(theme["fontSize"], 13);
         assert_eq!(theme["cursorStyle"], "block");
         assert_eq!(theme["cursorBlink"], true);

@@ -8,6 +8,8 @@ use winit::window::WindowAttributes;
 use jarvis_renderer::RenderState;
 use jarvis_webview::{ContentProvider, WebViewManager, WebViewRegistry};
 
+use crate::boot::BootSequence;
+
 use super::core::JarvisApp;
 
 // =============================================================================
@@ -30,6 +32,20 @@ impl JarvisApp {
             .with_transparent(true)
             .with_inner_size(winit::dpi::LogicalSize::new(1280.0, 800.0));
 
+        // macOS: transparent titlebar with content extending behind traffic lights
+        #[cfg(target_os = "macos")]
+        let attrs = {
+            use winit::platform::macos::WindowAttributesExtMacOS;
+            if self.config.window.titlebar_height > 0 {
+                attrs
+                    .with_titlebar_transparent(true)
+                    .with_title_hidden(true)
+                    .with_fullsize_content_view(true)
+            } else {
+                attrs
+            }
+        };
+
         let window = match event_loop.create_window(attrs) {
             Ok(w) => Arc::new(w),
             Err(e) => {
@@ -46,12 +62,14 @@ impl JarvisApp {
                 {
                     let alpha = self.config.opacity.background;
                     rs.set_clear_color_alpha(
-                        color.r as f64 / 255.0,
-                        color.g as f64 / 255.0,
-                        color.b as f64 / 255.0,
+                        srgb_to_linear(color.r as f64 / 255.0),
+                        srgb_to_linear(color.g as f64 / 255.0),
+                        srgb_to_linear(color.b as f64 / 255.0),
                         alpha,
                     );
                 }
+
+                self.boot = Some(BootSequence::new(&self.config));
                 self.render_state = Some(rs);
             }
             Err(e) => {
@@ -88,5 +106,14 @@ impl JarvisApp {
             panels_dir = %panels_path.display(),
             "WebView registry initialized"
         );
+    }
+}
+
+/// sRGB → linear conversion for wgpu clear color on sRGB surfaces.
+fn srgb_to_linear(c: f64) -> f64 {
+    if c <= 0.04045 {
+        c / 12.92
+    } else {
+        ((c + 0.055) / 1.055).powf(2.4)
     }
 }

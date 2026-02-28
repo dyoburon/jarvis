@@ -23,6 +23,31 @@ fn panel_url(kind: PaneKind) -> &'static str {
 }
 
 // =============================================================================
+// VIEWPORT HELPERS
+// =============================================================================
+
+/// Compute the tiling viewport from window dimensions, accounting for
+/// the custom titlebar height (macOS) at the top and status bar at the bottom.
+fn tiling_viewport(config: &jarvis_config::schema::JarvisConfig, width: f64, height: f64) -> Rect {
+    let top_offset = if cfg!(target_os = "macos") {
+        config.window.titlebar_height as f64
+    } else {
+        0.0
+    };
+    let bottom_offset = if config.status_bar.enabled {
+        config.status_bar.height as f64
+    } else {
+        0.0
+    };
+    Rect {
+        x: 0.0,
+        y: top_offset,
+        width,
+        height: (height - top_offset - bottom_offset).max(0.0),
+    }
+}
+
+// =============================================================================
 // WEBVIEW LIFECYCLE
 // =============================================================================
 
@@ -55,12 +80,11 @@ impl JarvisApp {
         };
 
         let window_size = window.inner_size();
-        let viewport = Rect {
-            x: 0.0,
-            y: 0.0,
-            width: window_size.width as f64,
-            height: window_size.height as f64,
-        };
+        let viewport = tiling_viewport(
+            &self.config,
+            window_size.width as f64,
+            window_size.height as f64,
+        );
         let layout = self.tiling.compute_layout(viewport);
 
         let bounds = layout
@@ -70,7 +94,6 @@ impl JarvisApp {
             .unwrap_or_default();
 
         let config = WebViewConfig::with_url(url);
-
         if let Err(e) = registry.create(pane_id, window.as_ref(), bounds, config) {
             tracing::error!(pane_id, error = %e, "Failed to create webview");
         } else {
@@ -103,12 +126,11 @@ impl JarvisApp {
 
         // Compute the bounds for this pane from the tiling layout
         let window_size = window.inner_size();
-        let viewport = Rect {
-            x: 0.0,
-            y: 0.0,
-            width: window_size.width as f64,
-            height: window_size.height as f64,
-        };
+        let viewport = tiling_viewport(
+            &self.config,
+            window_size.width as f64,
+            window_size.height as f64,
+        );
         let layout = self.tiling.compute_layout(viewport);
 
         let bounds = layout
@@ -164,6 +186,68 @@ impl JarvisApp {
         }
     }
 
+    /// Create a fullscreen boot webview covering the entire window.
+    ///
+    /// This is shown during the boot animation. When the JS sends
+    /// `boot:complete`, the webview is destroyed and normal panels load.
+    pub(in crate::app_state) fn show_boot_webview(&mut self) {
+        let window = match &self.window {
+            Some(w) => w,
+            None => {
+                tracing::warn!("Cannot show boot webview: no window");
+                return;
+            }
+        };
+
+        let registry = match &mut self.webviews {
+            Some(r) => r,
+            None => {
+                tracing::warn!("Cannot show boot webview: registry not initialized");
+                return;
+            }
+        };
+
+        let size = window.inner_size();
+        let bounds = wry::Rect {
+            position: wry::dpi::Position::Logical(wry::dpi::LogicalPosition::new(0.0, 0.0)),
+            size: wry::dpi::Size::Physical(wry::dpi::PhysicalSize::new(size.width, size.height)),
+        };
+
+        // Use pane_id 0 — reserved for the boot webview (no tiling pane owns it)
+        let boot_pane_id = 0_u32;
+        let url = "jarvis://localhost/boot/index.html";
+        let config = WebViewConfig::with_url(url);
+
+        if let Err(e) = registry.create(boot_pane_id, window.as_ref(), bounds, config) {
+            tracing::error!(error = %e, "Failed to create boot webview");
+            // Fall through — setup panels immediately instead
+            self.boot_webview_active = false;
+            self.setup_default_layout();
+        } else {
+            self.boot_webview_active = true;
+            self.inject_theme_into_all_webviews();
+            tracing::info!("Boot webview created");
+        }
+    }
+
+    /// Handle the boot:complete signal — destroy boot webview, load panels.
+    pub(in crate::app_state) fn handle_boot_complete(&mut self) {
+        if !self.boot_webview_active {
+            return;
+        }
+
+        let boot_pane_id = 0_u32;
+        if let Some(ref mut registry) = self.webviews {
+            registry.destroy(boot_pane_id);
+        }
+        self.boot_webview_active = false;
+        self.boot = None;
+
+        tracing::info!("Boot complete — loading panels");
+        self.setup_default_layout();
+        self.sync_webview_bounds();
+    }
+
     /// Sync all webview bounds to match the current tiling layout.
     pub(in crate::app_state) fn sync_webview_bounds(&mut self) {
         let window = match &self.window {
@@ -176,12 +260,11 @@ impl JarvisApp {
         };
 
         let window_size = window.inner_size();
-        let viewport = Rect {
-            x: 0.0,
-            y: 0.0,
-            width: window_size.width as f64,
-            height: window_size.height as f64,
-        };
+        let viewport = tiling_viewport(
+            &self.config,
+            window_size.width as f64,
+            window_size.height as f64,
+        );
         let layout = self.tiling.compute_layout(viewport);
 
         for (pane_id, rect) in &layout {

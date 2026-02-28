@@ -17,7 +17,7 @@ impl Default for BootAnimationConfig {
     fn default() -> Self {
         Self {
             enabled: true,
-            duration: 27.0,
+            duration: 4.5,
             skip_on_key: true,
             music_enabled: true,
             voiceover_enabled: true,

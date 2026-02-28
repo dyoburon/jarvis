@@ -6,25 +6,6 @@
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
-:root {
-  --color-primary: #00d4ff;
-  --color-secondary: #ff6b00;
-  --color-background: #000000;
-  --color-panel-bg: rgba(0,0,0,0.93);
-  --color-text: #f0ece4;
-  --color-text-muted: #888888;
-  --color-border: rgba(0,212,255,0.12);
-  --color-border-focused: rgba(0,212,255,0.5);
-  --color-success: #00ff88;
-  --color-warning: #ff6b00;
-  --color-error: #ff4444;
-  --font-family: Menlo, Monaco, 'Courier New', monospace;
-  --font-size: 13px;
-  --font-title-size: 15px;
-  --line-height: 1.6;
-  --border-radius: 8px;
-}
-
 html {
   background: transparent;
   border-radius: var(--border-radius);
@@ -33,9 +14,9 @@ html {
 
 html, body {
   color: var(--color-text);
-  font-family: var(--font-family);
-  font-size: var(--font-size);
-  line-height: var(--line-height);
+  font-family: var(--font-ui);
+  font-size: var(--font-ui-size);
+  line-height: 1.5;
   height: 100vh;
   overflow: hidden;
 }
@@ -44,13 +25,14 @@ body {
   display: flex;
   flex-direction: column;
   background: var(--color-panel-bg);
-  border: 1px solid var(--color-border);
+  border: var(--border-width) solid var(--color-border);
   border-radius: var(--border-radius);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  backdrop-filter: blur(var(--blur-radius)) saturate(var(--saturate));
+  -webkit-backdrop-filter: blur(var(--blur-radius)) saturate(var(--saturate));
+  transition: border-color var(--transition-speed) ease;
 }
 body.focused {
   border-color: var(--color-border-focused);
-  box-shadow: inset 0 0 12px color-mix(in srgb, var(--color-primary) 8%, transparent);
 }
 
 /* ================================================================ */
@@ -61,31 +43,33 @@ body.focused {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 16px 8px;
-  border-bottom: 1px solid var(--color-border);
+  padding: 10px 16px 9px;
+  border-bottom: var(--border-width) solid var(--color-border);
   flex-shrink: 0;
   -webkit-user-select: none;
   user-select: none;
 }
 #title-bar h1 {
-  font-size: var(--font-title-size);
-  font-weight: bold;
-  color: var(--color-primary);
-  letter-spacing: 1px;
+  font-family: var(--font-ui);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+  letter-spacing: 0.3px;
 }
 #close-btn {
   background: none;
-  border: 1px solid var(--color-border);
+  border: var(--border-width) solid var(--color-border);
   color: var(--color-text-muted);
   width: 24px;
   height: 24px;
-  border-radius: 3px;
+  border-radius: var(--border-radius);
   cursor: pointer;
   font-size: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.15s;
+  transition: all var(--transition-speed) ease;
+  font-family: var(--font-ui);
 }
 #close-btn:hover {
   border-color: var(--color-error);
@@ -103,46 +87,62 @@ body.focused {
 }
 
 #sidebar {
-  width: 160px;
+  width: 180px;
   flex-shrink: 0;
-  border-right: 1px solid var(--color-border);
+  border-right: var(--border-width) solid var(--color-border);
   padding: 8px 0;
   overflow-y: auto;
 }
 #sidebar::-webkit-scrollbar { width: 0; }
 
 .nav-item {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   padding: 7px 16px;
-  font-size: 12px;
+  font-family: var(--font-ui);
+  font-size: 13px;
   color: var(--color-text-muted);
   cursor: pointer;
-  transition: all 0.12s;
+  transition: all var(--transition-speed) ease;
   border-left: 2px solid transparent;
   -webkit-user-select: none;
   user-select: none;
 }
 .nav-item:hover {
   color: var(--color-text);
-  background: color-mix(in srgb, var(--color-primary) 5%, transparent);
+  background: rgba(255,255,255,0.03);
 }
 .nav-item.active {
-  color: var(--color-primary);
+  color: var(--color-text);
   border-left-color: var(--color-primary);
-  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+  background: rgba(255,255,255,0.04);
+}
+.nav-icon {
+  font-size: 15px;
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+.nav-item.active .nav-icon {
+  opacity: 1;
 }
 
 #content {
   flex: 1;
   overflow-y: auto;
-  padding: 16px 20px;
+  padding: 20px 24px;
   min-width: 0;
 }
-#content::-webkit-scrollbar { width: 3px; }
+#content::-webkit-scrollbar { width: var(--scrollbar-width); }
 #content::-webkit-scrollbar-track { background: transparent; }
 #content::-webkit-scrollbar-thumb {
-  background: var(--color-border);
-  border-radius: 2px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 3px;
+}
+#content::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,0.14);
 }
 
 /* ================================================================ */
@@ -153,20 +153,27 @@ body.focused {
 .section.active { display: block; }
 
 .section-title {
+  font-family: var(--font-ui);
   font-size: 11px;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 1.5px;
+  letter-spacing: 1.2px;
   color: var(--color-text-muted);
-  margin-bottom: 14px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: var(--border-width) solid var(--color-border);
 }
 .section-subtitle {
+  font-family: var(--font-ui);
   font-size: 11px;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.8px;
   color: var(--color-text-muted);
-  margin: 16px 0 8px;
+  margin: 20px 0 10px;
+}
+.section-subtitle:first-of-type {
+  margin-top: 0;
 }
 
 /* ================================================================ */
@@ -177,19 +184,22 @@ body.focused {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 0;
-  min-height: 32px;
+  padding: 5px 0;
+  min-height: 34px;
 }
 .control-label {
-  font-size: 12px;
+  font-family: var(--font-ui);
+  font-size: 13px;
   color: var(--color-text);
   flex-shrink: 0;
-  margin-right: 12px;
+  margin-right: 16px;
 }
 .control-hint {
-  font-size: 10px;
+  font-family: var(--font-ui);
+  font-size: 12px;
   color: var(--color-text-muted);
   margin-top: 2px;
+  line-height: 1.4;
 }
 
 /* Toggle switch */
@@ -208,10 +218,10 @@ body.focused {
 .toggle-track {
   position: absolute;
   inset: 0;
-  background: color-mix(in srgb, var(--color-text-muted) 30%, transparent);
+  background: rgba(255,255,255,0.1);
   border-radius: 10px;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background var(--transition-speed) ease;
 }
 .toggle input:checked + .toggle-track {
   background: var(--color-primary);
@@ -224,8 +234,8 @@ body.focused {
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: var(--color-text);
-  transition: transform 0.2s;
+  background: #fff;
+  transition: transform var(--transition-speed) ease;
 }
 .toggle input:checked + .toggle-track::after {
   transform: translateX(16px);
@@ -235,16 +245,20 @@ body.focused {
 .range-wrap {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 .range-wrap input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
-  width: 120px;
-  height: 4px;
-  background: var(--color-border);
+  width: 130px;
+  height: 3px;
+  background: rgba(255,255,255,0.1);
   border-radius: 2px;
   outline: none;
+  transition: background var(--transition-speed) ease;
+}
+.range-wrap input[type="range"]:hover {
+  background: rgba(255,255,255,0.15);
 }
 .range-wrap input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
@@ -255,13 +269,17 @@ body.focused {
   background: var(--color-primary);
   cursor: pointer;
   border: none;
+  transition: transform var(--transition-speed) ease;
+}
+.range-wrap input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
 }
 .range-value {
-  font-size: 11px;
-  color: var(--color-primary);
-  min-width: 36px;
-  text-align: right;
   font-family: var(--font-family);
+  font-size: 11px;
+  color: var(--color-text-muted);
+  min-width: 38px;
+  text-align: right;
 }
 
 /* Color picker */
@@ -275,71 +293,88 @@ body.focused {
   appearance: none;
   width: 28px;
   height: 28px;
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--border-radius);
   background: none;
   cursor: pointer;
   padding: 0;
+  transition: border-color var(--transition-speed) ease;
+}
+.color-wrap input[type="color"]:hover {
+  border-color: var(--color-border-focused);
 }
 .color-wrap input[type="color"]::-webkit-color-swatch-wrapper {
   padding: 2px;
 }
 .color-wrap input[type="color"]::-webkit-color-swatch {
   border: none;
-  border-radius: 2px;
+  border-radius: 3px;
 }
 .color-hex {
+  font-family: var(--font-family);
   font-size: 11px;
   color: var(--color-text-muted);
-  font-family: var(--font-family);
 }
 
 /* Select dropdown */
 select {
-  background: color-mix(in srgb, var(--color-primary) 5%, transparent);
+  background: transparent;
   color: var(--color-text);
-  border: 1px solid var(--color-border);
-  border-radius: 3px;
-  padding: 4px 8px;
-  font-family: var(--font-family);
-  font-size: 12px;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--border-radius);
+  padding: 5px 10px;
+  font-family: var(--font-ui);
+  font-size: 13px;
   cursor: pointer;
   outline: none;
+  transition: border-color var(--transition-speed) ease;
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b7280'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 26px;
 }
 select:focus {
-  border-color: var(--color-primary);
+  border-color: var(--color-border-focused);
+}
+select option {
+  background: #1a1e26;
+  color: var(--color-text);
 }
 
 /* Number input */
 input[type="number"] {
-  background: color-mix(in srgb, var(--color-primary) 5%, transparent);
+  background: transparent;
   color: var(--color-text);
-  border: 1px solid var(--color-border);
-  border-radius: 3px;
-  padding: 4px 8px;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--border-radius);
+  padding: 5px 10px;
   font-family: var(--font-family);
-  font-size: 12px;
-  width: 70px;
+  font-size: 13px;
+  width: 80px;
   outline: none;
+  transition: border-color var(--transition-speed) ease;
 }
 input[type="number"]:focus {
-  border-color: var(--color-primary);
+  border-color: var(--color-border-focused);
 }
 
 /* Text input */
 input[type="text"] {
-  background: color-mix(in srgb, var(--color-primary) 5%, transparent);
+  background: transparent;
   color: var(--color-text);
-  border: 1px solid var(--color-border);
-  border-radius: 3px;
-  padding: 4px 8px;
-  font-family: var(--font-family);
-  font-size: 12px;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--border-radius);
+  padding: 5px 10px;
+  font-family: var(--font-ui);
+  font-size: 13px;
   outline: none;
-  width: 160px;
+  width: 180px;
+  transition: border-color var(--transition-speed) ease;
 }
 input[type="text"]:focus {
-  border-color: var(--color-primary);
+  border-color: var(--color-border-focused);
 }
 
 /* ================================================================ */
@@ -348,127 +383,43 @@ input[type="text"]:focus {
 
 .theme-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   gap: 8px;
   margin-top: 8px;
 }
 .theme-card {
-  background: color-mix(in srgb, var(--color-primary) 3%, transparent);
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
-  padding: 8px 10px;
+  background: rgba(255,255,255,0.02);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--border-radius);
+  padding: 10px 12px;
   cursor: pointer;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  transition: border-color var(--transition-speed) ease, background var(--transition-speed) ease;
 }
 .theme-card:hover {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 8px color-mix(in srgb, var(--color-primary) 15%, transparent);
+  border-color: var(--color-border-focused);
+  background: rgba(255,255,255,0.04);
 }
 .theme-card.active {
   border-color: var(--color-primary);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--color-primary) 20%, transparent);
 }
 .theme-name {
-  font-size: 11px;
-  font-weight: bold;
+  font-family: var(--font-ui);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 6px;
+}
+.theme-card.active .theme-name {
   color: var(--color-primary);
-  margin-bottom: 4px;
 }
 .theme-preview {
   display: flex;
-  gap: 2px;
-  height: 10px;
+  gap: 3px;
+  height: 12px;
 }
 .theme-preview .swatch {
   flex: 1;
   border-radius: 2px;
-}
-
-/* ================================================================ */
-/* KEYBIND INPUT                                                    */
-/* ================================================================ */
-
-.keybind-input {
-  background: color-mix(in srgb, var(--color-primary) 5%, transparent);
-  border: 1px solid var(--color-border);
-  border-radius: 3px;
-  padding: 4px 10px;
-  font-family: var(--font-family);
-  font-size: 11px;
-  color: var(--color-text);
-  cursor: pointer;
-  min-width: 120px;
-  text-align: center;
-  transition: border-color 0.15s;
-  -webkit-user-select: none;
-  user-select: none;
-}
-.keybind-input:hover {
-  border-color: var(--color-primary);
-}
-.keybind-input.recording {
-  border-color: var(--color-warning);
-  color: var(--color-warning);
-  animation: pulse 1s infinite;
-}
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-/* ================================================================ */
-/* AUTO-OPEN PANEL LIST                                             */
-/* ================================================================ */
-
-.panel-list { margin-top: 8px; }
-.panel-entry {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 8px;
-  background: color-mix(in srgb, var(--color-primary) 3%, transparent);
-  border: 1px solid var(--color-border);
-  border-radius: 3px;
-  margin-bottom: 4px;
-}
-.panel-entry select, .panel-entry input[type="text"] {
-  flex: 1;
-  min-width: 0;
-}
-.btn-remove {
-  background: none;
-  border: 1px solid var(--color-border);
-  color: var(--color-text-muted);
-  width: 22px;
-  height: 22px;
-  border-radius: 3px;
-  cursor: pointer;
-  font-size: 12px;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.btn-remove:hover {
-  border-color: var(--color-error);
-  color: var(--color-error);
-}
-.btn-add {
-  background: none;
-  border: 1px dashed var(--color-border);
-  color: var(--color-text-muted);
-  padding: 6px 12px;
-  border-radius: 3px;
-  cursor: pointer;
-  font-size: 11px;
-  font-family: var(--font-family);
-  margin-top: 4px;
-  width: 100%;
-  transition: all 0.15s;
-}
-.btn-add:hover {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
 }
 
 /* ================================================================ */
@@ -479,23 +430,44 @@ input[type="text"]:focus {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 6px 0;
-  border-bottom: 1px solid var(--color-border);
-  font-size: 12px;
+  padding: 8px 0;
+  border-bottom: var(--border-width) solid var(--color-border);
+  font-family: var(--font-ui);
+  font-size: 13px;
 }
 .info-row:last-child { border-bottom: none; }
 .info-label { color: var(--color-text-muted); }
-.info-value { color: var(--color-text); font-weight: bold; }
+.info-value { color: var(--color-text); font-weight: 600; }
+
+.about-link {
+  display: inline-block;
+  color: var(--color-primary);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  text-decoration: none;
+  cursor: pointer;
+  transition: opacity var(--transition-speed) ease;
+}
+.about-link:hover {
+  opacity: 0.8;
+}
+
+.about-links {
+  display: flex;
+  gap: 16px;
+  margin-top: 16px;
+}
 
 .config-path {
-  font-size: 11px;
+  font-family: var(--font-family);
+  font-size: 12px;
   color: var(--color-text-muted);
   word-break: break-all;
-  padding: 8px 10px;
-  background: color-mix(in srgb, var(--color-primary) 3%, transparent);
-  border: 1px solid var(--color-border);
-  border-radius: 3px;
-  margin-top: 6px;
+  padding: 10px 12px;
+  background: rgba(255,255,255,0.02);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--border-radius);
+  margin-top: 8px;
 }
 
 /* ================================================================ */
@@ -506,15 +478,16 @@ input[type="text"]:focus {
   position: fixed;
   bottom: 12px;
   right: 12px;
-  background: color-mix(in srgb, var(--color-success) 15%, var(--color-panel-bg));
-  border: 1px solid var(--color-success);
+  background: rgba(0,255,136,0.08);
+  border: var(--border-width) solid rgba(0,255,136,0.2);
   color: var(--color-success);
   padding: 6px 14px;
-  border-radius: 4px;
-  font-size: 11px;
+  border-radius: var(--border-radius);
+  font-family: var(--font-ui);
+  font-size: 12px;
   opacity: 0;
   transform: translateY(8px);
-  transition: all 0.2s;
+  transition: all 0.2s ease;
   pointer-events: none;
 }
 #toast.show {
@@ -528,20 +501,23 @@ input[type="text"]:focus {
 
 #status-bar {
   padding: 4px 16px;
-  font-size: 10px;
+  font-family: var(--font-ui);
+  font-size: 11px;
   color: var(--color-text-muted);
-  border-top: 1px solid var(--color-border);
+  border-top: var(--border-width) solid var(--color-border);
   flex-shrink: 0;
   display: flex;
   justify-content: space-between;
 }
+
+
 </style>
 </head>
 <body>
 
 <!-- TITLE BAR -->
 <div id="title-bar">
-  <h1>[ SETTINGS ]</h1>
+  <h1>Settings</h1>
   <button id="close-btn" title="Close">&times;</button>
 </div>
 
@@ -550,16 +526,27 @@ input[type="text"]:focus {
 
   <!-- SIDEBAR NAV -->
   <div id="sidebar">
-    <div class="nav-item active" data-section="appearance">Appearance</div>
-    <div class="nav-item" data-section="visualizer">Visualizer</div>
-    <div class="nav-item" data-section="background">Background</div>
-    <div class="nav-item" data-section="auto-open">Auto-Open</div>
-    <div class="nav-item" data-section="startup">Startup</div>
-    <div class="nav-item" data-section="voice">Voice</div>
-    <div class="nav-item" data-section="keybinds">Keybinds</div>
-    <div class="nav-item" data-section="panels">Panels</div>
-    <div class="nav-item" data-section="games">Games</div>
-    <div class="nav-item" data-section="about">About</div>
+    <div class="nav-item active" data-section="appearance">
+      <span class="nav-icon">&#9673;</span>Appearance
+    </div>
+    <div class="nav-item" data-section="typography">
+      <span class="nav-icon">&#65;&#8346;</span>Typography
+    </div>
+    <div class="nav-item" data-section="layout">
+      <span class="nav-icon">&#9638;</span>Layout
+    </div>
+    <div class="nav-item" data-section="effects">
+      <span class="nav-icon">&#10024;</span>Effects
+    </div>
+    <div class="nav-item" data-section="terminal">
+      <span class="nav-icon">&#9002;</span>Terminal
+    </div>
+    <div class="nav-item" data-section="statusbar">
+      <span class="nav-icon">&#9644;</span>Status Bar
+    </div>
+    <div class="nav-item" data-section="about">
+      <span class="nav-icon">&#9432;</span>About
+    </div>
   </div>
 
   <!-- CONTENT AREA -->
@@ -592,8 +579,15 @@ input[type="text"]:focus {
       <div class="control-row">
         <span class="control-label">Background</span>
         <div class="color-wrap">
-          <input type="color" data-path="colors.background" value="#000000">
-          <span class="color-hex">#000000</span>
+          <input type="color" data-path="colors.background" value="#0a0e14">
+          <span class="color-hex">#0a0e14</span>
+        </div>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Panel Background</span>
+        <div class="color-wrap">
+          <input type="color" data-path="colors.panel_bg" value="#0f1219">
+          <span class="color-hex">#0f1219</span>
         </div>
       </div>
       <div class="control-row">
@@ -606,8 +600,22 @@ input[type="text"]:focus {
       <div class="control-row">
         <span class="control-label">Text Muted</span>
         <div class="color-wrap">
-          <input type="color" data-path="colors.text_muted" value="#888888">
-          <span class="color-hex">#888888</span>
+          <input type="color" data-path="colors.text_muted" value="#6b7280">
+          <span class="color-hex">#6b7280</span>
+        </div>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Border</span>
+        <div class="color-wrap">
+          <input type="color" data-path="colors.border" value="#1a1e26">
+          <span class="color-hex">rgba(255,255,255,0.06)</span>
+        </div>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Border Focused</span>
+        <div class="color-wrap">
+          <input type="color" data-path="colors.border_focused" value="#003344">
+          <span class="color-hex">rgba(0,212,255,0.15)</span>
         </div>
       </div>
       <div class="control-row">
@@ -631,24 +639,31 @@ input[type="text"]:focus {
           <span class="color-hex">#ff4444</span>
         </div>
       </div>
+    </div>
 
-      <div class="section-subtitle">Font</div>
+    <!-- ============================================================ -->
+    <!-- TYPOGRAPHY                                                    -->
+    <!-- ============================================================ -->
+    <div class="section" id="sec-typography">
+      <div class="section-title">Typography</div>
+
+      <div class="section-subtitle">Buffer Font</div>
       <div class="control-row">
         <span class="control-label">Family</span>
-        <input type="text" data-path="font.family" value="Menlo">
+        <input type="text" data-path="font.family" value="Menlo" placeholder="Menlo, Monaco, monospace">
       </div>
       <div class="control-row">
         <span class="control-label">Size</span>
         <div class="range-wrap">
-          <input type="range" data-path="font.size" min="8" max="32" value="13">
-          <span class="range-value">13</span>
+          <input type="range" data-path="font.size" min="8" max="32" step="1" value="13">
+          <span class="range-value">13px</span>
         </div>
       </div>
       <div class="control-row">
-        <span class="control-label">Title Size</span>
+        <span class="control-label">Weight</span>
         <div class="range-wrap">
-          <input type="range" data-path="font.title_size" min="8" max="48" value="15">
-          <span class="range-value">15</span>
+          <input type="range" data-path="font.font_weight" min="100" max="900" step="100" value="400">
+          <span class="range-value">400</span>
         </div>
       </div>
       <div class="control-row">
@@ -658,501 +673,208 @@ input[type="text"]:focus {
           <span class="range-value">1.6</span>
         </div>
       </div>
+      <div class="control-row">
+        <span class="control-label">Bold Weight</span>
+        <div class="range-wrap">
+          <input type="range" data-path="font.bold_weight" min="100" max="900" step="100" value="700">
+          <span class="range-value">700</span>
+        </div>
+      </div>
 
-      <div class="section-subtitle">Opacity</div>
+      <div class="section-subtitle">UI Font</div>
       <div class="control-row">
-        <span class="control-label">Background</span>
+        <span class="control-label">Family</span>
+        <input type="text" data-path="font.ui_family" value="-apple-system, BlinkMacSystemFont, Inter, sans-serif" placeholder="Inter, sans-serif">
+      </div>
+      <div class="control-row">
+        <span class="control-label">UI Size</span>
         <div class="range-wrap">
-          <input type="range" data-path="opacity.background" min="0" max="1" step="0.01" value="1.0">
-          <span class="range-value">1.0</span>
+          <input type="range" data-path="font.ui_size" min="10" max="24" step="1" value="13">
+          <span class="range-value">13px</span>
         </div>
       </div>
       <div class="control-row">
-        <span class="control-label">Panel</span>
+        <span class="control-label">Title Size</span>
         <div class="range-wrap">
-          <input type="range" data-path="opacity.panel" min="0" max="1" step="0.01" value="0.93">
-          <span class="range-value">0.93</span>
-        </div>
-      </div>
-      <div class="control-row">
-        <span class="control-label">Orb</span>
-        <div class="range-wrap">
-          <input type="range" data-path="opacity.orb" min="0" max="1" step="0.01" value="1.0">
-          <span class="range-value">1.0</span>
-        </div>
-      </div>
-      <div class="control-row">
-        <span class="control-label">Hex Grid</span>
-        <div class="range-wrap">
-          <input type="range" data-path="opacity.hex_grid" min="0" max="1" step="0.01" value="0.8">
-          <span class="range-value">0.8</span>
-        </div>
-      </div>
-      <div class="control-row">
-        <span class="control-label">HUD</span>
-        <div class="range-wrap">
-          <input type="range" data-path="opacity.hud" min="0" max="1" step="0.01" value="1.0">
-          <span class="range-value">1.0</span>
+          <input type="range" data-path="font.title_size" min="10" max="48" step="1" value="15">
+          <span class="range-value">15px</span>
         </div>
       </div>
     </div>
 
     <!-- ============================================================ -->
-    <!-- VISUALIZER                                                    -->
+    <!-- LAYOUT                                                        -->
     <!-- ============================================================ -->
-    <div class="section" id="sec-visualizer">
-      <div class="section-title">Visualizer</div>
-      <div class="control-row">
-        <span class="control-label">Enabled</span>
-        <label class="toggle">
-          <input type="checkbox" data-path="visualizer.enabled" checked>
-          <span class="toggle-track"></span>
-        </label>
-      </div>
-      <div class="control-row">
-        <span class="control-label">Type</span>
-        <select data-path="visualizer.visualizer_type">
-          <option value="orb">Orb</option>
-          <option value="particle">Particle</option>
-          <option value="waveform">Waveform</option>
-          <option value="image">Image</option>
-          <option value="video">Video</option>
-          <option value="none">None</option>
-        </select>
-      </div>
-      <div class="control-row">
-        <span class="control-label">Anchor</span>
-        <select data-path="visualizer.anchor">
-          <option value="center">Center</option>
-          <option value="top_left">Top Left</option>
-          <option value="top_right">Top Right</option>
-          <option value="bottom_left">Bottom Left</option>
-          <option value="bottom_right">Bottom Right</option>
-        </select>
-      </div>
-      <div class="control-row">
-        <span class="control-label">Position X</span>
-        <div class="range-wrap">
-          <input type="range" data-path="visualizer.position_x" min="-1" max="1" step="0.05" value="0">
-          <span class="range-value">0.0</span>
-        </div>
-      </div>
-      <div class="control-row">
-        <span class="control-label">Position Y</span>
-        <div class="range-wrap">
-          <input type="range" data-path="visualizer.position_y" min="-1" max="1" step="0.05" value="0">
-          <span class="range-value">0.0</span>
-        </div>
-      </div>
-      <div class="control-row">
-        <span class="control-label">Scale</span>
-        <div class="range-wrap">
-          <input type="range" data-path="visualizer.scale" min="0.1" max="3.0" step="0.05" value="1.0">
-          <span class="range-value">1.0</span>
-        </div>
-      </div>
-      <div class="control-row">
-        <span class="control-label">React to Audio</span>
-        <label class="toggle">
-          <input type="checkbox" data-path="visualizer.react_to_audio" checked>
-          <span class="toggle-track"></span>
-        </label>
-      </div>
-      <div class="control-row">
-        <span class="control-label">React to State</span>
-        <label class="toggle">
-          <input type="checkbox" data-path="visualizer.react_to_state" checked>
-          <span class="toggle-track"></span>
-        </label>
-      </div>
+    <div class="section" id="sec-layout">
+      <div class="section-title">Layout</div>
 
-      <div class="section-subtitle">Orb Settings</div>
-      <div class="control-row">
-        <span class="control-label">Color</span>
-        <div class="color-wrap">
-          <input type="color" data-path="visualizer.orb.color" value="#00d4ff">
-          <span class="color-hex">#00d4ff</span>
-        </div>
-      </div>
-      <div class="control-row">
-        <span class="control-label">Pulse Speed</span>
-        <div class="range-wrap">
-          <input type="range" data-path="visualizer.orb.pulse_speed" min="0.1" max="5.0" step="0.1" value="1.0">
-          <span class="range-value">1.0</span>
-        </div>
-      </div>
-      <div class="control-row">
-        <span class="control-label">Bloom Intensity</span>
-        <div class="range-wrap">
-          <input type="range" data-path="visualizer.orb.bloom_intensity" min="0" max="3.0" step="0.1" value="1.5">
-          <span class="range-value">1.5</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- ============================================================ -->
-    <!-- BACKGROUND                                                    -->
-    <!-- ============================================================ -->
-    <div class="section" id="sec-background">
-      <div class="section-title">Background</div>
-      <div class="control-row">
-        <span class="control-label">Mode</span>
-        <select data-path="background.mode">
-          <option value="hex_grid">Hex Grid</option>
-          <option value="solid">Solid Color</option>
-          <option value="gradient">Gradient</option>
-          <option value="image">Image</option>
-          <option value="video">Video</option>
-          <option value="none">None</option>
-        </select>
-      </div>
-      <div class="control-row">
-        <span class="control-label">Solid Color</span>
-        <div class="color-wrap">
-          <input type="color" data-path="background.solid_color" value="#000000">
-          <span class="color-hex">#000000</span>
-        </div>
-      </div>
-
-      <div class="section-subtitle">Hex Grid</div>
-      <div class="control-row">
-        <span class="control-label">Color</span>
-        <div class="color-wrap">
-          <input type="color" data-path="background.hex_grid.color" value="#00d4ff">
-          <span class="color-hex">#00d4ff</span>
-        </div>
-      </div>
-      <div class="control-row">
-        <span class="control-label">Opacity</span>
-        <div class="range-wrap">
-          <input type="range" data-path="background.hex_grid.opacity" min="0" max="1" step="0.01" value="0.08">
-          <span class="range-value">0.08</span>
-        </div>
-      </div>
-      <div class="control-row">
-        <span class="control-label">Animation Speed</span>
-        <div class="range-wrap">
-          <input type="range" data-path="background.hex_grid.animation_speed" min="0" max="5" step="0.1" value="1.0">
-          <span class="range-value">1.0</span>
-        </div>
-      </div>
-      <div class="control-row">
-        <span class="control-label">Glow Intensity</span>
-        <div class="range-wrap">
-          <input type="range" data-path="background.hex_grid.glow_intensity" min="0" max="3" step="0.1" value="0.5">
-          <span class="range-value">0.5</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- ============================================================ -->
-    <!-- AUTO-OPEN PANELS                                              -->
-    <!-- ============================================================ -->
-    <div class="section" id="sec-auto-open">
-      <div class="section-title">Auto-Open Panels</div>
-      <div class="control-hint" style="margin-bottom:10px">
-        Panels that open automatically when Jarvis starts.
-      </div>
-      <div id="panel-list" class="panel-list"></div>
-      <button class="btn-add" id="btn-add-panel">+ Add Panel</button>
-    </div>
-
-    <!-- ============================================================ -->
-    <!-- STARTUP                                                       -->
-    <!-- ============================================================ -->
-    <div class="section" id="sec-startup">
-      <div class="section-title">Startup</div>
-
-      <div class="section-subtitle">Boot Animation</div>
-      <div class="control-row">
-        <span class="control-label">Enabled</span>
-        <label class="toggle">
-          <input type="checkbox" data-path="startup.boot_animation.enabled" checked>
-          <span class="toggle-track"></span>
-        </label>
-      </div>
-      <div class="control-row">
-        <span class="control-label">Duration (s)</span>
-        <div class="range-wrap">
-          <input type="range" data-path="startup.boot_animation.duration" min="1" max="60" step="1" value="27">
-          <span class="range-value">27</span>
-        </div>
-      </div>
-      <div class="control-row">
-        <span class="control-label">Skip on Key</span>
-        <label class="toggle">
-          <input type="checkbox" data-path="startup.boot_animation.skip_on_key" checked>
-          <span class="toggle-track"></span>
-        </label>
-      </div>
-
-      <div class="section-subtitle">Fast Start</div>
-      <div class="control-row">
-        <span class="control-label">Enabled</span>
-        <label class="toggle">
-          <input type="checkbox" data-path="startup.fast_start.enabled">
-          <span class="toggle-track"></span>
-        </label>
-      </div>
-      <div class="control-row">
-        <span class="control-label">Delay (s)</span>
-        <div class="range-wrap">
-          <input type="range" data-path="startup.fast_start.delay" min="0" max="5" step="0.1" value="0.5">
-          <span class="range-value">0.5</span>
-        </div>
-      </div>
-
-      <div class="section-subtitle">On Ready</div>
-      <div class="control-row">
-        <span class="control-label">Action</span>
-        <select data-path="startup.on_ready.action">
-          <option value="listening">Listening</option>
-          <option value="panels">Panels</option>
-          <option value="chat">Chat</option>
-          <option value="game">Game</option>
-          <option value="skill">Skill</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- ============================================================ -->
-    <!-- VOICE                                                         -->
-    <!-- ============================================================ -->
-    <div class="section" id="sec-voice">
-      <div class="section-title">Voice</div>
-      <div class="control-row">
-        <span class="control-label">Enabled</span>
-        <label class="toggle">
-          <input type="checkbox" data-path="voice.enabled" checked>
-          <span class="toggle-track"></span>
-        </label>
-      </div>
-      <div class="control-row">
-        <span class="control-label">Mode</span>
-        <select data-path="voice.mode">
-          <option value="ptt">Push to Talk</option>
-          <option value="vad">Voice Activity Detection</option>
-        </select>
-      </div>
-      <div class="control-row">
-        <span class="control-label">Input Device</span>
-        <input type="text" data-path="voice.input_device" value="default">
-      </div>
-      <div class="control-row">
-        <span class="control-label">Sample Rate</span>
-        <select data-path="voice.sample_rate">
-          <option value="16000">16000 Hz</option>
-          <option value="24000" selected>24000 Hz</option>
-          <option value="44100">44100 Hz</option>
-          <option value="48000">48000 Hz</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- ============================================================ -->
-    <!-- KEYBINDS                                                      -->
-    <!-- ============================================================ -->
-    <div class="section" id="sec-keybinds">
-      <div class="section-title">Keybinds</div>
-      <div class="control-hint" style="margin-bottom:10px">
-        Click a keybind to record a new shortcut. Press Escape to cancel.
-      </div>
-      <div class="control-row">
-        <span class="control-label">Push to Talk</span>
-        <div class="keybind-input" data-path="keybinds.push_to_talk">Option+Period</div>
-      </div>
-      <div class="control-row">
-        <span class="control-label">Open Assistant</span>
-        <div class="keybind-input" data-path="keybinds.open_assistant">Cmd+G</div>
-      </div>
-      <div class="control-row">
-        <span class="control-label">New Panel</span>
-        <div class="keybind-input" data-path="keybinds.new_panel">Cmd+T</div>
-      </div>
-      <div class="control-row">
-        <span class="control-label">Close Panel</span>
-        <div class="keybind-input" data-path="keybinds.close_panel">Escape+Escape</div>
-      </div>
-      <div class="control-row">
-        <span class="control-label">Toggle Fullscreen</span>
-        <div class="keybind-input" data-path="keybinds.toggle_fullscreen">Cmd+F</div>
-      </div>
-      <div class="control-row">
-        <span class="control-label">Open Settings</span>
-        <div class="keybind-input" data-path="keybinds.open_settings">Cmd+,</div>
-      </div>
-      <div class="control-row">
-        <span class="control-label">Cycle Panels</span>
-        <div class="keybind-input" data-path="keybinds.cycle_panels">Tab</div>
-      </div>
-      <div class="control-row">
-        <span class="control-label">Cycle Reverse</span>
-        <div class="keybind-input" data-path="keybinds.cycle_panels_reverse">Shift+Tab</div>
-      </div>
-    </div>
-
-    <!-- ============================================================ -->
-    <!-- PANELS                                                        -->
-    <!-- ============================================================ -->
-    <div class="section" id="sec-panels">
-      <div class="section-title">Panels</div>
-
-      <div class="section-subtitle">Layout</div>
+      <div class="section-subtitle">Spacing</div>
       <div class="control-row">
         <span class="control-label">Panel Gap</span>
         <div class="range-wrap">
-          <input type="range" data-path="layout.panel_gap" min="0" max="20" value="2">
-          <span class="range-value">2</span>
-        </div>
-      </div>
-      <div class="control-row">
-        <span class="control-label">Border Radius</span>
-        <div class="range-wrap">
-          <input type="range" data-path="layout.border_radius" min="0" max="20" value="4">
-          <span class="range-value">4</span>
+          <input type="range" data-path="layout.panel_gap" min="0" max="24" step="1" value="2">
+          <span class="range-value">2px</span>
         </div>
       </div>
       <div class="control-row">
         <span class="control-label">Padding</span>
         <div class="range-wrap">
-          <input type="range" data-path="layout.padding" min="0" max="40" value="14">
-          <span class="range-value">14</span>
+          <input type="range" data-path="layout.padding" min="0" max="40" step="1" value="12">
+          <span class="range-value">12px</span>
         </div>
       </div>
       <div class="control-row">
-        <span class="control-label">Max Panels</span>
+        <span class="control-label">Outer Padding</span>
         <div class="range-wrap">
-          <input type="range" data-path="layout.max_panels" min="1" max="10" value="5">
-          <span class="range-value">5</span>
+          <input type="range" data-path="layout.outer_padding" min="0" max="40" step="1" value="0">
+          <span class="range-value">0px</span>
+        </div>
+      </div>
+
+      <div class="section-subtitle">Borders</div>
+      <div class="control-row">
+        <span class="control-label">Border Radius</span>
+        <div class="range-wrap">
+          <input type="range" data-path="layout.border_radius" min="0" max="20" step="1" value="6">
+          <span class="range-value">6px</span>
         </div>
       </div>
       <div class="control-row">
-        <span class="control-label">Default Width</span>
+        <span class="control-label">Border Width</span>
         <div class="range-wrap">
-          <input type="range" data-path="layout.default_panel_width" min="0.3" max="1.0" step="0.01" value="0.72">
-          <span class="range-value">0.72</span>
+          <input type="range" data-path="layout.border_width" min="0" max="4" step="1" value="1">
+          <span class="range-value">1px</span>
         </div>
       </div>
+
+      <div class="section-subtitle">Scrollbar</div>
       <div class="control-row">
         <span class="control-label">Scrollbar Width</span>
         <div class="range-wrap">
-          <input type="range" data-path="layout.scrollbar_width" min="1" max="10" value="3">
-          <span class="range-value">3</span>
+          <input type="range" data-path="layout.scrollbar_width" min="1" max="12" step="1" value="6">
+          <span class="range-value">6px</span>
         </div>
-      </div>
-
-      <div class="section-subtitle">History</div>
-      <div class="control-row">
-        <span class="control-label">Enabled</span>
-        <label class="toggle">
-          <input type="checkbox" data-path="panels.history.enabled" checked>
-          <span class="toggle-track"></span>
-        </label>
-      </div>
-      <div class="control-row">
-        <span class="control-label">Max Messages</span>
-        <div class="range-wrap">
-          <input type="range" data-path="panels.history.max_messages" min="100" max="10000" step="100" value="1000">
-          <span class="range-value">1000</span>
-        </div>
-      </div>
-
-      <div class="section-subtitle">Focus</div>
-      <div class="control-row">
-        <span class="control-label">Restore on Activate</span>
-        <label class="toggle">
-          <input type="checkbox" data-path="panels.focus.restore_on_activate" checked>
-          <span class="toggle-track"></span>
-        </label>
-      </div>
-      <div class="control-row">
-        <span class="control-label">Show Indicator</span>
-        <label class="toggle">
-          <input type="checkbox" data-path="panels.focus.show_indicator" checked>
-          <span class="toggle-track"></span>
-        </label>
-      </div>
-      <div class="control-row">
-        <span class="control-label">Border Glow</span>
-        <label class="toggle">
-          <input type="checkbox" data-path="panels.focus.border_glow" checked>
-          <span class="toggle-track"></span>
-        </label>
       </div>
     </div>
 
     <!-- ============================================================ -->
-    <!-- GAMES                                                         -->
+    <!-- EFFECTS                                                       -->
     <!-- ============================================================ -->
-    <div class="section" id="sec-games">
-      <div class="section-title">Games</div>
+    <div class="section" id="sec-effects">
+      <div class="section-title">Effects</div>
+
+      <div class="section-subtitle">Blur &amp; Saturation</div>
       <div class="control-row">
-        <span class="control-label">Wordle</span>
+        <span class="control-label">Blur Radius</span>
+        <div class="range-wrap">
+          <input type="range" data-path="effects.blur_radius" min="0" max="40" step="1" value="12">
+          <span class="range-value">12px</span>
+        </div>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Saturate</span>
+        <div class="range-wrap">
+          <input type="range" data-path="effects.saturate" min="0.5" max="2.0" step="0.05" value="1.1">
+          <span class="range-value">1.10</span>
+        </div>
+      </div>
+
+      <div class="section-subtitle">Transitions</div>
+      <div class="control-row">
+        <span class="control-label">Transition Speed</span>
+        <div class="range-wrap">
+          <input type="range" data-path="effects.transition_speed" min="0" max="500" step="10" value="150">
+          <span class="range-value">150ms</span>
+        </div>
+      </div>
+
+      <div class="section-subtitle">Glow</div>
+      <div class="control-row">
+        <span class="control-label">Glow Intensity</span>
+        <div class="range-wrap">
+          <input type="range" data-path="effects.glow.intensity" min="0" max="3.0" step="0.1" value="0">
+          <span class="range-value">0.0</span>
+        </div>
+      </div>
+
+      <div class="section-subtitle">Opacity</div>
+      <div class="control-row">
+        <span class="control-label">Panel Opacity</span>
+        <div class="range-wrap">
+          <input type="range" data-path="opacity.panel" min="0" max="1" step="0.01" value="0.85">
+          <span class="range-value">0.85</span>
+        </div>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Background Opacity</span>
+        <div class="range-wrap">
+          <input type="range" data-path="opacity.background" min="0" max="1" step="0.01" value="1.0">
+          <span class="range-value">1.00</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- TERMINAL                                                      -->
+    <!-- ============================================================ -->
+    <div class="section" id="sec-terminal">
+      <div class="section-title">Terminal</div>
+
+      <div class="section-subtitle">Cursor</div>
+      <div class="control-row">
+        <span class="control-label">Cursor Style</span>
+        <select data-path="terminal.cursor_style">
+          <option value="block">Block</option>
+          <option value="underline">Underline</option>
+          <option value="beam">Beam</option>
+        </select>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Cursor Blink</span>
         <label class="toggle">
-          <input type="checkbox" data-path="games.enabled.wordle" checked>
+          <input type="checkbox" data-path="terminal.cursor_blink" checked>
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+
+      <div class="section-subtitle">Buffer</div>
+      <div class="control-row">
+        <span class="control-label">Scrollback Lines</span>
+        <input type="number" data-path="terminal.scrollback_lines" min="100" max="100000" step="100" value="10000">
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- STATUS BAR                                                    -->
+    <!-- ============================================================ -->
+    <div class="section" id="sec-statusbar">
+      <div class="section-title">Status Bar</div>
+
+      <div class="section-subtitle">General</div>
+      <div class="control-row">
+        <span class="control-label">Enabled</span>
+        <label class="toggle">
+          <input type="checkbox" data-path="status_bar.enabled" checked>
           <span class="toggle-track"></span>
         </label>
       </div>
       <div class="control-row">
-        <span class="control-label">Connections</span>
+        <span class="control-label">Height</span>
+        <input type="number" data-path="status_bar.height" min="16" max="48" step="1" value="24">
+      </div>
+
+      <div class="section-subtitle">Visibility</div>
+      <div class="control-row">
+        <span class="control-label">Show Panel Buttons</span>
         <label class="toggle">
-          <input type="checkbox" data-path="games.enabled.connections" checked>
+          <input type="checkbox" data-path="status_bar.show_panel_buttons" checked>
           <span class="toggle-track"></span>
         </label>
       </div>
       <div class="control-row">
-        <span class="control-label">Asteroids</span>
+        <span class="control-label">Show Online Count</span>
         <label class="toggle">
-          <input type="checkbox" data-path="games.enabled.asteroids" checked>
-          <span class="toggle-track"></span>
-        </label>
-      </div>
-      <div class="control-row">
-        <span class="control-label">Tetris</span>
-        <label class="toggle">
-          <input type="checkbox" data-path="games.enabled.tetris" checked>
-          <span class="toggle-track"></span>
-        </label>
-      </div>
-      <div class="control-row">
-        <span class="control-label">Pinball</span>
-        <label class="toggle">
-          <input type="checkbox" data-path="games.enabled.pinball" checked>
-          <span class="toggle-track"></span>
-        </label>
-      </div>
-      <div class="control-row">
-        <span class="control-label">Doodle Jump</span>
-        <label class="toggle">
-          <input type="checkbox" data-path="games.enabled.doodlejump" checked>
-          <span class="toggle-track"></span>
-        </label>
-      </div>
-      <div class="control-row">
-        <span class="control-label">Minesweeper</span>
-        <label class="toggle">
-          <input type="checkbox" data-path="games.enabled.minesweeper" checked>
-          <span class="toggle-track"></span>
-        </label>
-      </div>
-      <div class="control-row">
-        <span class="control-label">Draw</span>
-        <label class="toggle">
-          <input type="checkbox" data-path="games.enabled.draw" checked>
-          <span class="toggle-track"></span>
-        </label>
-      </div>
-      <div class="control-row">
-        <span class="control-label">Subway</span>
-        <label class="toggle">
-          <input type="checkbox" data-path="games.enabled.subway" checked>
-          <span class="toggle-track"></span>
-        </label>
-      </div>
-      <div class="control-row">
-        <span class="control-label">Video Player</span>
-        <label class="toggle">
-          <input type="checkbox" data-path="games.enabled.videoplayer" checked>
+          <input type="checkbox" data-path="status_bar.show_online_count" checked>
           <span class="toggle-track"></span>
         </label>
       </div>
@@ -1163,6 +885,7 @@ input[type="text"]:focus {
     <!-- ============================================================ -->
     <div class="section" id="sec-about">
       <div class="section-title">About</div>
+
       <div class="info-row">
         <span class="info-label">Version</span>
         <span class="info-value" id="about-version">0.1.0</span>
@@ -1180,56 +903,13 @@ input[type="text"]:focus {
         <span class="info-value">v1</span>
       </div>
 
-      <div class="section-subtitle">Debug</div>
-      <div class="control-row">
-        <span class="control-label">Show FPS</span>
-        <label class="toggle">
-          <input type="checkbox" data-path="advanced.developer.show_fps">
-          <span class="toggle-track"></span>
-        </label>
-      </div>
-      <div class="control-row">
-        <span class="control-label">Show Debug HUD</span>
-        <label class="toggle">
-          <input type="checkbox" data-path="advanced.developer.show_debug_hud">
-          <span class="toggle-track"></span>
-        </label>
-      </div>
-      <div class="control-row">
-        <span class="control-label">Inspector</span>
-        <label class="toggle">
-          <input type="checkbox" data-path="advanced.developer.inspector_enabled">
-          <span class="toggle-track"></span>
-        </label>
-      </div>
-
-      <div class="section-subtitle">Performance</div>
-      <div class="control-row">
-        <span class="control-label">Preset</span>
-        <select data-path="performance.preset">
-          <option value="low">Low</option>
-          <option value="medium">Medium</option>
-          <option value="high" selected>High</option>
-          <option value="ultra">Ultra</option>
-        </select>
-      </div>
-      <div class="control-row">
-        <span class="control-label">Frame Rate</span>
-        <div class="range-wrap">
-          <input type="range" data-path="performance.frame_rate" min="30" max="120" value="60">
-          <span class="range-value">60</span>
-        </div>
-      </div>
-      <div class="control-row">
-        <span class="control-label">Bloom Passes</span>
-        <div class="range-wrap">
-          <input type="range" data-path="performance.bloom_passes" min="1" max="4" value="2">
-          <span class="range-value">2</span>
-        </div>
-      </div>
-
       <div class="section-subtitle">Config File</div>
       <div id="config-path" class="config-path">~/.config/jarvis/config.toml</div>
+
+      <div class="about-links">
+        <span class="about-link" onclick="sendIpc('open_url', { url: 'https://github.com/nicholasgasior/jarvis' })">GitHub</span>
+        <span class="about-link" onclick="sendIpc('open_url', { url: 'https://github.com/nicholasgasior/jarvis/issues' })">Report Issue</span>
+      </div>
     </div>
 
   </div><!-- /content -->
@@ -1304,9 +984,19 @@ function settingsUpdate(path, value) {
 document.querySelectorAll('input[type="range"]').forEach(function(el) {
   var display = el.parentElement.querySelector('.range-value');
   el.addEventListener('input', function() {
-    if (display) { display.textContent = el.value; }
     var val = parseFloat(el.value);
-    if (Number.isInteger(val) && el.step === '1') { val = parseInt(el.value, 10); }
+    if (display) {
+      var path = el.getAttribute('data-path');
+      // Determine unit suffix based on path
+      if (path.indexOf('opacity') !== -1 || path === 'effects.saturate' || path === 'effects.glow.intensity' || path === 'font.line_height' || path === 'font.font_weight' || path === 'font.bold_weight') {
+        display.textContent = val % 1 === 0 ? val.toFixed(0) : val.toFixed(2);
+      } else if (path === 'effects.transition_speed') {
+        display.textContent = val + 'ms';
+      } else {
+        display.textContent = val + 'px';
+      }
+    }
+    if (Number.isInteger(val) && (!el.step || el.step === '1')) { val = parseInt(el.value, 10); }
     settingsUpdate(el.getAttribute('data-path'), val);
   });
 });
@@ -1331,17 +1021,25 @@ document.querySelectorAll('.toggle input[type="checkbox"]').forEach(function(el)
 document.querySelectorAll('select[data-path]').forEach(function(el) {
   el.addEventListener('change', function() {
     var val = el.value;
-    // Try to parse as number for sample_rate etc
     var num = parseFloat(val);
     if (!isNaN(num) && String(num) === val) { val = num; }
     settingsUpdate(el.getAttribute('data-path'), val);
   });
 });
 
-// Text inputs — fire IPC on blur (not every keystroke)
+// Text inputs — fire IPC on change (blur/enter)
 document.querySelectorAll('input[type="text"][data-path]').forEach(function(el) {
   el.addEventListener('change', function() {
     settingsUpdate(el.getAttribute('data-path'), el.value);
+  });
+});
+
+// Number inputs — fire IPC on change
+document.querySelectorAll('input[type="number"][data-path]').forEach(function(el) {
+  el.addEventListener('change', function() {
+    var val = parseFloat(el.value);
+    if (Number.isInteger(val)) { val = parseInt(el.value, 10); }
+    settingsUpdate(el.getAttribute('data-path'), val);
   });
 });
 
@@ -1365,7 +1063,7 @@ function renderThemes(themes, activeTheme) {
 
     var preview = document.createElement('div');
     preview.className = 'theme-preview';
-    var colors = theme.preview_colors || ['#00d4ff', '#000000', '#0d1117', '#f0ece4'];
+    var colors = theme.preview_colors || ['#00d4ff', '#0a0e14', '#0f1219', '#f0ece4'];
     colors.forEach(function(c) {
       var swatch = document.createElement('div');
       swatch.className = 'swatch';
@@ -1386,132 +1084,6 @@ function renderThemes(themes, activeTheme) {
 }
 
 // =========================================================================
-// KEYBIND RECORDING
-// =========================================================================
-
-var recordingEl = null;
-
-document.querySelectorAll('.keybind-input').forEach(function(el) {
-  el.addEventListener('click', function() {
-    if (recordingEl) { recordingEl.classList.remove('recording'); }
-    recordingEl = el;
-    el.classList.add('recording');
-    el.textContent = 'Press keys...';
-  });
-});
-
-document.addEventListener('keydown', function(e) {
-  if (!recordingEl) { return; }
-  e.preventDefault();
-  e.stopPropagation();
-
-  if (e.key === 'Escape') {
-    // Cancel recording — restore original
-    recordingEl.classList.remove('recording');
-    recordingEl = null;
-    return;
-  }
-
-  var parts = [];
-  if (e.metaKey) { parts.push('Cmd'); }
-  if (e.ctrlKey) { parts.push('Ctrl'); }
-  if (e.altKey) { parts.push('Option'); }
-  if (e.shiftKey) { parts.push('Shift'); }
-
-  var key = e.key;
-  if (key === ' ') { key = 'Space'; }
-  else if (key === '.') { key = 'Period'; }
-  else if (key === ',') { key = 'Comma'; }
-  else if (key.length === 1) { key = key.toUpperCase(); }
-
-  if (!['Meta', 'Control', 'Alt', 'Shift'].includes(e.key)) {
-    parts.push(key);
-  } else {
-    return; // Wait for a non-modifier key
-  }
-
-  var combo = parts.join('+');
-  recordingEl.textContent = combo;
-  recordingEl.classList.remove('recording');
-  settingsUpdate(recordingEl.getAttribute('data-path'), combo);
-  recordingEl = null;
-}, true);
-
-// =========================================================================
-// AUTO-OPEN PANELS
-// =========================================================================
-
-var autoOpenPanels = [];
-
-function renderAutoOpenPanels() {
-  var list = document.getElementById('panel-list');
-  while (list.firstChild) { list.removeChild(list.firstChild); }
-
-  autoOpenPanels.forEach(function(panel, idx) {
-    var entry = document.createElement('div');
-    entry.className = 'panel-entry';
-
-    var kindSelect = document.createElement('select');
-    ['terminal', 'assistant', 'chat', 'settings', 'presence'].forEach(function(k) {
-      var opt = document.createElement('option');
-      opt.value = k;
-      opt.textContent = k;
-      if (k === panel.kind) { opt.selected = true; }
-      kindSelect.appendChild(opt);
-    });
-    kindSelect.addEventListener('change', function() {
-      autoOpenPanels[idx].kind = kindSelect.value;
-      sendAutoOpenUpdate();
-    });
-
-    var titleInput = document.createElement('input');
-    titleInput.type = 'text';
-    titleInput.value = panel.title || '';
-    titleInput.placeholder = 'Title';
-    titleInput.style.width = '90px';
-    titleInput.addEventListener('change', function() {
-      autoOpenPanels[idx].title = titleInput.value || null;
-      sendAutoOpenUpdate();
-    });
-
-    var cmdInput = document.createElement('input');
-    cmdInput.type = 'text';
-    cmdInput.value = panel.command || '';
-    cmdInput.placeholder = 'Command';
-    cmdInput.style.width = '100px';
-    cmdInput.addEventListener('change', function() {
-      autoOpenPanels[idx].command = cmdInput.value || null;
-      sendAutoOpenUpdate();
-    });
-
-    var removeBtn = document.createElement('button');
-    removeBtn.className = 'btn-remove';
-    removeBtn.textContent = '\u00d7';
-    removeBtn.addEventListener('click', function() {
-      autoOpenPanels.splice(idx, 1);
-      renderAutoOpenPanels();
-      sendAutoOpenUpdate();
-    });
-
-    entry.appendChild(kindSelect);
-    entry.appendChild(titleInput);
-    entry.appendChild(cmdInput);
-    entry.appendChild(removeBtn);
-    list.appendChild(entry);
-  });
-}
-
-function sendAutoOpenUpdate() {
-  settingsUpdate('auto_open.panels', autoOpenPanels);
-}
-
-document.getElementById('btn-add-panel').addEventListener('click', function() {
-  autoOpenPanels.push({ kind: 'terminal', title: 'Terminal', command: null, args: [], working_directory: null });
-  renderAutoOpenPanels();
-  sendAutoOpenUpdate();
-});
-
-// =========================================================================
 // CLOSE BUTTON
 // =========================================================================
 
@@ -1526,7 +1098,6 @@ document.getElementById('close-btn').addEventListener('click', function() {
 function populateFromConfig(config) {
   if (!config) { return; }
 
-  // Set all data-path controls from config
   document.querySelectorAll('[data-path]').forEach(function(el) {
     var path = el.getAttribute('data-path');
     var val = getNestedValue(config, path);
@@ -1537,36 +1108,30 @@ function populateFromConfig(config) {
     } else if (el.type === 'range') {
       el.value = val;
       var display = el.parentElement.querySelector('.range-value');
-      if (display) { display.textContent = val; }
+      if (display) {
+        var numVal = parseFloat(val);
+        if (path.indexOf('opacity') !== -1 || path === 'effects.saturate' || path === 'effects.glow.intensity' || path === 'font.line_height' || path === 'font.font_weight' || path === 'font.bold_weight') {
+          display.textContent = numVal % 1 === 0 ? numVal.toFixed(0) : numVal.toFixed(2);
+        } else if (path === 'effects.transition_speed') {
+          display.textContent = numVal + 'ms';
+        } else {
+          display.textContent = numVal + 'px';
+        }
+      }
     } else if (el.type === 'color') {
-      // Convert rgba/named to hex if needed, or just set if hex
       if (typeof val === 'string' && val.startsWith('#') && val.length <= 9) {
         el.value = val.substring(0, 7);
       }
       var hexDisplay = el.parentElement.querySelector('.color-hex');
       if (hexDisplay) { hexDisplay.textContent = val; }
+    } else if (el.type === 'number') {
+      el.value = val;
     } else if (el.tagName === 'SELECT') {
       el.value = String(val);
     } else if (el.tagName === 'INPUT') {
       el.value = val;
-    } else if (el.classList.contains('keybind-input')) {
-      el.textContent = val;
     }
   });
-
-  // Auto-open panels
-  if (config.auto_open && Array.isArray(config.auto_open.panels)) {
-    autoOpenPanels = config.auto_open.panels.map(function(p) {
-      return {
-        kind: p.kind || 'terminal',
-        title: p.title || null,
-        command: p.command || null,
-        args: p.args || [],
-        working_directory: p.working_directory || null
-      };
-    });
-    renderAutoOpenPanels();
-  }
 }
 
 function getNestedValue(obj, path) {
@@ -1585,12 +1150,10 @@ function getNestedValue(obj, path) {
 
 onIpc('settings_data', function(payload) {
   if (payload && payload.currentTheme) {
-    // Theme list from settings_init
     if (Array.isArray(payload.availableThemes)) {
       renderThemes(payload.availableThemes, payload.currentTheme);
     }
   }
-  // Full config data
   if (payload && payload.config) {
     populateFromConfig(payload.config);
   }

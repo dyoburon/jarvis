@@ -6,10 +6,8 @@
 mod sequence;
 mod types;
 
-#[cfg(test)]
-use sequence::BootSequence;
-#[cfg(test)]
-use types::BootPhase;
+pub use sequence::BootSequence;
+pub use types::BootPhase;
 
 #[cfg(test)]
 mod tests {

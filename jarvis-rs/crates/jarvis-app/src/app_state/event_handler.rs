@@ -17,6 +17,8 @@ use super::resize_drag::{
     cursor_zone, drag_ratio_delta, find_hovered_border, CursorZone, DragState,
 };
 
+use crate::boot::BootPhase;
+
 use super::core::JarvisApp;
 
 impl ApplicationHandler for JarvisApp {
@@ -30,8 +32,18 @@ impl ApplicationHandler for JarvisApp {
             return;
         }
 
-        // Set up default 3-pane layout: 2 assistant + 1 chat
-        self.setup_default_layout();
+        // If boot animation is active, show fullscreen boot webview.
+        // Otherwise set up panels immediately.
+        let booting = self
+            .boot
+            .as_ref()
+            .is_some_and(|b| b.phase() == BootPhase::Splash);
+
+        if booting {
+            self.show_boot_webview();
+        } else {
+            self.setup_default_layout();
+        }
 
         self.start_presence();
         self.update_window_title();
@@ -96,6 +108,10 @@ impl ApplicationHandler for JarvisApp {
             event_loop.exit();
             return;
         }
+
+        // Boot webview sends 'boot:complete' IPC when done — handled in
+        // ipc_dispatch. Nothing to drive here.
+
         self.poll_and_schedule(event_loop);
     }
 }
@@ -151,7 +167,7 @@ impl JarvisApp {
 
     /// Opens panels from `config.auto_open.panels`.
     /// Falls back to a single terminal if the list is empty.
-    fn setup_default_layout(&mut self) {
+    pub(super) fn setup_default_layout(&mut self) {
         let panels = self.config.auto_open.panels.clone();
 
         let first = panels.first();
@@ -183,6 +199,7 @@ impl JarvisApp {
         }
 
         self.tiling.focus_pane(pane1);
+        self.notify_focus_changed();
         self.sync_webview_bounds();
     }
 
