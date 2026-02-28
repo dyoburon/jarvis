@@ -20,6 +20,17 @@ impl Clipboard {
             .map_err(|e| PlatformError::ClipboardError(e.to_string()))
     }
 
+    /// Reads image data from the system clipboard as RGBA pixels.
+    ///
+    /// Returns `(width, height, rgba_bytes)` or an error if no image is present.
+    pub fn get_image(&mut self) -> Result<(usize, usize, Vec<u8>), PlatformError> {
+        let img = self
+            .inner
+            .get_image()
+            .map_err(|e| PlatformError::ClipboardError(e.to_string()))?;
+        Ok((img.width, img.height, img.bytes.into_owned()))
+    }
+
     /// Writes text to the system clipboard.
     pub fn set_text(&mut self, text: &str) -> Result<(), PlatformError> {
         self.inner

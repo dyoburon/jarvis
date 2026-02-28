@@ -51,6 +51,14 @@ impl Action {
                 "videoplayer" => "Open Video Player",
                 _ => "Launch Game",
             },
+            Action::OpenURL(ref url) => {
+                if url.contains("kartbros") {
+                    "Play KartBros"
+                } else {
+                    "Open Website"
+                }
+            }
+            Action::PairMobile => "Pair Mobile Device",
             Action::ReloadConfig => "Reload Config",
             Action::None => "None",
         }
@@ -83,6 +91,9 @@ impl Action {
             Action::LaunchGame("pinball".into()),
             Action::LaunchGame("doodlejump".into()),
             Action::LaunchGame("draw".into()),
+            Action::LaunchGame("subway".into()),
+            Action::OpenURL("https://kartbros.io".into()),
+            Action::PairMobile,
             Action::ReloadConfig,
             Action::Quit,
         ]

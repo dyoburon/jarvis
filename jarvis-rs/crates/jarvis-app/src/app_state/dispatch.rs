@@ -100,6 +100,7 @@ impl JarvisApp {
                 self.command_palette = Some(jarvis_renderer::CommandPalette::new(&self.registry));
                 self.input.set_mode(InputMode::CommandPalette);
                 self.send_palette_to_webview("palette_show");
+                self.notify_overlay_state();
                 self.needs_redraw = true;
             }
             Action::OpenAssistant => {
@@ -113,6 +114,7 @@ impl JarvisApp {
                     self.input.set_mode(InputMode::Assistant);
                     self.ensure_assistant_runtime();
                 }
+                self.notify_overlay_state();
                 self.needs_redraw = true;
             }
             Action::CloseOverlay => {
@@ -125,6 +127,7 @@ impl JarvisApp {
                     self.command_palette = None;
                 }
                 self.input.set_mode(InputMode::Terminal);
+                self.notify_overlay_state();
             }
             Action::OpenSettings => {
                 self.input.set_mode(InputMode::Settings);
@@ -201,6 +204,21 @@ impl JarvisApp {
                         }
                     }
                 }
+            }
+            Action::OpenURL(ref url) => {
+                let focused = self.tiling.focused_id();
+                if let Some(ref registry) = self.webviews {
+                    if let Some(handle) = registry.get(focused) {
+                        let escaped = url.replace('\'', "\\'");
+                        let js = format!("window.showFullscreenGame('{}')", escaped);
+                        if let Err(e) = handle.evaluate_script(&js) {
+                            tracing::warn!(error = %e, url = %url, "Failed to open URL");
+                        }
+                    }
+                }
+            }
+            Action::PairMobile => {
+                self.show_pair_code();
             }
             Action::ReloadConfig => match jarvis_config::load_config() {
                 Ok(c) => {

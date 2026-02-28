@@ -35,6 +35,9 @@ pub enum Action {
     // -- Games --
     LaunchGame(String),
 
+    // -- Web --
+    OpenURL(String),
+
     // -- AI / Voice --
     OpenAssistant,
     PushToTalk,
@@ -54,6 +57,9 @@ pub enum Action {
     SearchPrev,
     ClearTerminal,
     ResetTerminal,
+
+    // -- Mobile --
+    PairMobile,
 
     // -- Config --
     ReloadConfig,

@@ -253,6 +253,12 @@ impl CryptoService {
             .get(&handle)
             .ok_or_else(|| PlatformError::CryptoError(format!("unknown key handle: {handle}")))
     }
+
+    /// Export raw AES-256 key bytes for a handle.
+    /// Used to pass the key to an async task that does its own encryption.
+    pub fn export_key(&self, handle: u32) -> Result<[u8; 32], PlatformError> {
+        self.get_key(handle).copied()
+    }
 }
 
 // ---------------------------------------------------------------------------
