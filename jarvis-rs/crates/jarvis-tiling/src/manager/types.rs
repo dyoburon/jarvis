@@ -97,6 +97,16 @@ impl TilingManager {
         self.layout_engine.gap = gap;
     }
 
+    /// Update the outer padding around the tiling area.
+    pub fn set_outer_padding(&mut self, padding: u32) {
+        self.layout_engine.outer_padding = padding;
+    }
+
+    /// Get the current outer padding.
+    pub fn outer_padding(&self) -> u32 {
+        self.layout_engine.outer_padding
+    }
+
     /// Get the stack at a given leaf position, if one exists.
     pub fn stack(&self, leaf_id: u32) -> Option<&PaneStack> {
         self.stacks.get(&leaf_id)

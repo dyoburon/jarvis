@@ -81,6 +81,7 @@ impl JarvisApp {
         let chrome = UiChrome::from_config(&config.layout);
         let layout_engine = LayoutEngine {
             gap: config.layout.panel_gap,
+            outer_padding: config.layout.padding,
             ..Default::default()
         };
         Self {

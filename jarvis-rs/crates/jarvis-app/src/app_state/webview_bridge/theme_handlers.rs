@@ -21,6 +21,8 @@ pub fn config_to_css_variables(config: &JarvisConfig) -> Vec<(String, String, Cs
     let c = &config.colors;
     let f = &config.font;
 
+    let l = &config.layout;
+
     vec![
         // Colors
         css_color("--color-primary", &c.primary),
@@ -40,6 +42,11 @@ pub fn config_to_css_variables(config: &JarvisConfig) -> Vec<(String, String, Cs
         css_numeric("--font-size", &format!("{}px", f.size)),
         css_numeric("--font-title-size", &format!("{}px", f.title_size)),
         css_numeric("--line-height", &format!("{}", f.line_height)),
+        // Layout
+        css_numeric("--border-radius", &format!("{}px", l.border_radius)),
+        css_numeric("--panel-padding", &format!("{}px", l.padding)),
+        css_numeric("--panel-gap", &format!("{}px", l.panel_gap)),
+        css_numeric("--scrollbar-width", &format!("{}px", l.scrollbar_width)),
     ]
 }
 
@@ -50,6 +57,7 @@ pub fn config_to_css_variables(config: &JarvisConfig) -> Vec<(String, String, Cs
 pub fn config_to_xterm_theme(config: &JarvisConfig) -> serde_json::Value {
     let c = &config.colors;
     let f = &config.font;
+    let t = &config.terminal;
 
     serde_json::json!({
         "xterm": {
@@ -71,8 +79,25 @@ pub fn config_to_xterm_theme(config: &JarvisConfig) -> serde_json::Value {
             "white": c.text
         },
         "fontSize": f.size,
-        "fontFamily": format!("'{}', monospace", f.family)
+        "fontFamily": format!("'{}', monospace", f.family),
+        "lineHeight": f.line_height,
+        "fontWeight": f.font_weight,
+        "fontWeightBold": f.bold_weight,
+        "cursorStyle": cursor_style_to_xterm(&t.cursor_style),
+        "cursorBlink": t.cursor_blink,
+        "scrollback": t.scrollback_lines
     })
+}
+
+/// Map config CursorStyle to xterm.js cursor style string.
+/// xterm.js uses "bar" where our config uses "beam".
+fn cursor_style_to_xterm(style: &jarvis_config::schema::CursorStyle) -> &'static str {
+    use jarvis_config::schema::CursorStyle;
+    match style {
+        CursorStyle::Block => "block",
+        CursorStyle::Underline => "underline",
+        CursorStyle::Beam => "bar",
+    }
 }
 
 // =============================================================================
@@ -229,6 +254,10 @@ mod tests {
         assert!(names.contains(&"--font-size"));
         assert!(names.contains(&"--font-title-size"));
         assert!(names.contains(&"--line-height"));
+        assert!(names.contains(&"--border-radius"));
+        assert!(names.contains(&"--panel-padding"));
+        assert!(names.contains(&"--panel-gap"));
+        assert!(names.contains(&"--scrollbar-width"));
     }
 
     #[test]
@@ -251,7 +280,7 @@ mod tests {
     fn config_to_css_variables_count() {
         let config = JarvisConfig::default();
         let vars = config_to_css_variables(&config);
-        assert_eq!(vars.len(), 16);
+        assert_eq!(vars.len(), 20);
     }
 
     #[test]
@@ -262,6 +291,12 @@ mod tests {
         assert!(theme.get("xterm").is_some());
         assert!(theme.get("fontSize").is_some());
         assert!(theme.get("fontFamily").is_some());
+        assert!(theme.get("lineHeight").is_some());
+        assert!(theme.get("fontWeight").is_some());
+        assert!(theme.get("fontWeightBold").is_some());
+        assert!(theme.get("cursorStyle").is_some());
+        assert!(theme.get("cursorBlink").is_some());
+        assert!(theme.get("scrollback").is_some());
 
         let xterm = &theme["xterm"];
         assert!(xterm.get("background").is_some());
@@ -278,6 +313,17 @@ mod tests {
         assert_eq!(theme["xterm"]["foreground"], "#f0ece4");
         assert_eq!(theme["xterm"]["cursor"], "#00d4ff");
         assert_eq!(theme["fontSize"], 13);
+        assert_eq!(theme["cursorStyle"], "block");
+        assert_eq!(theme["cursorBlink"], true);
+        assert_eq!(theme["scrollback"], 10_000);
+    }
+
+    #[test]
+    fn cursor_style_to_xterm_maps_correctly() {
+        use jarvis_config::schema::CursorStyle;
+        assert_eq!(cursor_style_to_xterm(&CursorStyle::Block), "block");
+        assert_eq!(cursor_style_to_xterm(&CursorStyle::Underline), "underline");
+        assert_eq!(cursor_style_to_xterm(&CursorStyle::Beam), "bar");
     }
 
     #[test]

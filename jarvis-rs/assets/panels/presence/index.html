@@ -8,20 +8,28 @@
 
 :root {
   --color-primary: #00d4ff;
-  --color-background: #0a0a0a;
-  --color-panel-bg: #0d1117;
-  --color-text: #c0c8d0;
+  --color-background: rgba(0, 0, 0, 0.85);
+  --color-panel-bg: rgba(13, 17, 23, 0.90);
+  --color-text: #f0ece4;
   --color-text-muted: #888;
-  --color-border: #1a2a3a;
+  --color-border: rgba(0, 212, 255, 0.12);
+  --color-border-focused: rgba(0, 212, 255, 0.5);
   --color-success: #00ff88;
   --color-warning: #ff6b00;
   --color-error: #ff4444;
-  --font-family: Menlo, Monaco, 'Courier New', monospace;
+  --font-family: 'Menlo', 'Courier New', monospace;
   --font-size: 13px;
+  --border-radius: 8px;
+}
+
+html {
+  background: transparent;
+  border-radius: var(--border-radius);
+  overflow: hidden;
 }
 
 body {
-  background: transparent;
+  background: var(--color-panel-bg);
   color: var(--color-primary);
   font-family: var(--font-family);
   font-size: var(--font-size);
@@ -31,6 +39,8 @@ body {
   user-select: none;
   cursor: default;
   overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
 }
 
 /* ================================================================ */

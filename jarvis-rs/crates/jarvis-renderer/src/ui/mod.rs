@@ -91,7 +91,7 @@ mod tests {
     fn from_config_default_gap() {
         let config = LayoutConfig::default();
         let chrome = UiChrome::from_config(&config);
-        assert!((chrome.pane_gap - 2.0).abs() < 1e-3);
+        assert!((chrome.pane_gap - 8.0).abs() < 1e-3);
     }
 
     #[test]

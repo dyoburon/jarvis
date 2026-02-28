@@ -23,9 +23,9 @@ pub struct LayoutConfig {
 impl Default for LayoutConfig {
     fn default() -> Self {
         Self {
-            panel_gap: 2,
-            border_radius: 4,
-            padding: 14,
+            panel_gap: 8,
+            border_radius: 8,
+            padding: 10,
             max_panels: 5,
             default_panel_width: 0.72,
             scrollbar_width: 3,

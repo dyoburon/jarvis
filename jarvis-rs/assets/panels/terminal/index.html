@@ -18,21 +18,27 @@
 html { background: transparent !important; }
 
 :root {
-  --color-primary: #00e5ff;
-  --color-background: rgba(10, 10, 10, 0.80);
-  --color-panel-bg: rgba(13, 17, 23, 0.85);
-  --color-text: #c0c8d0;
-  --color-border: #1a2a3a;
-  --color-border-focused: #2a4a5a;
+  --color-primary: #00d4ff;
+  --color-background: rgba(0, 0, 0, 0.85);
+  --color-panel-bg: rgba(13, 17, 23, 0.90);
+  --color-text: #f0ece4;
+  --color-border: rgba(0, 212, 255, 0.12);
+  --color-border-focused: rgba(0, 212, 255, 0.5);
   --color-success: #00ff88;
   --color-warning: #ff6b00;
   --color-error: #ff4444;
-  --font-family: 'Courier New', monospace;
-  --font-size: 14px;
+  --font-family: 'Menlo', monospace;
+  --font-size: 13px;
+  --border-radius: 8px;
+}
+
+html {
+  border-radius: var(--border-radius);
+  overflow: hidden;
 }
 
 body {
-  background: var(--color-background);
+  background: var(--color-panel-bg);
   color: var(--color-text);
   font-family: var(--font-family);
   height: 100vh;
@@ -40,6 +46,7 @@ body {
   flex-direction: column;
   overflow: hidden;
   border: 1px solid var(--color-border);
+  border-radius: var(--border-radius);
   transition: border-color 0.2s ease;
 }
 body.focused {
@@ -136,28 +143,32 @@ body.focused {
 'use strict';
 
 // Terminal instance
+// Defaults match TOML config — theme bridge overrides on connect
 var term = new Terminal({
   cursorBlink: true,
   cursorStyle: 'block',
-  scrollback: 1000,
-  fontSize: 14,
-  fontFamily: "'Courier New', monospace",
+  scrollback: 10000,
+  fontSize: 13,
+  fontFamily: "'Menlo', monospace",
+  lineHeight: 1.6,
+  fontWeight: '400',
+  fontWeightBold: '700',
   allowProposedApi: true,
   theme: {
-    background: '#0a0a0a',
-    foreground: '#c0c8d0',
-    cursor: '#00e5ff',
-    cursorAccent: '#0a0a0a',
-    selectionBackground: 'rgba(0, 229, 255, 0.2)',
+    background: '#000000',
+    foreground: '#f0ece4',
+    cursor: '#00d4ff',
+    cursorAccent: '#000000',
+    selectionBackground: 'rgba(0, 212, 255, 0.2)',
     selectionForeground: '#ffffff',
     black: '#000000',
     red: '#ff4444',
     green: '#00ff88',
-    yellow: '#ffaa00',
-    blue: '#4488ff',
+    yellow: '#ff6b00',
+    blue: '#00d4ff',
     magenta: '#ff44ff',
-    cyan: '#00e5ff',
-    white: '#c0c8d0',
+    cyan: '#00d4ff',
+    white: '#f0ece4',
     brightBlack: '#666666',
     brightRed: '#ff6666',
     brightGreen: '#44ffaa',
@@ -231,17 +242,18 @@ if (window.jarvis && window.jarvis.ipc) {
     }
   });
 
-  // Apply theme from Rust (Phase 5 will wire this)
+  // Apply theme + terminal config from Rust via TOML
   window.jarvis.ipc.on('theme', function(payload) {
-    if (payload && payload.xterm) {
-      term.options.theme = payload.xterm;
-    }
-    if (payload && payload.fontSize) {
-      term.options.fontSize = payload.fontSize;
-    }
-    if (payload && payload.fontFamily) {
-      term.options.fontFamily = payload.fontFamily;
-    }
+    if (!payload) return;
+    if (payload.xterm) term.options.theme = payload.xterm;
+    if (payload.fontSize) term.options.fontSize = payload.fontSize;
+    if (payload.fontFamily) term.options.fontFamily = payload.fontFamily;
+    if (payload.lineHeight) term.options.lineHeight = payload.lineHeight;
+    if (payload.fontWeight) term.options.fontWeight = String(payload.fontWeight);
+    if (payload.fontWeightBold) term.options.fontWeightBold = String(payload.fontWeightBold);
+    if (payload.cursorStyle) term.options.cursorStyle = payload.cursorStyle;
+    if (payload.cursorBlink !== undefined) term.options.cursorBlink = payload.cursorBlink;
+    if (payload.scrollback !== undefined) term.options.scrollback = payload.scrollback;
     try { fitAddon.fit(); } catch (e) { /* ignore */ }
   });
 

@@ -5,25 +5,40 @@
 <title>Jarvis Assistant</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
-html { background: transparent !important; }
+html { background: transparent !important; border-radius: var(--border-radius); overflow: hidden; }
 
 :root {
-  --primary: #00e5ff;
-  --accent: #ff6b00;
-  --text: #c0c8d0;
-  --text-muted: #6a7a8a;
-  --bg: rgba(10, 10, 10, 0.80);
-  --panel-bg: rgba(13, 17, 23, 0.90);
+  /* Defaults — overridden by theme bridge --color-* injections */
+  --color-primary: #00d4ff;
+  --color-secondary: #ff6b00;
+  --color-text: #f0ece4;
+  --color-text-muted: #6a7a8a;
+  --color-background: rgba(0, 0, 0, 0.85);
+  --color-panel-bg: rgba(13, 17, 23, 0.90);
+  --color-border: rgba(0, 212, 255, 0.12);
+  --color-border-focused: rgba(0, 212, 255, 0.5);
+  --color-success: #00ff88;
+  --color-error: #ff4444;
+  --font-family: 'Menlo', 'Courier New', monospace;
+  --border-radius: 8px;
+
+  /* Short aliases used throughout this file */
+  --primary: var(--color-primary);
+  --accent: var(--color-secondary);
+  --text: var(--color-text);
+  --text-muted: var(--color-text-muted);
+  --bg: var(--color-panel-bg);
+  --panel-bg: var(--color-panel-bg);
   --input-bg: rgba(10, 14, 20, 0.95);
-  --border: rgba(26, 42, 58, 0.6);
-  --border-focus: rgba(0, 229, 255, 0.4);
+  --border: var(--color-border);
+  --border-focus: var(--color-border-focused);
   --glow-cyan: rgba(0, 229, 255, 0.3);
   --glow-orange: rgba(255, 107, 0, 0.3);
-  --success: #00ff88;
-  --error: #ff4444;
+  --success: var(--color-success);
+  --error: var(--color-error);
   --user-bubble: rgba(0, 229, 255, 0.08);
   --assistant-bubble: rgba(13, 17, 23, 0.6);
-  --font: 'SF Mono', 'Fira Code', 'Cascadia Code', 'JetBrains Mono', 'Courier New', monospace;
+  --font: var(--font-family);
 }
 
 body {
@@ -36,6 +51,8 @@ body {
   overflow: hidden;
   font-size: 13px;
   line-height: 1.5;
+  border: 1px solid var(--border);
+  border-radius: var(--border-radius);
 }
 
 /* ================================================================ */

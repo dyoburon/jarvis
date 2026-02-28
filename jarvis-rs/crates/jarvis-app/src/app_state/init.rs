@@ -44,10 +44,12 @@ impl JarvisApp {
             Ok(mut rs) => {
                 if let Some(color) = jarvis_common::Color::from_hex(&self.config.colors.background)
                 {
-                    rs.set_clear_color(
+                    let alpha = self.config.opacity.background;
+                    rs.set_clear_color_alpha(
                         color.r as f64 / 255.0,
                         color.g as f64 / 255.0,
                         color.b as f64 / 255.0,
+                        alpha,
                     );
                 }
                 self.render_state = Some(rs);

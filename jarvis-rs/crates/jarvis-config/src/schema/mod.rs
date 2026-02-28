@@ -129,9 +129,9 @@ mod tests {
     #[test]
     fn default_config_has_correct_layout() {
         let config = JarvisConfig::default();
-        assert_eq!(config.layout.panel_gap, 2);
-        assert_eq!(config.layout.border_radius, 4);
-        assert_eq!(config.layout.padding, 14);
+        assert_eq!(config.layout.panel_gap, 8);
+        assert_eq!(config.layout.border_radius, 8);
+        assert_eq!(config.layout.padding, 10);
         assert_eq!(config.layout.max_panels, 5);
         assert!((config.layout.default_panel_width - 0.72).abs() < f64::EPSILON);
         assert_eq!(config.layout.scrollbar_width, 3);

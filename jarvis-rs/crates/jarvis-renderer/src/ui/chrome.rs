@@ -23,7 +23,7 @@ impl UiChrome {
             tab_bar: None,
             status_bar: None,
             borders: Vec::new(),
-            pane_gap: 2.0,
+            pane_gap: 8.0,
         }
     }
 

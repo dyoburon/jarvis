@@ -14,6 +14,7 @@ mod tests {
     fn single_pane_fills_bounds() {
         let engine = LayoutEngine {
             gap: 0,
+            outer_padding: 0,
             min_pane_size: 10.0,
         };
         let root = SplitNode::Leaf { pane_id: 1 };
@@ -32,6 +33,7 @@ mod tests {
     fn horizontal_split_divides_width() {
         let engine = LayoutEngine {
             gap: 0,
+            outer_padding: 0,
             min_pane_size: 10.0,
         };
         let root = SplitNode::Split {
@@ -58,6 +60,7 @@ mod tests {
     fn gap_reduces_available_space() {
         let engine = LayoutEngine {
             gap: 10,
+            outer_padding: 0,
             min_pane_size: 10.0,
         };
         let root = SplitNode::Split {
@@ -75,6 +78,57 @@ mod tests {
         let result = engine.compute(&root, bounds);
         let total = result[0].1.width + result[1].1.width;
         assert!((total - 790.0).abs() < 0.01);
+    }
+
+    #[test]
+    fn outer_padding_insets_bounds() {
+        let engine = LayoutEngine {
+            gap: 0,
+            outer_padding: 10,
+            min_pane_size: 10.0,
+        };
+        let root = SplitNode::Leaf { pane_id: 1 };
+        let bounds = Rect {
+            x: 0.0,
+            y: 0.0,
+            width: 800.0,
+            height: 600.0,
+        };
+        let result = engine.compute(&root, bounds);
+        assert_eq!(result.len(), 1);
+        let r = &result[0].1;
+        assert!((r.x - 10.0).abs() < 0.01);
+        assert!((r.y - 10.0).abs() < 0.01);
+        assert!((r.width - 780.0).abs() < 0.01);
+        assert!((r.height - 580.0).abs() < 0.01);
+    }
+
+    #[test]
+    fn outer_padding_with_gap_and_split() {
+        let engine = LayoutEngine {
+            gap: 8,
+            outer_padding: 10,
+            min_pane_size: 10.0,
+        };
+        let root = SplitNode::Split {
+            direction: Direction::Horizontal,
+            ratio: 0.5,
+            first: Box::new(SplitNode::Leaf { pane_id: 1 }),
+            second: Box::new(SplitNode::Leaf { pane_id: 2 }),
+        };
+        let bounds = Rect {
+            x: 0.0,
+            y: 0.0,
+            width: 800.0,
+            height: 600.0,
+        };
+        let result = engine.compute(&root, bounds);
+        assert_eq!(result.len(), 2);
+        // First pane starts at padding
+        assert!((result[0].1.x - 10.0).abs() < 0.01);
+        // Total width = 780 - 8 gap = 772, each 386
+        let total = result[0].1.width + result[1].1.width;
+        assert!((total - 772.0).abs() < 0.01);
     }
 
     #[test]

@@ -86,6 +86,11 @@ impl RenderState {
         self.clear_color = wgpu::Color { r, g, b, a: 1.0 };
     }
 
+    /// Set the background clear color with alpha for transparency.
+    pub fn set_clear_color_alpha(&mut self, r: f64, g: f64, b: f64, a: f64) {
+        self.clear_color = wgpu::Color { r, g, b, a };
+    }
+
     /// Render a frame: background + sphere/bloom/composite + UI quads.
     pub fn render_background(&mut self) -> Result<(), RendererError> {
         let now = Instant::now();

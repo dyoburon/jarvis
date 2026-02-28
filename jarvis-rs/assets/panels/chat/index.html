@@ -5,18 +5,31 @@
 <title>JARVIS Livechat</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
-html { background: transparent !important; }
+html { background: transparent !important; border-radius: var(--border-radius); overflow: hidden; }
 
 :root {
-  --bg: rgba(10, 10, 10, 0.80);
-  --panel-bg: rgba(13, 17, 23, 0.85);
-  --primary: #00e5ff;
-  --accent: #ff6b00;
-  --success: #00ff88;
-  --danger: #ff4444;
-  --muted: #888;
-  --border: #1a2a3a;
-  --border-lit: #2a4a5a;
+  /* Defaults — overridden by theme bridge --color-* injections */
+  --color-background: rgba(0, 0, 0, 0.85);
+  --color-panel-bg: rgba(13, 17, 23, 0.90);
+  --color-primary: #00d4ff;
+  --color-secondary: #ff6b00;
+  --color-success: #00ff88;
+  --color-error: #ff4444;
+  --color-text-muted: #888;
+  --color-border: rgba(0, 212, 255, 0.12);
+  --color-border-focused: rgba(0, 212, 255, 0.5);
+  --border-radius: 8px;
+
+  /* Short aliases used throughout this file */
+  --bg: var(--color-panel-bg);
+  --panel-bg: var(--color-panel-bg);
+  --primary: var(--color-primary);
+  --accent: var(--color-secondary);
+  --success: var(--color-success);
+  --danger: var(--color-error);
+  --muted: var(--color-text-muted);
+  --border: var(--color-border);
+  --border-lit: var(--color-border-focused);
   --glow-cyan: rgba(0, 229, 255, 0.5);
   --glow-orange: rgba(255, 107, 0, 0.5);
   --glow-green: rgba(0, 255, 136, 0.5);
@@ -24,12 +37,14 @@ html { background: transparent !important; }
 
 body {
   background: var(--bg);
-  font-family: 'Courier New', monospace;
+  font-family: 'Menlo', 'Courier New', monospace;
   color: var(--primary);
   height: 100vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--border-radius);
 }
 
 /* ================================================================ */

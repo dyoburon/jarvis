@@ -29,9 +29,9 @@ name = "jarvis-dark"
 # line_height = 1.6      # 1.0-3.0
 
 [layout]
-# panel_gap = 2          # 0-20
-# border_radius = 4      # 0-20
-# padding = 14           # 0-40
+# panel_gap = 8          # 0-20
+# border_radius = 8      # 0-20
+# padding = 10           # 0-40
 # max_panels = 5         # 1-10
 # default_panel_width = 0.72  # 0.3-1.0
 # scrollbar_width = 3    # 1-10

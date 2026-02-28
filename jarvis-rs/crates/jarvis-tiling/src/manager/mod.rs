@@ -140,6 +140,7 @@ mod tests {
     fn layout_split() {
         let mut mgr = TilingManager::with_layout(LayoutEngine {
             gap: 0,
+            outer_padding: 0,
             min_pane_size: 10.0,
         });
         mgr.split(Direction::Horizontal);

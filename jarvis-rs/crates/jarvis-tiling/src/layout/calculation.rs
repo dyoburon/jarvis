@@ -7,8 +7,15 @@ use super::LayoutEngine;
 
 impl LayoutEngine {
     pub fn compute(&self, root: &SplitNode, bounds: Rect) -> Vec<(u32, Rect)> {
+        let pad = self.outer_padding as f64;
+        let inset = Rect {
+            x: bounds.x + pad,
+            y: bounds.y + pad,
+            width: (bounds.width - pad * 2.0).max(0.0),
+            height: (bounds.height - pad * 2.0).max(0.0),
+        };
         let mut results = Vec::new();
-        self.layout_node(root, bounds, &mut results);
+        self.layout_node(root, inset, &mut results);
         results
     }
 

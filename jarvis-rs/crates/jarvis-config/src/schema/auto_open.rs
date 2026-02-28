@@ -45,11 +45,23 @@ pub enum PanelKind {
 impl Default for AutoOpenConfig {
     fn default() -> Self {
         Self {
-            panels: vec![AutoOpenPanel {
-                kind: PanelKind::Terminal,
-                title: Some("Terminal".into()),
-                ..Default::default()
-            }],
+            panels: vec![
+                AutoOpenPanel {
+                    kind: PanelKind::Terminal,
+                    title: Some("Terminal".into()),
+                    ..Default::default()
+                },
+                AutoOpenPanel {
+                    kind: PanelKind::Terminal,
+                    title: Some("Terminal".into()),
+                    ..Default::default()
+                },
+                AutoOpenPanel {
+                    kind: PanelKind::Chat,
+                    title: Some("Chat".into()),
+                    ..Default::default()
+                },
+            ],
         }
     }
 }
@@ -63,12 +75,16 @@ mod tests {
     use super::*;
 
     #[test]
-    fn default_auto_open_has_one_terminal() {
+    fn default_auto_open_has_two_terminals_and_chat() {
         let config = AutoOpenConfig::default();
-        assert_eq!(config.panels.len(), 1);
+        assert_eq!(config.panels.len(), 3);
         assert_eq!(config.panels[0].kind, PanelKind::Terminal);
         assert_eq!(config.panels[0].title.as_deref(), Some("Terminal"));
         assert!(config.panels[0].command.is_none());
+        assert_eq!(config.panels[1].kind, PanelKind::Terminal);
+        assert_eq!(config.panels[1].title.as_deref(), Some("Terminal"));
+        assert_eq!(config.panels[2].kind, PanelKind::Chat);
+        assert_eq!(config.panels[2].title.as_deref(), Some("Chat"));
     }
 
     #[test]

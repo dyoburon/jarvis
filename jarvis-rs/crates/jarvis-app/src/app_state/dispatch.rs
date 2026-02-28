@@ -121,6 +121,20 @@ impl JarvisApp {
             }
             Action::OpenSettings => {
                 self.input.set_mode(InputMode::Settings);
+                // Open a settings webview panel
+                let kind = jarvis_common::types::PaneKind::WebView;
+                if let Some(new_id) = self.tiling.split_with(
+                    jarvis_tiling::tree::Direction::Horizontal,
+                    kind,
+                    "Settings",
+                ) {
+                    self.create_webview_for_pane_with_url(
+                        new_id,
+                        "jarvis://localhost/settings/index.html",
+                    );
+                    self.sync_webview_bounds();
+                    self.needs_redraw = true;
+                }
             }
             Action::Copy | Action::Paste => {
                 // Will be handled by webview panels in future phases

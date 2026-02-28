@@ -22,10 +22,16 @@
   --font-size: 13px;
   --font-title-size: 15px;
   --line-height: 1.6;
+  --border-radius: 8px;
+}
+
+html {
+  background: transparent;
+  border-radius: var(--border-radius);
+  overflow: hidden;
 }
 
 html, body {
-  background: transparent;
   color: var(--color-text);
   font-family: var(--font-family);
   font-size: var(--font-size);
@@ -39,7 +45,7 @@ body {
   flex-direction: column;
   background: var(--color-panel-bg);
   border: 1px solid var(--color-border);
-  border-radius: 4px;
+  border-radius: var(--border-radius);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 body.focused {

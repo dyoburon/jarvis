@@ -7,6 +7,7 @@ use winit::keyboard::Key;
 use winit::window::{CursorIcon, WindowId};
 
 use jarvis_common::types::{PaneKind, Rect};
+use jarvis_config::schema::PanelKind;
 use jarvis_platform::input_processor::{InputResult, Modifiers};
 use jarvis_platform::winit_keys::normalize_winit_key;
 use jarvis_tiling::layout::borders::compute_borders;
@@ -148,39 +149,39 @@ impl JarvisApp {
         }
     }
 
-    /// Set up the default 3-pane layout: 2 assistant panels + 1 chat panel.
-    ///
-    /// Layout: `[Assistant | Assistant / Chat]`
-    /// - Left half: primary assistant panel
-    /// - Right top: secondary assistant panel
-    /// - Right bottom: chat panel
+    /// Opens panels from `config.auto_open.panels`.
+    /// Falls back to a single terminal if the list is empty.
     fn setup_default_layout(&mut self) {
-        // Pane 1 already exists from TilingManager::new() as Terminal.
-        // Re-label it as Assistant.
+        let panels = self.config.auto_open.panels.clone();
+
+        let first = panels.first();
+        let first_kind = first
+            .map(|p| config_panel_to_pane_kind(&p.kind))
+            .unwrap_or(PaneKind::Terminal);
+        let first_title = first.and_then(|p| p.title.as_deref()).unwrap_or("Terminal");
+        let first_url = first
+            .map(|p| panel_kind_to_url(&p.kind))
+            .unwrap_or("jarvis://localhost/terminal/index.html");
+
         let pane1 = self.tiling.focused_id();
         if let Some(pane) = self.tiling.pane_mut(pane1) {
-            pane.kind = PaneKind::Assistant;
-            pane.title = "Assistant".into();
+            pane.kind = first_kind;
+            pane.title = first_title.into();
         }
-        self.create_webview_for_pane_with_kind(pane1, PaneKind::Assistant);
+        self.create_webview_for_pane_with_url(pane1, first_url);
 
-        // Split horizontally → pane 2 (right side) as Assistant
-        if let Some(pane2) =
-            self.tiling
-                .split_with(Direction::Horizontal, PaneKind::Assistant, "Assistant")
-        {
-            self.create_webview_for_pane_with_kind(pane2, PaneKind::Assistant);
-
-            // Split pane 2 vertically → pane 3 (bottom-right) as Chat
-            if let Some(pane3) = self
-                .tiling
-                .split_with(Direction::Vertical, PaneKind::Chat, "Chat")
-            {
-                self.create_webview_for_pane_with_kind(pane3, PaneKind::Chat);
+        for panel in panels.iter().skip(1) {
+            let kind = config_panel_to_pane_kind(&panel.kind);
+            let title = panel
+                .title
+                .as_deref()
+                .unwrap_or(panel_kind_default_title(&panel.kind));
+            let url = panel_kind_to_url(&panel.kind);
+            if let Some(new_id) = self.tiling.split_with(Direction::Horizontal, kind, title) {
+                self.create_webview_for_pane_with_url(new_id, url);
             }
         }
 
-        // Focus the primary assistant (pane 1)
         self.tiling.focus_pane(pane1);
         self.sync_webview_bounds();
     }
@@ -292,5 +293,41 @@ impl JarvisApp {
                 }
             }
         }
+    }
+}
+
+// =============================================================================
+// AUTO-OPEN HELPERS
+// =============================================================================
+
+/// Map config `PanelKind` to runtime `PaneKind`.
+fn config_panel_to_pane_kind(kind: &PanelKind) -> PaneKind {
+    match kind {
+        PanelKind::Terminal => PaneKind::Terminal,
+        PanelKind::Assistant => PaneKind::Assistant,
+        PanelKind::Chat => PaneKind::Chat,
+        PanelKind::Settings | PanelKind::Presence => PaneKind::WebView,
+    }
+}
+
+/// Map config `PanelKind` to `jarvis://` URL.
+fn panel_kind_to_url(kind: &PanelKind) -> &'static str {
+    match kind {
+        PanelKind::Terminal => "jarvis://localhost/terminal/index.html",
+        PanelKind::Assistant => "jarvis://localhost/assistant/index.html",
+        PanelKind::Chat => "jarvis://localhost/chat/index.html",
+        PanelKind::Settings => "jarvis://localhost/settings/index.html",
+        PanelKind::Presence => "jarvis://localhost/presence/index.html",
+    }
+}
+
+/// Default display title for a `PanelKind`.
+fn panel_kind_default_title(kind: &PanelKind) -> &'static str {
+    match kind {
+        PanelKind::Terminal => "Terminal",
+        PanelKind::Assistant => "Assistant",
+        PanelKind::Chat => "Chat",
+        PanelKind::Settings => "Settings",
+        PanelKind::Presence => "Presence",
     }
 }

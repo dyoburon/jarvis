@@ -47,6 +47,8 @@ impl JarvisApp {
         // If layout changed, update tiling engine + reposition webviews
         if layout_changed {
             self.tiling.set_gap(self.config.layout.panel_gap);
+            self.tiling.set_outer_padding(self.config.layout.padding);
+            self.sync_webview_bounds();
             self.needs_redraw = true;
         }
 
