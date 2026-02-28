@@ -28,4 +28,12 @@ pollster = { workspace = true }
 chrono = { workspace = true }
 reqwest = { workspace = true }
 portable-pty = { workspace = true }
+tokio-tungstenite = { workspace = true }
+futures-util = { workspace = true }
 semver = "1"
+base64 = { workspace = true }
+dirs = { workspace = true }
+rand = { workspace = true }
+aes-gcm = { workspace = true }
+qrcode = { workspace = true }
+png = "0.17"
