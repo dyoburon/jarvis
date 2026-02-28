@@ -147,6 +147,16 @@ impl PtyManager {
         }
     }
 
+    /// Kill and remove all active PTYs. Used during graceful shutdown.
+    pub fn kill_all(&mut self) {
+        let pane_ids = self.pane_ids();
+        let count = pane_ids.len();
+        for pane_id in pane_ids {
+            self.kill_and_remove(pane_id);
+        }
+        tracing::info!(count, "All PTYs killed");
+    }
+
     /// Drain output from all PTYs. Returns `(pane_id, output_bytes)` pairs.
     pub fn drain_all_output(&self) -> Vec<(u32, Vec<u8>)> {
         let mut results = Vec::new();
@@ -259,6 +269,39 @@ mod tests {
         let mut mgr = PtyManager::new();
         let result = mgr.kill_and_remove(999);
         assert!(result.is_none());
+    }
+
+    #[test]
+    fn pty_manager_kill_all_empty() {
+        let mut mgr = PtyManager::new();
+        mgr.kill_all();
+        assert!(mgr.is_empty());
+        assert_eq!(mgr.len(), 0);
+    }
+
+    #[test]
+    fn pty_manager_kill_all_with_ptys() {
+        let mut mgr = PtyManager::new();
+        let h1 = spawn_pty(80, 24).expect("spawn 1");
+        let h2 = spawn_pty(80, 24).expect("spawn 2");
+        mgr.insert(1, h1);
+        mgr.insert(2, h2);
+        assert_eq!(mgr.len(), 2);
+
+        mgr.kill_all();
+        assert!(mgr.is_empty());
+        assert_eq!(mgr.len(), 0);
+    }
+
+    #[test]
+    fn pty_manager_kill_all_is_idempotent() {
+        let mut mgr = PtyManager::new();
+        let h1 = spawn_pty(80, 24).expect("spawn");
+        mgr.insert(1, h1);
+
+        mgr.kill_all();
+        mgr.kill_all(); // second call should not panic
+        assert!(mgr.is_empty());
     }
 
     #[test]

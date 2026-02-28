@@ -127,11 +127,14 @@ impl JarvisApp {
             }
             Action::Quit => {
                 self.event_bus.publish(Event::Shutdown);
+                self.shutdown();
                 self.should_exit = true;
             }
             _ => {
                 tracing::debug!("unhandled action: {:?}", action);
             }
         }
+
+        self.update_window_title();
     }
 }

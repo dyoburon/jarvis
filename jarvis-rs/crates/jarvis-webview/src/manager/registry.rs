@@ -71,6 +71,14 @@ impl WebViewRegistry {
         self.manager.drain_events()
     }
 
+    /// Destroy all active WebViews. Used during graceful shutdown.
+    pub fn destroy_all(&mut self) {
+        let pane_ids = self.active_panes();
+        for pane_id in pane_ids {
+            self.destroy(pane_id);
+        }
+    }
+
     /// How many WebViews are active.
     pub fn count(&self) -> usize {
         self.handles.len()
