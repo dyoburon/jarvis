@@ -115,3 +115,4 @@ Jarvis routes voice input through Gemini, which can invoke tools to activate dif
 | Papers | "any new papers?", "check arXiv" | Shows today's arXiv paper matches by interest area |
 | Firewall | "how's chat?", "any bans?" | Stream chat moderation stats from Great Firewall |
 | VibeToText | "transcription stats" | Voice-to-text session statistics |
+
