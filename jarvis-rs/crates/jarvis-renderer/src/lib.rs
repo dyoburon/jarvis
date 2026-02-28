@@ -1,14 +1,15 @@
 pub mod assistant_panel;
-pub mod atlas;
 pub mod background;
+pub mod bloom;
 pub mod command_palette;
 pub mod effects;
 pub mod gpu;
 pub mod perf;
 pub mod quad;
 pub mod render_state;
-pub mod text;
+pub mod sphere;
 pub mod ui;
+pub mod visualizer;
 
 pub use assistant_panel::{AssistantPanel, ChatMessage, ChatRole};
 pub use command_palette::CommandPalette;
@@ -16,5 +17,4 @@ pub use gpu::GpuContext;
 pub use perf::FrameTimer;
 pub use quad::{QuadInstance, QuadRenderer};
 pub use render_state::RenderState;
-pub use text::TextRenderer;
 pub use ui::{PaneBorder, StatusBar, Tab, TabBar, UiChrome};

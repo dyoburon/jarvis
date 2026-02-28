@@ -1,7 +1,6 @@
-mod chrome_text;
-mod frame;
-mod frame_multi;
+mod composite;
 mod helpers;
+mod orb;
 mod state;
 
 pub use state::*;

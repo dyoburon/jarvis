@@ -76,8 +76,25 @@ impl TilingManager {
         self.panes.get(&id)
     }
 
+    pub fn pane_mut(&mut self, id: u32) -> Option<&mut Pane> {
+        self.panes.get_mut(&id)
+    }
+
     pub fn tree(&self) -> &SplitNode {
         &self.tree
+    }
+
+    pub fn tree_mut(&mut self) -> &mut SplitNode {
+        &mut self.tree
+    }
+
+    pub fn gap(&self) -> u32 {
+        self.layout_engine.gap
+    }
+
+    /// Update the gap between panes (called when settings change).
+    pub fn set_gap(&mut self, gap: u32) {
+        self.layout_engine.gap = gap;
     }
 
     /// Get the stack at a given leaf position, if one exists.

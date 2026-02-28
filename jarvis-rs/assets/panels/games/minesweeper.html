@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>JARVIS Minesweeper</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: #0a0a0a;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-family: 'Courier New', monospace;
+  overflow: hidden;
+  user-select: none;
+}
+
+#game-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+#hud {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  max-width: 480px;
+  padding: 0 4px;
+}
+
+#hud span {
+  color: #00e5ff;
+  font-size: 16px;
+  font-weight: bold;
+  text-shadow: 0 0 10px rgba(0, 229, 255, 0.6);
+}
+
+#hud .mines { color: #ff6b00; }
+#hud .timer { color: #ffdd00; }
+
+#difficulty {
+  display: flex;
+  gap: 8px;
+}
+
+#difficulty button {
+  background: transparent;
+  border: 1px solid #00e5ff;
+  color: #00e5ff;
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  padding: 4px 10px;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: all 0.2s;
+}
+
+#difficulty button:hover,
+#difficulty button.active {
+  background: #00e5ff;
+  color: #0a0a0a;
+  box-shadow: 0 0 12px rgba(0, 229, 255, 0.4);
+}
+
+#board {
+  display: grid;
+  gap: 1px;
+  border: 2px solid #00e5ff;
+  border-radius: 4px;
+  padding: 2px;
+  box-shadow: 0 0 30px rgba(0, 229, 255, 0.2);
+  background: #111;
+}
+
+.cell {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background 0.1s;
+}
+
+.cell.hidden {
+  background: #1a2a3a;
+  border: 1px solid #2a4a5a;
+}
+
+.cell.hidden:hover {
+  background: #2a3a4a;
+  box-shadow: inset 0 0 8px rgba(0, 229, 255, 0.15);
+}
+
+.cell.revealed {
+  background: #0d1117;
+  border: 1px solid #1a1a2a;
+  cursor: default;
+}
+
+.cell.flagged {
+  background: #2a1a1a;
+  border: 1px solid #4a2a2a;
+}
+
+.cell.flagged::after {
+  content: '\25C6';
+  color: #ff6b00;
+  text-shadow: 0 0 6px rgba(255, 107, 0, 0.6);
+}
+
+.cell.mine {
+  background: #1a0000;
+  border: 1px solid #4a0000;
+}
+
+.cell.mine::after {
+  content: '\2738';
+  color: #ff0040;
+  text-shadow: 0 0 8px rgba(255, 0, 64, 0.8);
+}
+
+.cell.mine-hit {
+  background: #4a0000;
+  border: 1px solid #ff0040;
+  box-shadow: 0 0 12px rgba(255, 0, 64, 0.5);
+}
+
+.cell[data-n="1"] { color: #00e5ff; }
+.cell[data-n="2"] { color: #00ff88; }
+.cell[data-n="3"] { color: #ff6b00; }
+.cell[data-n="4"] { color: #aa00ff; }
+.cell[data-n="5"] { color: #ff0040; }
+.cell[data-n="6"] { color: #00ffff; }
+.cell[data-n="7"] { color: #ffffff; }
+.cell[data-n="8"] { color: #888888; }
+
+#overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 20;
+}
+
+#overlay.hidden { display: none; }
+
+#overlay h1 {
+  color: #00e5ff;
+  font-size: 32px;
+  text-shadow: 0 0 20px rgba(0, 229, 255, 0.8);
+  margin-bottom: 8px;
+}
+
+#overlay .result {
+  font-size: 22px;
+  margin-bottom: 6px;
+}
+
+#overlay .result.win { color: #00ff88; text-shadow: 0 0 12px rgba(0, 255, 136, 0.6); }
+#overlay .result.lose { color: #ff0040; text-shadow: 0 0 12px rgba(255, 0, 64, 0.6); }
+
+#overlay .stats {
+  color: #888;
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+#overlay button {
+  background: transparent;
+  border: 2px solid #00e5ff;
+  color: #00e5ff;
+  font-family: 'Courier New', monospace;
+  font-size: 14px;
+  padding: 8px 24px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+#overlay button:hover {
+  background: #00e5ff;
+  color: #0a0a0a;
+  box-shadow: 0 0 20px rgba(0, 229, 255, 0.5);
+}
+</style>
+</head>
+<body>
+<div id="game-container">
+  <div id="difficulty">
+    <button data-d="easy" class="active">EASY</button>
+    <button data-d="medium">MEDIUM</button>
+    <button data-d="hard">HARD</button>
+  </div>
+  <div id="hud">
+    <span class="mines" id="hud-mines">MINES: 10</span>
+    <span id="hud-status">JARVIS MINESWEEPER</span>
+    <span class="timer" id="hud-timer">TIME: 0</span>
+  </div>
+  <div id="board"></div>
+</div>
+
+<div id="overlay" class="hidden">
+  <h1>JARVIS MINESWEEPER</h1>
+  <div class="result" id="overlay-result"></div>
+  <div class="stats" id="overlay-stats"></div>
+  <button id="overlay-btn">PLAY AGAIN</button>
+</div>
+
+<script>
+const CONFIGS = {
+  easy:   { rows: 9,  cols: 9,  mines: 10 },
+  medium: { rows: 16, cols: 16, mines: 40 },
+  hard:   { rows: 16, cols: 30, mines: 99 },
+};
+
+let difficulty = 'easy';
+let rows, cols, totalMines;
+let grid = [];       // 2D: { mine, revealed, flagged, neighbors }
+let minesLeft = 0;
+let revealed = 0;
+let gameOver = false;
+let firstClick = true;
+let timerInterval = null;
+let elapsed = 0;
+
+const board = document.getElementById('board');
+const hudMines = document.getElementById('hud-mines');
+const hudTimer = document.getElementById('hud-timer');
+const hudStatus = document.getElementById('hud-status');
+const overlay = document.getElementById('overlay');
+const overlayResult = document.getElementById('overlay-result');
+const overlayStats = document.getElementById('overlay-stats');
+const overlayBtn = document.getElementById('overlay-btn');
+
+// Difficulty buttons
+document.querySelectorAll('#difficulty button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelector('#difficulty .active').classList.remove('active');
+    btn.classList.add('active');
+    difficulty = btn.dataset.d;
+    newGame();
+  });
+});
+
+overlayBtn.addEventListener('click', newGame);
+
+function newGame() {
+  const cfg = CONFIGS[difficulty];
+  rows = cfg.rows;
+  cols = cfg.cols;
+  totalMines = cfg.mines;
+  minesLeft = totalMines;
+  revealed = 0;
+  gameOver = false;
+  firstClick = true;
+  elapsed = 0;
+
+  clearInterval(timerInterval);
+  timerInterval = null;
+
+  hudMines.textContent = `MINES: ${minesLeft}`;
+  hudTimer.textContent = `TIME: 0`;
+  hudStatus.textContent = 'JARVIS MINESWEEPER';
+  overlay.classList.add('hidden');
+
+  // Init grid
+  grid = [];
+  for (let r = 0; r < rows; r++) {
+    grid[r] = [];
+    for (let c = 0; c < cols; c++) {
+      grid[r][c] = { mine: false, revealed: false, flagged: false, neighbors: 0 };
+    }
+  }
+
+  // Render
+  board.style.gridTemplateColumns = `repeat(${cols}, 30px)`;
+  board.innerHTML = '';
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell hidden';
+      cell.dataset.r = r;
+      cell.dataset.c = c;
+      cell.addEventListener('click', onLeftClick);
+      cell.addEventListener('contextmenu', onRightClick);
+      cell.addEventListener('dblclick', onDoubleClick);
+      board.appendChild(cell);
+    }
+  }
+}
+
+function placeMines(safeR, safeC) {
+  let placed = 0;
+  while (placed < totalMines) {
+    const r = Math.floor(Math.random() * rows);
+    const c = Math.floor(Math.random() * cols);
+    // Exclude safe zone (3x3 around first click)
+    if (Math.abs(r - safeR) <= 1 && Math.abs(c - safeC) <= 1) continue;
+    if (grid[r][c].mine) continue;
+    grid[r][c].mine = true;
+    placed++;
+  }
+  // Compute neighbor counts
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      if (grid[r][c].mine) continue;
+      let count = 0;
+      forNeighbors(r, c, (nr, nc) => { if (grid[nr][nc].mine) count++; });
+      grid[r][c].neighbors = count;
+    }
+  }
+}
+
+function forNeighbors(r, c, fn) {
+  for (let dr = -1; dr <= 1; dr++) {
+    for (let dc = -1; dc <= 1; dc++) {
+      if (dr === 0 && dc === 0) continue;
+      const nr = r + dr, nc = c + dc;
+      if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) fn(nr, nc);
+    }
+  }
+}
+
+function getCell(r, c) {
+  return board.children[r * cols + c];
+}
+
+function revealCell(r, c) {
+  const g = grid[r][c];
+  if (g.revealed || g.flagged || gameOver) return;
+
+  g.revealed = true;
+  revealed++;
+  const cell = getCell(r, c);
+  cell.classList.remove('hidden');
+  cell.classList.add('revealed');
+
+  if (g.mine) {
+    cell.classList.add('mine', 'mine-hit');
+    endGame(false, r, c);
+    return;
+  }
+
+  if (g.neighbors > 0) {
+    cell.textContent = g.neighbors;
+    cell.dataset.n = g.neighbors;
+  } else {
+    // Flood fill empty cells
+    forNeighbors(r, c, (nr, nc) => revealCell(nr, nc));
+  }
+
+  // Win check
+  if (revealed === rows * cols - totalMines) {
+    endGame(true);
+  }
+}
+
+function onLeftClick(e) {
+  const r = +e.target.dataset.r, c = +e.target.dataset.c;
+  if (gameOver || grid[r][c].flagged) return;
+
+  if (firstClick) {
+    firstClick = false;
+    placeMines(r, c);
+    timerInterval = setInterval(() => {
+      elapsed++;
+      hudTimer.textContent = `TIME: ${elapsed}`;
+    }, 1000);
+  }
+
+  revealCell(r, c);
+}
+
+function onRightClick(e) {
+  e.preventDefault();
+  const r = +e.target.dataset.r, c = +e.target.dataset.c;
+  if (gameOver || grid[r][c].revealed) return;
+
+  const g = grid[r][c];
+  const cell = getCell(r, c);
+  g.flagged = !g.flagged;
+
+  if (g.flagged) {
+    cell.classList.add('flagged');
+    minesLeft--;
+  } else {
+    cell.classList.remove('flagged');
+    minesLeft++;
+  }
+  hudMines.textContent = `MINES: ${minesLeft}`;
+}
+
+function onDoubleClick(e) {
+  const r = +e.target.dataset.r, c = +e.target.dataset.c;
+  const g = grid[r][c];
+  if (!g.revealed || g.neighbors === 0 || gameOver) return;
+
+  // Chord: if flagged neighbors == number, reveal rest
+  let flagCount = 0;
+  forNeighbors(r, c, (nr, nc) => { if (grid[nr][nc].flagged) flagCount++; });
+  if (flagCount === g.neighbors) {
+    forNeighbors(r, c, (nr, nc) => {
+      if (!grid[nr][nc].flagged && !grid[nr][nc].revealed) revealCell(nr, nc);
+    });
+  }
+}
+
+function endGame(won, hitR, hitC) {
+  gameOver = true;
+  clearInterval(timerInterval);
+
+  if (won) {
+    hudStatus.textContent = 'SECTOR CLEARED';
+    hudStatus.style.color = '#00ff88';
+    overlayResult.textContent = 'SECTOR CLEARED';
+    overlayResult.className = 'result win';
+  } else {
+    hudStatus.textContent = 'DETONATION';
+    hudStatus.style.color = '#ff0040';
+    overlayResult.textContent = 'DETONATION';
+    overlayResult.className = 'result lose';
+
+    // Reveal all mines
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        if (grid[r][c].mine && !grid[r][c].flagged) {
+          const cell = getCell(r, c);
+          cell.classList.remove('hidden');
+          cell.classList.add('mine');
+          if (r === hitR && c === hitC) cell.classList.add('mine-hit');
+        }
+      }
+    }
+  }
+
+  overlayStats.textContent = `Time: ${elapsed}s  |  ${difficulty.toUpperCase()}`;
+  setTimeout(() => overlay.classList.remove('hidden'), won ? 300 : 800);
+}
+
+// Prevent context menu on board
+board.addEventListener('contextmenu', e => e.preventDefault());
+
+newGame();
+</script>
+</body>
+</html>

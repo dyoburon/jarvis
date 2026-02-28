@@ -155,6 +155,17 @@ name = "jarvis-dark"
 # show_fps = false
 # show_debug_hud = false
 # inspector_enabled = false
+
+# [[auto_open.panels]]
+# kind = "terminal"
+# title = "Terminal"
+# command = ""              # empty = $SHELL
+# working_directory = ""    # empty = $HOME
+
+# [[auto_open.panels]]
+# kind = "terminal"
+# command = "claude"
+# title = "Claude Code"
 "##
     .to_string()
 }

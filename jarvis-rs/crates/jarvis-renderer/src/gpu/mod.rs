@@ -1,8 +1,10 @@
 mod context;
 mod types;
+mod uniforms;
 
 pub use context::*;
 pub use types::*;
+pub use uniforms::*;
 
 #[cfg(test)]
 mod tests {

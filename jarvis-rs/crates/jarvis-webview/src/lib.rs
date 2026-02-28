@@ -11,7 +11,10 @@ pub mod content;
 pub mod events;
 pub mod ipc;
 pub mod manager;
+pub mod theme_bridge;
 
+pub use content::ContentProvider;
 pub use events::{PageLoadState, WebViewEvent};
 pub use ipc::{IpcMessage, IpcPayload};
-pub use manager::{WebViewConfig, WebViewHandle, WebViewManager};
+pub use manager::handlers::{is_navigation_allowed, ALLOWED_NAV_PREFIXES};
+pub use manager::{WebViewConfig, WebViewHandle, WebViewManager, WebViewRegistry};

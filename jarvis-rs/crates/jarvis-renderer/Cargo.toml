@@ -7,10 +7,7 @@ edition.workspace = true
 jarvis-common = { workspace = true }
 jarvis-config = { workspace = true }
 jarvis-platform = { workspace = true }
-jarvis-terminal = { workspace = true }
 wgpu = "24"
-glyphon = "0.8"
-cosmic-text = "0.12"
 winit = "0.30"
 tracing = { workspace = true }
 thiserror = { workspace = true }

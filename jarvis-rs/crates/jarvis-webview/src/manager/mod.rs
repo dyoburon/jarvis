@@ -9,7 +9,7 @@ use crate::content::ContentProvider;
 use crate::events::WebViewEvent;
 
 mod handle;
-mod handlers;
+pub mod handlers;
 mod lifecycle;
 mod registry;
 mod types;

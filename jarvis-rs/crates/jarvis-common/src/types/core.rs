@@ -21,6 +21,8 @@ impl fmt::Display for PaneId {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum PaneKind {
     Terminal,
+    Assistant,
+    Chat,
     WebView,
     ExternalApp,
 }

@@ -1,6 +1,5 @@
 //! JarvisApp struct definition and constructor.
 
-use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Instant;
 
@@ -13,9 +12,13 @@ use jarvis_platform::input::KeybindRegistry;
 use jarvis_platform::input_processor::InputProcessor;
 use jarvis_renderer::{AssistantPanel, RenderState, UiChrome};
 use jarvis_social::presence::PresenceEvent;
+use jarvis_social::OnlineUser;
+use jarvis_tiling::layout::LayoutEngine;
 use jarvis_tiling::TilingManager;
+use jarvis_webview::WebViewRegistry;
 
-use super::types::{AssistantEvent, PaneState};
+use super::pty_bridge::PtyManager;
+use super::types::{AssistantEvent, PresenceCommand};
 
 /// Top-level application state.
 pub struct JarvisApp {
@@ -29,9 +32,14 @@ pub struct JarvisApp {
     pub(super) window: Option<Arc<Window>>,
     pub(super) render_state: Option<RenderState>,
 
-    // Terminal + tiling
+    // Tiling layout
     pub(super) tiling: TilingManager,
-    pub(super) panes: HashMap<u32, PaneState>,
+
+    // WebView panels
+    pub(super) webviews: Option<WebViewRegistry>,
+
+    // PTY instances (one per terminal pane)
+    pub(super) ptys: PtyManager,
 
     // UI chrome
     pub(super) chrome: UiChrome,
@@ -45,8 +53,9 @@ pub struct JarvisApp {
 
     // Social presence
     pub(super) online_count: u32,
+    pub(super) online_users: Vec<OnlineUser>,
     pub(super) presence_rx: Option<std::sync::mpsc::Receiver<PresenceEvent>>,
-    #[allow(dead_code)]
+    pub(super) presence_cmd_tx: Option<tokio::sync::mpsc::Sender<PresenceCommand>>,
     pub(super) tokio_runtime: Option<tokio::runtime::Runtime>,
 
     // AI assistant panel
@@ -61,13 +70,19 @@ pub struct JarvisApp {
     // Dirty flag -- set when content changes and a redraw is needed
     pub(super) needs_redraw: bool,
     pub(super) last_poll: Instant,
-    /// Timestamp of last keystroke sent to PTY, for adaptive polling.
-    pub(super) last_pty_write: Instant,
+
+    // Mouse cursor position and drag resize state
+    pub(super) cursor_pos: (f64, f64),
+    pub(super) drag_state: Option<super::resize_drag::DragState>,
 }
 
 impl JarvisApp {
     pub fn new(config: JarvisConfig, registry: KeybindRegistry) -> Self {
         let chrome = UiChrome::from_config(&config.layout);
+        let layout_engine = LayoutEngine {
+            gap: config.layout.panel_gap,
+            ..Default::default()
+        };
         Self {
             config,
             registry,
@@ -76,14 +91,17 @@ impl JarvisApp {
             notifications: NotificationQueue::new(16),
             window: None,
             render_state: None,
-            tiling: TilingManager::new(),
-            panes: HashMap::new(),
+            tiling: TilingManager::with_layout(layout_engine),
+            webviews: None,
+            ptys: PtyManager::new(),
             chrome,
             modifiers: winit::keyboard::ModifiersState::empty(),
             command_palette: None,
             command_palette_open: false,
             online_count: 0,
+            online_users: Vec::new(),
             presence_rx: None,
+            presence_cmd_tx: None,
             tokio_runtime: None,
             assistant_panel: None,
             assistant_open: false,
@@ -92,7 +110,8 @@ impl JarvisApp {
             should_exit: false,
             needs_redraw: false,
             last_poll: Instant::now(),
-            last_pty_write: Instant::now(),
+            cursor_pos: (0.0, 0.0),
+            drag_state: None,
         }
     }
 }

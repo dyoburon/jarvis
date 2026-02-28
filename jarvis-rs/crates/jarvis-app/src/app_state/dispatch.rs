@@ -1,6 +1,6 @@
 //! Action dispatch: routes resolved actions to the appropriate subsystem.
 
-use jarvis_common::actions::Action;
+use jarvis_common::actions::{Action, ResizeDirection};
 use jarvis_common::events::Event;
 use jarvis_common::notifications::Notification;
 use jarvis_platform::input_processor::InputMode;
@@ -16,23 +16,30 @@ impl JarvisApp {
         match action {
             Action::NewPane => {
                 self.tiling.split(Direction::Horizontal);
-                self.spawn_pty_for_focused();
+                let new_id = self.tiling.focused_id();
+                self.create_webview_for_pane(new_id);
+                self.sync_webview_bounds();
                 self.needs_redraw = true;
             }
             Action::ClosePane => {
-                let id = self.tiling.focused_id();
+                let closing_id = self.tiling.focused_id();
                 self.tiling.close_focused();
-                self.panes.remove(&id);
+                self.destroy_webview_for_pane(closing_id);
+                self.sync_webview_bounds();
                 self.needs_redraw = true;
             }
             Action::SplitHorizontal => {
                 self.tiling.execute(TilingCommand::SplitHorizontal);
-                self.spawn_pty_for_focused();
+                let new_id = self.tiling.focused_id();
+                self.create_webview_for_pane(new_id);
+                self.sync_webview_bounds();
                 self.needs_redraw = true;
             }
             Action::SplitVertical => {
                 self.tiling.execute(TilingCommand::SplitVertical);
-                self.spawn_pty_for_focused();
+                let new_id = self.tiling.focused_id();
+                self.create_webview_for_pane(new_id);
+                self.sync_webview_bounds();
                 self.needs_redraw = true;
             }
             Action::FocusPane(n) => {
@@ -49,6 +56,30 @@ impl JarvisApp {
             }
             Action::ZoomPane => {
                 self.tiling.execute(TilingCommand::Zoom);
+                self.sync_webview_bounds();
+                self.needs_redraw = true;
+            }
+            Action::ResizePane { direction, delta } => {
+                let tiling_dir = match direction {
+                    ResizeDirection::Left | ResizeDirection::Right => Direction::Horizontal,
+                    ResizeDirection::Up | ResizeDirection::Down => Direction::Vertical,
+                };
+                let signed_delta = match direction {
+                    ResizeDirection::Right | ResizeDirection::Down => delta,
+                    ResizeDirection::Left | ResizeDirection::Up => -delta,
+                };
+                self.tiling
+                    .execute(TilingCommand::Resize(tiling_dir, signed_delta));
+                self.sync_webview_bounds();
+                self.needs_redraw = true;
+            }
+            Action::SwapPane(direction) => {
+                let tiling_dir = match direction {
+                    ResizeDirection::Left | ResizeDirection::Right => Direction::Horizontal,
+                    ResizeDirection::Up | ResizeDirection::Down => Direction::Vertical,
+                };
+                self.tiling.execute(TilingCommand::Swap(tiling_dir));
+                self.sync_webview_bounds();
                 self.needs_redraw = true;
             }
             Action::ToggleFullscreen => {
@@ -91,11 +122,9 @@ impl JarvisApp {
             Action::OpenSettings => {
                 self.input.set_mode(InputMode::Settings);
             }
-            Action::Copy => {
-                self.copy_selection();
-            }
-            Action::Paste => {
-                self.paste_from_clipboard();
+            Action::Copy | Action::Paste => {
+                // Will be handled by webview panels in future phases
+                tracing::debug!("clipboard action: will be handled by webview");
             }
             Action::ReloadConfig => match jarvis_config::load_config() {
                 Ok(c) => {
@@ -103,6 +132,7 @@ impl JarvisApp {
                         jarvis_platform::input::KeybindRegistry::from_config(&c.keybinds);
                     self.chrome = jarvis_renderer::UiChrome::from_config(&c.layout);
                     self.config = c;
+                    self.inject_theme_into_all_webviews();
                     self.event_bus.publish(Event::ConfigReloaded);
                     tracing::info!("Config reloaded");
                 }
@@ -114,31 +144,20 @@ impl JarvisApp {
                     ));
                 }
             },
-            Action::ScrollUp(n) => {
-                let focused = self.tiling.focused_id();
-                if let Some(pane) = self.panes.get_mut(&focused) {
-                    pane.vte.grid_mut().scroll_up(n as usize);
-                }
-            }
-            Action::ScrollDown(n) => {
-                let focused = self.tiling.focused_id();
-                if let Some(pane) = self.panes.get_mut(&focused) {
-                    pane.vte.grid_mut().scroll_down(n as usize);
-                }
-            }
-            Action::ClearTerminal => {
-                let focused = self.tiling.focused_id();
-                if let Some(pane) = self.panes.get_mut(&focused) {
-                    let _ = pane.pty.write(b"\x1b[2J\x1b[H");
-                }
+            Action::ScrollUp(_) | Action::ScrollDown(_) | Action::ClearTerminal => {
+                // Will be handled by xterm.js in webview panels
+                tracing::debug!("terminal action: will be handled by webview");
             }
             Action::Quit => {
                 self.event_bus.publish(Event::Shutdown);
+                self.shutdown();
                 self.should_exit = true;
             }
             _ => {
                 tracing::debug!("unhandled action: {:?}", action);
             }
         }
+
+        self.update_window_title();
     }
 }

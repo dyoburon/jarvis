@@ -5,7 +5,6 @@ members = [
     "crates/jarvis-common",
     "crates/jarvis-config",
     "crates/jarvis-platform",
-    "crates/jarvis-terminal",
     "crates/jarvis-tiling",
     "crates/jarvis-renderer",
     "crates/jarvis-ai",
@@ -49,6 +48,9 @@ arboard = "3"
 # WebView
 wry = "0.47"
 
+# PTY
+portable-pty = "0.9"
+
 # Config
 notify = "7"
 
@@ -56,7 +58,6 @@ notify = "7"
 jarvis-common = { path = "crates/jarvis-common" }
 jarvis-config = { path = "crates/jarvis-config" }
 jarvis-platform = { path = "crates/jarvis-platform" }
-jarvis-terminal = { path = "crates/jarvis-terminal" }
 jarvis-tiling = { path = "crates/jarvis-tiling" }
 jarvis-renderer = { path = "crates/jarvis-renderer" }
 jarvis-ai = { path = "crates/jarvis-ai" }

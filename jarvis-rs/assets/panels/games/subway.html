@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>JARVIS Subway Surfers</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: #0a0a0a;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-family: 'Courier New', monospace;
+  overflow: hidden;
+  user-select: none;
+}
+
+#game-container {
+  position: relative;
+  outline: none;
+}
+
+canvas {
+  display: block;
+  border: 2px solid #00e5ff;
+  border-radius: 8px;
+  box-shadow: 0 0 30px rgba(0, 229, 255, 0.3);
+}
+
+#hud {
+  position: absolute;
+  top: 12px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 24px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+#hud span {
+  color: #00e5ff;
+  font-size: 16px;
+  font-weight: bold;
+  text-shadow: 0 0 10px rgba(0, 229, 255, 0.6);
+}
+
+#hud .score-val { color: #ff6b00; text-shadow: 0 0 10px rgba(255, 107, 0, 0.5); }
+#hud .combo-val { color: #00ff88; text-shadow: 0 0 10px rgba(0, 255, 136, 0.5); }
+
+#overlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 20;
+  border-radius: 8px;
+}
+
+#overlay.hidden { display: none; }
+
+#overlay h1 {
+  color: #00e5ff;
+  font-size: 36px;
+  text-shadow: 0 0 20px rgba(0, 229, 255, 0.8);
+  margin-bottom: 10px;
+}
+
+#overlay h2 {
+  color: #ff6b00;
+  font-size: 20px;
+  margin-bottom: 20px;
+}
+
+#overlay p {
+  color: #888;
+  font-size: 14px;
+}
+
+#overlay .final-score {
+  color: #00ff88;
+  font-size: 28px;
+  font-weight: bold;
+  text-shadow: 0 0 15px rgba(0, 255, 136, 0.6);
+  margin: 10px 0;
+}
+</style>
+</head>
+<body>
+<div id="game-container" tabindex="0">
+  <canvas id="canvas"></canvas>
+  <div id="hud">
+    <span>SCORE <span class="score-val" id="hud-score">0</span></span>
+    <span>DIST <span class="score-val" id="hud-dist">0m</span></span>
+    <span>COINS <span class="combo-val" id="hud-coins">0</span></span>
+    <span>x<span class="combo-val" id="hud-multi">1</span></span>
+  </div>
+  <div id="overlay">
+    <h1>SUBWAY SURFERS</h1>
+    <h2>Endless Runner</h2>
+    <p>Arrow Keys / WASD to move &bull; Space to jump</p>
+    <p style="margin-top: 8px; color: #00e5ff;">Press any key to start</p>
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const container = document.getElementById('game-container');
+const overlay = document.getElementById('overlay');
+const hudScore = document.getElementById('hud-score');
+const hudDist = document.getElementById('hud-dist');
+const hudCoins = document.getElementById('hud-coins');
+const hudMulti = document.getElementById('hud-multi');
+
+// ── Sizing ──
+function resize() {
+  const h = window.innerHeight - 20;
+  const w = Math.min(window.innerWidth - 20, h * 0.6);
+  canvas.width = w;
+  canvas.height = h;
+}
+resize();
+window.addEventListener('resize', resize);
+
+// ── Game constants ──
+const LANE_COUNT = 3;
+const LANE_WIDTH = () => canvas.width * 0.22;
+const TRACK_LEFT = () => canvas.width / 2 - LANE_WIDTH() * 1.5;
+
+function laneX(lane) {
+  return TRACK_LEFT() + LANE_WIDTH() * lane + LANE_WIDTH() / 2;
+}
+
+// ── Game state ──
+let state = 'title'; // title, playing, dead
+let score = 0;
+let distance = 0;
+let coins = 0;
+let multiplier = 1;
+let speed = 6;
+let maxSpeed = 18;
+let speedIncrement = 0.003;
+
+// Player
+let player = {
+  lane: 1,
+  targetLane: 1,
+  x: 0,
+  y: 0,
+  width: 0,
+  height: 0,
+  jumping: false,
+  jumpY: 0,
+  jumpVel: 0,
+  sliding: false,
+  slideTimer: 0,
+  slideDuration: 30,
+  laneTransition: 0,
+  fromLane: 1,
+};
+
+// Obstacles & coins
+let obstacles = [];
+let coinItems = [];
+let particles = [];
+let trackLines = [];
+
+// Timers
+let obstacleTimer = 0;
+let obstacleInterval = 80;
+let coinTimer = 0;
+let coinInterval = 40;
+let frameCount = 0;
+
+// ── Track lines for movement illusion ──
+for (let i = 0; i < 20; i++) {
+  trackLines.push({ y: (canvas.height / 20) * i });
+}
+
+function resetGame() {
+  score = 0;
+  distance = 0;
+  coins = 0;
+  multiplier = 1;
+  speed = 6;
+  player.lane = 1;
+  player.targetLane = 1;
+  player.jumping = false;
+  player.jumpY = 0;
+  player.jumpVel = 0;
+  player.sliding = false;
+  player.slideTimer = 0;
+  player.laneTransition = 0;
+  player.fromLane = 1;
+  obstacles = [];
+  coinItems = [];
+  particles = [];
+  obstacleTimer = 0;
+  coinTimer = 0;
+  frameCount = 0;
+}
+
+// ── Input ──
+let keys = {};
+let swipeStartX = 0, swipeStartY = 0;
+
+document.addEventListener('keydown', (e) => {
+  if (state === 'title' || state === 'dead') {
+    state = 'playing';
+    resetGame();
+    overlay.classList.add('hidden');
+    return;
+  }
+  if (state !== 'playing') return;
+
+  if ((e.key === 'ArrowLeft' || e.key === 'a') && !keys['left']) {
+    keys['left'] = true;
+    moveLeft();
+  }
+  if ((e.key === 'ArrowRight' || e.key === 'd') && !keys['right']) {
+    keys['right'] = true;
+    moveRight();
+  }
+  if ((e.key === 'ArrowUp' || e.key === 'w' || e.key === ' ') && !keys['up']) {
+    keys['up'] = true;
+    jump();
+  }
+  if ((e.key === 'ArrowDown' || e.key === 's') && !keys['down']) {
+    keys['down'] = true;
+    slide();
+  }
+});
+
+document.addEventListener('keyup', (e) => {
+  if (e.key === 'ArrowLeft' || e.key === 'a') keys['left'] = false;
+  if (e.key === 'ArrowRight' || e.key === 'd') keys['right'] = false;
+  if (e.key === 'ArrowUp' || e.key === 'w' || e.key === ' ') keys['up'] = false;
+  if (e.key === 'ArrowDown' || e.key === 's') keys['down'] = false;
+});
+
+// Touch support
+canvas.addEventListener('touchstart', (e) => {
+  if (state === 'title' || state === 'dead') {
+    state = 'playing';
+    resetGame();
+    overlay.classList.add('hidden');
+    return;
+  }
+  const t = e.touches[0];
+  swipeStartX = t.clientX;
+  swipeStartY = t.clientY;
+  e.preventDefault();
+});
+
+canvas.addEventListener('touchend', (e) => {
+  if (state !== 'playing') return;
+  const t = e.changedTouches[0];
+  const dx = t.clientX - swipeStartX;
+  const dy = t.clientY - swipeStartY;
+  const absDx = Math.abs(dx);
+  const absDy = Math.abs(dy);
+
+  if (Math.max(absDx, absDy) < 30) return; // tap, not swipe
+
+  if (absDx > absDy) {
+    if (dx < 0) moveLeft();
+    else moveRight();
+  } else {
+    if (dy < 0) jump();
+    else slide();
+  }
+  e.preventDefault();
+});
+
+function moveLeft() {
+  if (player.targetLane > 0) {
+    player.fromLane = player.lane;
+    player.targetLane--;
+    player.laneTransition = 1.0;
+  }
+}
+
+function moveRight() {
+  if (player.targetLane < LANE_COUNT - 1) {
+    player.fromLane = player.lane;
+    player.targetLane++;
+    player.laneTransition = 1.0;
+  }
+}
+
+function jump() {
+  if (!player.jumping) {
+    player.jumping = true;
+    player.jumpVel = -14;
+    player.sliding = false;
+    player.slideTimer = 0;
+  }
+}
+
+function slide() {
+  if (!player.jumping && !player.sliding) {
+    player.sliding = true;
+    player.slideTimer = player.slideDuration;
+  }
+}
+
+// ── Spawn ──
+function spawnObstacle() {
+  const lane = Math.floor(Math.random() * LANE_COUNT);
+  const type = Math.random();
+
+  if (type < 0.35) {
+    // Train (tall, must jump or dodge)
+    obstacles.push({
+      lane, y: -120, width: LANE_WIDTH() * 0.7, height: 120,
+      type: 'train', color: '#ff3333',
+    });
+  } else if (type < 0.65) {
+    // Barrier (low, can jump over)
+    obstacles.push({
+      lane, y: -40, width: LANE_WIDTH() * 0.8, height: 40,
+      type: 'barrier', color: '#ffaa00',
+    });
+  } else {
+    // Overhead bar (must slide under)
+    obstacles.push({
+      lane, y: -60, width: LANE_WIDTH() * 0.8, height: 60,
+      type: 'overhead', color: '#ff00ff',
+    });
+  }
+
+  // Sometimes spawn double obstacle
+  if (Math.random() < 0.3 && speed > 8) {
+    let lane2 = (lane + (Math.random() < 0.5 ? 1 : -1) + LANE_COUNT) % LANE_COUNT;
+    if (lane2 !== lane) {
+      obstacles.push({
+        lane: lane2, y: -80, width: LANE_WIDTH() * 0.7, height: 80,
+        type: 'train', color: '#ff3333',
+      });
+    }
+  }
+}
+
+function spawnCoin() {
+  const lane = Math.floor(Math.random() * LANE_COUNT);
+  const count = Math.floor(Math.random() * 4) + 1;
+  for (let i = 0; i < count; i++) {
+    coinItems.push({
+      lane, y: -30 - i * 40, size: 14, collected: false,
+    });
+  }
+}
+
+// ── Particles ──
+function emitParticles(x, y, color, count) {
+  for (let i = 0; i < count; i++) {
+    particles.push({
+      x, y,
+      vx: (Math.random() - 0.5) * 6,
+      vy: (Math.random() - 0.5) * 6 - 2,
+      life: 30 + Math.random() * 20,
+      maxLife: 50,
+      color,
+      size: 2 + Math.random() * 3,
+    });
+  }
+}
+
+// ── Update ──
+function update() {
+  if (state !== 'playing') return;
+
+  frameCount++;
+  speed = Math.min(maxSpeed, speed + speedIncrement);
+  distance += speed * 0.1;
+
+  // Player sizing
+  player.width = LANE_WIDTH() * 0.35;
+  player.height = player.sliding ? player.width * 0.6 : player.width * 1.8;
+  player.y = canvas.height - 140;
+
+  // Lane transition
+  if (player.laneTransition > 0) {
+    player.laneTransition -= 0.15;
+    if (player.laneTransition <= 0) {
+      player.laneTransition = 0;
+      player.lane = player.targetLane;
+    }
+  } else {
+    player.lane = player.targetLane;
+  }
+
+  // Interpolate x position
+  const fromX = laneX(player.fromLane);
+  const toX = laneX(player.targetLane);
+  player.x = player.laneTransition > 0
+    ? fromX + (toX - fromX) * (1 - player.laneTransition)
+    : laneX(player.lane);
+
+  // Jump physics
+  if (player.jumping) {
+    player.jumpY += player.jumpVel;
+    player.jumpVel += 0.8;
+    if (player.jumpY >= 0) {
+      player.jumpY = 0;
+      player.jumping = false;
+      player.jumpVel = 0;
+    }
+  }
+
+  // Slide timer
+  if (player.sliding) {
+    player.slideTimer--;
+    if (player.slideTimer <= 0) {
+      player.sliding = false;
+    }
+  }
+
+  // Track lines
+  for (let line of trackLines) {
+    line.y += speed;
+    if (line.y > canvas.height) line.y -= canvas.height;
+  }
+
+  // Spawn obstacles
+  obstacleTimer++;
+  const interval = Math.max(35, obstacleInterval - speed * 2);
+  if (obstacleTimer >= interval) {
+    obstacleTimer = 0;
+    spawnObstacle();
+  }
+
+  // Spawn coins
+  coinTimer++;
+  if (coinTimer >= coinInterval) {
+    coinTimer = 0;
+    spawnCoin();
+  }
+
+  // Update obstacles
+  for (let i = obstacles.length - 1; i >= 0; i--) {
+    const obs = obstacles[i];
+    obs.y += speed;
+
+    // Collision check
+    const obsX = laneX(obs.lane);
+    const obsLeft = obsX - obs.width / 2;
+    const obsRight = obsX + obs.width / 2;
+    const obsTop = obs.y;
+    const obsBottom = obs.y + obs.height;
+
+    const pLeft = player.x - player.width / 2;
+    const pRight = player.x + player.width / 2;
+    const pTop = player.y + player.jumpY;
+    const pBottom = pTop + player.height;
+
+    const horizOverlap = pRight > obsLeft + 4 && pLeft < obsRight - 4;
+
+    if (horizOverlap && obsBottom > pTop && obsTop < pBottom) {
+      // Check if avoidable
+      if (obs.type === 'barrier' && player.jumping && player.jumpY < -30) {
+        // Jumped over barrier
+      } else if (obs.type === 'overhead' && player.sliding) {
+        // Slid under overhead
+      } else {
+        // Hit!
+        die();
+        return;
+      }
+    }
+
+    // Score for passing
+    if (obs.y > canvas.height + 50) {
+      score += 10 * multiplier;
+      obstacles.splice(i, 1);
+    }
+  }
+
+  // Update coins
+  for (let i = coinItems.length - 1; i >= 0; i--) {
+    const coin = coinItems[i];
+    coin.y += speed;
+
+    if (!coin.collected) {
+      const coinX = laneX(coin.lane);
+      const dx = Math.abs(player.x - coinX);
+      const dy = Math.abs((player.y + player.jumpY + player.height / 2) - coin.y);
+
+      if (dx < player.width * 0.8 && dy < player.height * 0.6) {
+        coin.collected = true;
+        coins++;
+        score += 5 * multiplier;
+        emitParticles(coinX, coin.y, '#ffdd00', 6);
+
+        // Multiplier increase
+        if (coins % 20 === 0) {
+          multiplier = Math.min(5, multiplier + 1);
+        }
+      }
+    }
+
+    if (coin.y > canvas.height + 20) {
+      coinItems.splice(i, 1);
+    }
+  }
+
+  // Update particles
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += 0.15;
+    p.life--;
+    if (p.life <= 0) particles.splice(i, 1);
+  }
+
+  // Update HUD
+  score += Math.floor(speed * 0.1);
+  hudScore.textContent = score.toLocaleString();
+  hudDist.textContent = Math.floor(distance) + 'm';
+  hudCoins.textContent = coins;
+  hudMulti.textContent = multiplier;
+}
+
+function die() {
+  state = 'dead';
+  emitParticles(player.x, player.y, '#ff3333', 20);
+
+  overlay.classList.remove('hidden');
+  overlay.innerHTML = `
+    <h1>GAME OVER</h1>
+    <div class="final-score">${score.toLocaleString()} pts</div>
+    <h2>${Math.floor(distance)}m &bull; ${coins} coins</h2>
+    <p>Press any key to retry</p>
+  `;
+}
+
+// ── Draw ──
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const w = canvas.width;
+  const h = canvas.height;
+  const lw = LANE_WIDTH();
+  const tl = TRACK_LEFT();
+
+  // Background gradient
+  const bg = ctx.createLinearGradient(0, 0, 0, h);
+  bg.addColorStop(0, '#0d1117');
+  bg.addColorStop(1, '#0a0a0a');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, w, h);
+
+  // Track
+  ctx.fillStyle = '#111820';
+  ctx.fillRect(tl, 0, lw * LANE_COUNT, h);
+
+  // Track borders
+  ctx.strokeStyle = 'rgba(0, 229, 255, 0.3)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(tl, 0);
+  ctx.lineTo(tl, h);
+  ctx.moveTo(tl + lw * LANE_COUNT, 0);
+  ctx.lineTo(tl + lw * LANE_COUNT, h);
+  ctx.stroke();
+
+  // Lane dividers
+  ctx.strokeStyle = 'rgba(0, 229, 255, 0.12)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([20, 15]);
+  for (let i = 1; i < LANE_COUNT; i++) {
+    ctx.beginPath();
+    ctx.moveTo(tl + lw * i, 0);
+    ctx.lineTo(tl + lw * i, h);
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+
+  // Track speed lines
+  ctx.strokeStyle = 'rgba(0, 229, 255, 0.06)';
+  ctx.lineWidth = 1;
+  for (let line of trackLines) {
+    ctx.beginPath();
+    ctx.moveTo(tl + 5, line.y);
+    ctx.lineTo(tl + lw * LANE_COUNT - 5, line.y);
+    ctx.stroke();
+  }
+
+  // Draw coins
+  for (let coin of coinItems) {
+    if (coin.collected) continue;
+    const cx = laneX(coin.lane);
+    const cy = coin.y;
+    const s = coin.size;
+
+    // Coin glow
+    ctx.shadowBlur = 12;
+    ctx.shadowColor = 'rgba(255, 221, 0, 0.5)';
+
+    // Coin body
+    ctx.fillStyle = '#ffdd00';
+    ctx.beginPath();
+    ctx.arc(cx, cy, s, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Inner ring
+    ctx.strokeStyle = '#ffaa00';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(cx, cy, s * 0.6, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.shadowBlur = 0;
+  }
+
+  // Draw obstacles
+  for (let obs of obstacles) {
+    const ox = laneX(obs.lane);
+    const oleft = ox - obs.width / 2;
+
+    if (obs.type === 'train') {
+      // Train car
+      ctx.fillStyle = '#1a1a2e';
+      ctx.strokeStyle = obs.color;
+      ctx.lineWidth = 2;
+      roundRect(ctx, oleft, obs.y, obs.width, obs.height, 6);
+      ctx.fill();
+      ctx.stroke();
+
+      // Train windows
+      ctx.fillStyle = 'rgba(0, 229, 255, 0.3)';
+      const winW = obs.width * 0.2;
+      const winH = obs.height * 0.15;
+      const winY = obs.y + obs.height * 0.2;
+      for (let wi = 0; wi < 3; wi++) {
+        const winX = oleft + obs.width * 0.15 + wi * (winW + 6);
+        ctx.fillRect(winX, winY, winW, winH);
+      }
+
+      // Top stripe
+      ctx.fillStyle = obs.color;
+      ctx.fillRect(oleft + 4, obs.y + 4, obs.width - 8, 4);
+    } else if (obs.type === 'barrier') {
+      // Low barrier
+      ctx.fillStyle = '#2a1a00';
+      ctx.strokeStyle = obs.color;
+      ctx.lineWidth = 2;
+      roundRect(ctx, oleft, obs.y, obs.width, obs.height, 4);
+      ctx.fill();
+      ctx.stroke();
+
+      // Hazard stripes
+      ctx.fillStyle = obs.color;
+      const stripeW = 8;
+      for (let sx = oleft + 4; sx < oleft + obs.width - 4; sx += stripeW * 2) {
+        ctx.fillRect(sx, obs.y + 4, stripeW, obs.height - 8);
+      }
+    } else if (obs.type === 'overhead') {
+      // Overhead bar — draw posts on sides and bar across top
+      const postW = 6;
+      const barH = 10;
+      const gapBottom = obs.y + obs.height;
+
+      ctx.fillStyle = obs.color;
+      ctx.globalAlpha = 0.8;
+      // Left post
+      ctx.fillRect(oleft, obs.y, postW, obs.height);
+      // Right post
+      ctx.fillRect(oleft + obs.width - postW, obs.y, postW, obs.height);
+      // Top bar
+      ctx.fillRect(oleft, obs.y, obs.width, barH);
+
+      // Warning pattern
+      ctx.fillStyle = '#0a0a0a';
+      for (let sx = oleft + postW; sx < oleft + obs.width - postW; sx += 12) {
+        ctx.fillRect(sx, obs.y + 2, 6, barH - 4);
+      }
+      ctx.globalAlpha = 1.0;
+    }
+  }
+
+  // Draw player
+  const px = player.x;
+  const py = player.y + player.jumpY;
+  const pw = player.width;
+  const ph = player.height;
+
+  // Player shadow
+  if (player.jumping) {
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+    ctx.beginPath();
+    ctx.ellipse(px, player.y + player.height, pw * 0.5, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Player glow
+  ctx.shadowBlur = 15;
+  ctx.shadowColor = 'rgba(0, 229, 255, 0.4)';
+
+  if (player.sliding) {
+    // Sliding: flat capsule
+    ctx.fillStyle = '#00e5ff';
+    roundRect(ctx, px - pw / 2, py + ph * 0.5, pw, ph, 8);
+    ctx.fill();
+
+    // Slide sparks
+    ctx.fillStyle = '#ffaa00';
+    ctx.shadowColor = 'rgba(255, 170, 0, 0.5)';
+    for (let i = 0; i < 3; i++) {
+      const sx = px - pw / 2 + Math.random() * pw;
+      const sy = py + ph + Math.random() * 4;
+      ctx.fillRect(sx, sy, 2, 2);
+    }
+  } else {
+    // Body
+    ctx.fillStyle = '#0d1117';
+    ctx.strokeStyle = '#00e5ff';
+    ctx.lineWidth = 2;
+    roundRect(ctx, px - pw / 2, py, pw, ph, 8);
+    ctx.fill();
+    ctx.stroke();
+
+    // Visor / face
+    ctx.fillStyle = '#00e5ff';
+    const visorY = py + ph * 0.12;
+    const visorH = ph * 0.15;
+    roundRect(ctx, px - pw * 0.35, visorY, pw * 0.7, visorH, 4);
+    ctx.fill();
+
+    // Core light
+    ctx.fillStyle = '#ff6b00';
+    ctx.beginPath();
+    ctx.arc(px, py + ph * 0.5, pw * 0.12, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Legs (when not jumping)
+    if (!player.jumping) {
+      const legPhase = frameCount * 0.3;
+      ctx.strokeStyle = '#00e5ff';
+      ctx.lineWidth = 3;
+      const legY = py + ph;
+      const legSpread = Math.sin(legPhase) * 6;
+
+      ctx.beginPath();
+      ctx.moveTo(px - 6, legY);
+      ctx.lineTo(px - 6 - legSpread, legY + 12);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(px + 6, legY);
+      ctx.lineTo(px + 6 + legSpread, legY + 12);
+      ctx.stroke();
+    }
+  }
+
+  ctx.shadowBlur = 0;
+
+  // Draw particles
+  for (let p of particles) {
+    ctx.globalAlpha = p.life / p.maxLife;
+    ctx.fillStyle = p.color;
+    ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+  }
+  ctx.globalAlpha = 1.0;
+
+  // Speed lines on edges when going fast
+  if (speed > 10) {
+    const intensity = (speed - 10) / (maxSpeed - 10);
+    ctx.strokeStyle = `rgba(0, 229, 255, ${intensity * 0.15})`;
+    ctx.lineWidth = 1;
+    for (let i = 0; i < 5; i++) {
+      const ly = Math.random() * h;
+      const ll = 30 + Math.random() * 60;
+      // Left side
+      ctx.beginPath();
+      ctx.moveTo(tl - 20, ly);
+      ctx.lineTo(tl - 20, ly + ll);
+      ctx.stroke();
+      // Right side
+      ctx.beginPath();
+      ctx.moveTo(tl + lw * LANE_COUNT + 20, ly);
+      ctx.lineTo(tl + lw * LANE_COUNT + 20, ly + ll);
+      ctx.stroke();
+    }
+  }
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+// ── Game loop ──
+function loop() {
+  update();
+  draw();
+  requestAnimationFrame(loop);
+}
+
+container.focus();
+loop();
+</script>
+</body>
+</html>

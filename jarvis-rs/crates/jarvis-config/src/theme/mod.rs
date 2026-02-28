@@ -10,7 +10,8 @@ mod types;
 pub use apply::apply_theme;
 pub use loader::{load_theme, load_theme_from_path};
 pub use types::{
-    ThemeBackgroundOverrides, ThemeFontOverrides, ThemeOverrides, ThemeVisualizerOverrides,
+    ThemeBackgroundOverrides, ThemeEffectsOverrides, ThemeFontOverrides, ThemeInfo, ThemeOverrides,
+    ThemePreviewColors, ThemeTerminalOverrides, ThemeVisualizerOverrides, ThemeWindowOverrides,
     BUILT_IN_THEMES,
 };
 
@@ -150,5 +151,143 @@ font:
     fn nonexistent_theme_returns_error() {
         let result = load_theme("definitely-not-a-real-theme-name");
         assert!(result.is_err());
+    }
+
+    // =========================================================================
+    // Phase 13: Extended theme overrides + TOML support
+    // =========================================================================
+
+    #[test]
+    fn apply_theme_with_effects_overrides() {
+        let mut config = JarvisConfig::default();
+        let theme = ThemeOverrides {
+            effects: Some(ThemeEffectsOverrides {
+                scanline_intensity: Some(0.2),
+                bloom_intensity: Some(1.5),
+                glow_color: Some("#ff0000".into()),
+                ..Default::default()
+            }),
+            ..Default::default()
+        };
+
+        apply_theme(&mut config, &theme);
+        assert!((config.effects.scanlines.intensity - 0.2).abs() < f32::EPSILON);
+        assert!((config.effects.bloom.intensity - 1.5).abs() < f32::EPSILON);
+        assert_eq!(config.effects.glow.color, "#ff0000");
+        // Unchanged
+        assert!(config.effects.vignette.enabled);
+    }
+
+    #[test]
+    fn apply_theme_with_window_overrides() {
+        let mut config = JarvisConfig::default();
+        let theme = ThemeOverrides {
+            window: Some(ThemeWindowOverrides {
+                opacity: Some(0.85),
+                blur: Some(true),
+            }),
+            ..Default::default()
+        };
+
+        apply_theme(&mut config, &theme);
+        assert!((config.window.opacity - 0.85).abs() < f64::EPSILON);
+        assert!(config.window.blur);
+    }
+
+    #[test]
+    fn apply_theme_with_terminal_overrides() {
+        let mut config = JarvisConfig::default();
+        let theme = ThemeOverrides {
+            terminal: Some(ThemeTerminalOverrides {
+                cursor_style: Some("beam".into()),
+                cursor_blink: Some(false),
+            }),
+            ..Default::default()
+        };
+
+        apply_theme(&mut config, &theme);
+        assert_eq!(
+            config.terminal.cursor_style,
+            crate::schema::CursorStyle::Beam
+        );
+        assert!(!config.terminal.cursor_blink);
+    }
+
+    #[test]
+    fn apply_theme_with_extended_font_overrides() {
+        let mut config = JarvisConfig::default();
+        let theme = ThemeOverrides {
+            font: Some(ThemeFontOverrides {
+                ligatures: Some(true),
+                nerd_font: Some(false),
+                font_weight: Some(300),
+                ..Default::default()
+            }),
+            ..Default::default()
+        };
+
+        apply_theme(&mut config, &theme);
+        assert!(config.font.ligatures);
+        assert!(!config.font.nerd_font);
+        assert_eq!(config.font.font_weight, 300);
+        // Unchanged
+        assert_eq!(config.font.family, "Menlo");
+    }
+
+    #[test]
+    fn load_theme_from_toml_file() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("test-theme.toml");
+        std::fs::write(
+            &path,
+            r##"
+name = "toml-theme"
+
+[colors]
+primary = "#ff00ff"
+background = "#111111"
+
+[font]
+family = "Fira Code"
+
+[effects]
+scanline_intensity = 0.2
+
+[window]
+opacity = 0.9
+"##,
+        )
+        .unwrap();
+
+        let theme = load_theme_from_path(&path).unwrap();
+        assert_eq!(theme.name, Some("toml-theme".into()));
+        assert!(theme.colors.is_some());
+        assert_eq!(theme.colors.as_ref().unwrap().primary, "#ff00ff");
+        assert_eq!(
+            theme.font.as_ref().unwrap().family,
+            Some("Fira Code".into())
+        );
+        assert!(
+            (theme.effects.as_ref().unwrap().scanline_intensity.unwrap() - 0.2).abs()
+                < f32::EPSILON
+        );
+        assert!((theme.window.as_ref().unwrap().opacity.unwrap() - 0.9).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn theme_info_struct() {
+        let info = ThemeInfo {
+            name: "test".into(),
+            display_name: "Test Theme".into(),
+            description: "A test theme".into(),
+            author: Some("Test Author".into()),
+            preview_colors: ThemePreviewColors {
+                primary: "#00d4ff".into(),
+                background: "#000000".into(),
+                text: "#ffffff".into(),
+            },
+        };
+        assert_eq!(info.name, "test");
+        assert_eq!(info.author, Some("Test Author".into()));
     }
 }

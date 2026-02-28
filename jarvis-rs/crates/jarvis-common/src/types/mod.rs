@@ -129,7 +129,13 @@ mod tests {
 
     #[test]
     fn pane_kind_variants() {
-        let kinds = [PaneKind::Terminal, PaneKind::WebView, PaneKind::ExternalApp];
+        let kinds = [
+            PaneKind::Terminal,
+            PaneKind::Assistant,
+            PaneKind::Chat,
+            PaneKind::WebView,
+            PaneKind::ExternalApp,
+        ];
         for kind in &kinds {
             let json = serde_json::to_string(kind).unwrap();
             let deserialized: PaneKind = serde_json::from_str(&json).unwrap();

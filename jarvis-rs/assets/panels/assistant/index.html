@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Jarvis Assistant</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { background: transparent !important; }
+
+:root {
+  --primary: #00e5ff;
+  --accent: #ff6b00;
+  --text: #c0c8d0;
+  --text-muted: #6a7a8a;
+  --bg: rgba(10, 10, 10, 0.80);
+  --panel-bg: rgba(13, 17, 23, 0.90);
+  --input-bg: rgba(10, 14, 20, 0.95);
+  --border: rgba(26, 42, 58, 0.6);
+  --border-focus: rgba(0, 229, 255, 0.4);
+  --glow-cyan: rgba(0, 229, 255, 0.3);
+  --glow-orange: rgba(255, 107, 0, 0.3);
+  --success: #00ff88;
+  --error: #ff4444;
+  --user-bubble: rgba(0, 229, 255, 0.08);
+  --assistant-bubble: rgba(13, 17, 23, 0.6);
+  --font: 'SF Mono', 'Fira Code', 'Cascadia Code', 'JetBrains Mono', 'Courier New', monospace;
+}
+
+body {
+  background: var(--bg);
+  font-family: var(--font);
+  color: var(--text);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+/* ================================================================ */
+/* HEADER                                                           */
+/* ================================================================ */
+
+#header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel-bg);
+  min-height: 36px;
+  flex-shrink: 0;
+}
+
+#header-title {
+  font-size: 13px;
+  font-weight: bold;
+  color: var(--primary);
+  text-shadow: 0 0 10px var(--glow-cyan);
+  letter-spacing: 0.5px;
+}
+
+#header-status {
+  font-size: 11px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 6px var(--success);
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+#close-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  opacity: 0.5;
+  transition: opacity 0.15s, color 0.15s;
+}
+#close-btn:hover {
+  opacity: 1;
+  color: var(--error);
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+/* ================================================================ */
+/* MESSAGES                                                         */
+/* ================================================================ */
+
+#messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 229, 255, 0.2) transparent;
+}
+
+#messages::-webkit-scrollbar { width: 4px; }
+#messages::-webkit-scrollbar-track { background: transparent; }
+#messages::-webkit-scrollbar-thumb {
+  background: rgba(0, 229, 255, 0.2);
+  border-radius: 2px;
+}
+
+.message {
+  max-width: 90%;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  line-height: 1.6;
+  animation: msg-in 0.2s ease-out;
+}
+
+@keyframes msg-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.message.assistant {
+  align-self: flex-start;
+  background: var(--assistant-bubble);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.message.user {
+  align-self: flex-end;
+  background: var(--user-bubble);
+  border: 1px solid rgba(0, 229, 255, 0.15);
+  color: var(--primary);
+}
+
+.message.system {
+  align-self: center;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-style: italic;
+  padding: 4px 0;
+}
+
+.message.error {
+  align-self: center;
+  background: rgba(255, 68, 68, 0.1);
+  border: 1px solid rgba(255, 68, 68, 0.2);
+  color: var(--error);
+  font-size: 12px;
+}
+
+.message pre {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 8px 12px;
+  margin: 8px 0 4px;
+  overflow-x: auto;
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.message code {
+  background: rgba(0, 229, 255, 0.08);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 12px;
+}
+
+/* Welcome message */
+#welcome {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-muted);
+}
+
+#welcome h2 {
+  color: var(--primary);
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  text-shadow: 0 0 12px var(--glow-cyan);
+  letter-spacing: 1px;
+}
+
+#welcome p {
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+#welcome .hint {
+  margin-top: 16px;
+  font-size: 11px;
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+#welcome .hint span {
+  color: var(--accent);
+  font-weight: bold;
+}
+
+/* Typing indicator */
+.typing-indicator {
+  display: flex;
+  gap: 4px;
+  padding: 10px 14px;
+  align-self: flex-start;
+}
+
+.typing-indicator span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--primary);
+  opacity: 0.4;
+  animation: typing 1.2s ease-in-out infinite;
+}
+
+.typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+.typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typing {
+  0%, 100% { opacity: 0.2; transform: translateY(0); }
+  50% { opacity: 1; transform: translateY(-4px); }
+}
+
+/* ================================================================ */
+/* INPUT                                                            */
+/* ================================================================ */
+
+#input-area {
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+  background: var(--panel-bg);
+  flex-shrink: 0;
+}
+
+#input-row {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+#input {
+  flex: 1;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 13px;
+  padding: 10px 14px;
+  outline: none;
+  resize: none;
+  min-height: 40px;
+  max-height: 120px;
+  line-height: 1.5;
+  transition: border-color 0.2s;
+}
+
+#input:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 1px var(--glow-cyan), 0 0 12px var(--glow-cyan);
+}
+
+#input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.6;
+}
+
+#send-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--primary);
+  font-family: var(--font);
+  font-size: 12px;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+#send-btn:hover {
+  background: rgba(0, 229, 255, 0.1);
+  border-color: var(--primary);
+  box-shadow: 0 0 8px var(--glow-cyan);
+}
+
+#send-btn:active {
+  transform: scale(0.96);
+}
+
+/* ================================================================ */
+/* COMMANDS HINT                                                    */
+/* ================================================================ */
+
+#cmd-hint {
+  display: none;
+  position: absolute;
+  bottom: 70px;
+  left: 16px;
+  right: 16px;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 0;
+  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.4);
+  z-index: 10;
+}
+
+#cmd-hint.visible { display: block; }
+
+.cmd-option {
+  padding: 6px 14px;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+}
+
+.cmd-option:hover {
+  background: rgba(0, 229, 255, 0.08);
+}
+
+.cmd-option .cmd-name {
+  color: var(--accent);
+  font-weight: bold;
+}
+
+.cmd-option .cmd-desc {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <span id="header-title">[ Assistant ]</span>
+  <div id="header-status">
+    <div class="status-dot"></div>
+    <span id="status-text">ready</span>
+  </div>
+  <button id="close-btn" title="Close panel" onclick="sendIpc('panel_close', {})">&times;</button>
+</div>
+
+<div id="messages">
+  <div id="welcome">
+    <h2>[ JARVIS ASSISTANT ]</h2>
+    <p>Ready. Type or speak your request.</p>
+    <div class="hint">
+      Type <span>/help</span> for commands
+    </div>
+  </div>
+</div>
+
+<div id="cmd-hint"></div>
+
+<div id="input-area">
+  <div id="input-row">
+    <textarea id="input"
+      placeholder="Type a question..."
+      rows="1"
+      autocomplete="off"
+      spellcheck="false"></textarea>
+    <button id="send-btn">SEND</button>
+  </div>
+</div>
+
+<script>
+// ================================================================
+// IPC BRIDGE
+// ================================================================
+
+const ipc = window.__JARVIS_IPC__ || {
+  postMessage: function(msg) {
+    if (window.ipc && window.ipc.postMessage) {
+      window.ipc.postMessage(msg);
+    }
+  }
+};
+
+function sendIpc(kind, payload) {
+  ipc.postMessage(JSON.stringify({ kind: kind, payload: payload || {} }));
+}
+
+// ================================================================
+// STATE
+// ================================================================
+
+let isWaiting = false;
+const messagesEl = document.getElementById('messages');
+const welcomeEl = document.getElementById('welcome');
+const inputEl = document.getElementById('input');
+const sendBtn = document.getElementById('send-btn');
+const cmdHint = document.getElementById('cmd-hint');
+const statusText = document.getElementById('status-text');
+const headerTitle = document.getElementById('header-title');
+
+// ================================================================
+// COMMANDS
+// ================================================================
+
+const COMMANDS = [
+  { name: '/help', desc: 'Show available commands' },
+  { name: '/open', desc: 'Open a panel (chat, terminal, game)' },
+  { name: '/theme', desc: 'Change color theme' },
+  { name: '/settings', desc: 'Open settings' },
+  { name: '/clear', desc: 'Clear chat history' },
+  { name: '/model', desc: 'Switch AI model' },
+];
+
+function handleCommand(text) {
+  const parts = text.trim().split(/\s+/);
+  const cmd = parts[0].toLowerCase();
+  const args = parts.slice(1).join(' ');
+
+  switch (cmd) {
+    case '/help':
+      addMessage('system', 'Commands: ' + COMMANDS.map(function(c) { return c.name; }).join(', '));
+      return true;
+    case '/clear':
+      clearMessages();
+      return true;
+    case '/open':
+      sendIpc('open_panel', { panel: args || 'terminal' });
+      addMessage('system', 'Opening ' + (args || 'terminal') + '...');
+      return true;
+    case '/theme':
+      sendIpc('settings_set_theme', { theme: args || 'cyberpunk' });
+      addMessage('system', 'Theme: ' + (args || 'cyberpunk'));
+      return true;
+    case '/settings':
+      sendIpc('open_panel', { panel: 'settings' });
+      addMessage('system', 'Opening settings...');
+      return true;
+    case '/model':
+      addMessage('system', 'Model switching not yet implemented.');
+      return true;
+    default:
+      return false;
+  }
+}
+
+// ================================================================
+// MESSAGES
+// ================================================================
+
+function addMessage(role, text) {
+  if (welcomeEl && welcomeEl.parentNode) {
+    welcomeEl.remove();
+  }
+
+  const div = document.createElement('div');
+  div.className = 'message ' + role;
+  div.textContent = text;
+  messagesEl.appendChild(div);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+function clearMessages() {
+  messagesEl.innerHTML = '';
+}
+
+function showTyping() {
+  const div = document.createElement('div');
+  div.className = 'typing-indicator';
+  div.id = 'typing';
+  div.innerHTML = '<span></span><span></span><span></span>';
+  messagesEl.appendChild(div);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+function hideTyping() {
+  const el = document.getElementById('typing');
+  if (el) el.remove();
+}
+
+// ================================================================
+// SEND
+// ================================================================
+
+function send() {
+  const text = inputEl.value.trim();
+  if (!text || isWaiting) return;
+
+  // Check for /commands
+  if (text.startsWith('/')) {
+    if (handleCommand(text)) {
+      inputEl.value = '';
+      autoResize();
+      return;
+    }
+  }
+
+  addMessage('user', text);
+  inputEl.value = '';
+  autoResize();
+
+  isWaiting = true;
+  statusText.textContent = 'thinking...';
+  showTyping();
+
+  // Send to Rust backend via IPC
+  sendIpc('assistant_input', { text: text });
+}
+
+// ================================================================
+// INPUT HANDLING
+// ================================================================
+
+inputEl.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    send();
+  }
+
+  // Show/hide command hints
+  setTimeout(updateCmdHint, 10);
+});
+
+inputEl.addEventListener('input', function() {
+  autoResize();
+  updateCmdHint();
+});
+
+sendBtn.addEventListener('click', send);
+
+function autoResize() {
+  inputEl.style.height = 'auto';
+  inputEl.style.height = Math.min(inputEl.scrollHeight, 120) + 'px';
+}
+
+function updateCmdHint() {
+  const text = inputEl.value;
+  if (!text.startsWith('/') || text.includes(' ')) {
+    cmdHint.classList.remove('visible');
+    return;
+  }
+
+  const matches = COMMANDS.filter(function(c) {
+    return c.name.startsWith(text.toLowerCase());
+  });
+
+  if (matches.length === 0) {
+    cmdHint.classList.remove('visible');
+    return;
+  }
+
+  cmdHint.innerHTML = '';
+  matches.forEach(function(c) {
+    const div = document.createElement('div');
+    div.className = 'cmd-option';
+    div.innerHTML = '<span class="cmd-name">' + escapeHtml(c.name) + '</span>'
+      + '<span class="cmd-desc">' + escapeHtml(c.desc) + '</span>';
+    div.addEventListener('click', function() {
+      inputEl.value = c.name + ' ';
+      inputEl.focus();
+      cmdHint.classList.remove('visible');
+    });
+    cmdHint.appendChild(div);
+  });
+  cmdHint.classList.add('visible');
+}
+
+// ================================================================
+// IPC INCOMING (from Rust)
+// ================================================================
+
+window.__jarvis_dispatch = function(kind, payload) {
+  switch (kind) {
+    case 'assistant_output':
+      hideTyping();
+      isWaiting = false;
+      statusText.textContent = 'ready';
+      if (payload && payload.text) {
+        addMessage('assistant', payload.text);
+      }
+      break;
+
+    case 'assistant_error':
+      hideTyping();
+      isWaiting = false;
+      statusText.textContent = 'ready';
+      addMessage('error', payload.message || 'An error occurred.');
+      break;
+
+    case 'assistant_config':
+      if (payload.model_name) {
+        headerTitle.textContent = '[ ' + escapeHtml(payload.model_name) + ' ]';
+      }
+      break;
+
+    case 'theme_update':
+      applyTheme(payload);
+      break;
+  }
+};
+
+// ================================================================
+// THEME
+// ================================================================
+
+function applyTheme(vars) {
+  if (!vars) return;
+  var root = document.documentElement;
+  Object.keys(vars).forEach(function(key) {
+    root.style.setProperty(key, vars[key]);
+  });
+}
+
+// ================================================================
+// HELPERS
+// ================================================================
+
+function escapeHtml(str) {
+  var div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// Focus input on load
+inputEl.focus();
+</script>
+</body>
+</html>

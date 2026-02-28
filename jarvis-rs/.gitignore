@@ -25,3 +25,6 @@ Thumbs.db
 
 # Crash reports (generated at runtime)
 crash_*.json
+
+# Documentation (generated plans)
+/docs

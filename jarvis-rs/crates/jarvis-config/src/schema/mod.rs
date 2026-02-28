@@ -3,7 +3,9 @@
 //! All structs use `serde(default)` so partial configs work correctly.
 //! Missing fields are filled with sensible defaults matching the Python schema.
 
+mod auto_open;
 mod background;
+mod effects;
 mod font;
 mod games;
 mod keybind_config;
@@ -11,14 +13,19 @@ mod layout;
 mod livechat;
 mod panels;
 mod performance;
+mod shell;
 mod social;
 mod startup;
 mod system;
+mod terminal;
 mod theme;
 mod visualizer;
 mod voice;
+mod window;
 
+pub use auto_open::*;
 pub use background::*;
+pub use effects::*;
 pub use font::*;
 pub use games::*;
 pub use keybind_config::*;
@@ -26,12 +33,15 @@ pub use layout::*;
 pub use livechat::*;
 pub use panels::*;
 pub use performance::*;
+pub use shell::*;
 pub use social::*;
 pub use startup::*;
 pub use system::*;
+pub use terminal::*;
 pub use theme::*;
 pub use visualizer::*;
 pub use voice::*;
+pub use window::*;
 
 use serde::{Deserialize, Serialize};
 
@@ -49,6 +59,10 @@ pub struct JarvisConfig {
     pub theme: ThemeConfig,
     pub colors: ColorConfig,
     pub font: FontConfig,
+    pub terminal: TerminalConfig,
+    pub shell: ShellConfig,
+    pub window: WindowConfig,
+    pub effects: EffectsSchemaConfig,
     pub layout: LayoutConfig,
     pub opacity: OpacityConfig,
     pub background: BackgroundConfig,
@@ -64,6 +78,7 @@ pub struct JarvisConfig {
     pub updates: UpdatesConfig,
     pub logging: LoggingConfig,
     pub advanced: AdvancedConfig,
+    pub auto_open: AutoOpenConfig,
 }
 
 // =============================================================================
@@ -416,5 +431,231 @@ path = "/path/to/game"
         assert!(config.games.enabled.tetris); // default preserved
         assert_eq!(config.games.custom_paths.len(), 1);
         assert_eq!(config.games.custom_paths[0].name, "my-game");
+    }
+
+    // =========================================================================
+    // Phase 7: Terminal, Shell, Window config integration tests
+    // =========================================================================
+
+    #[test]
+    fn default_config_has_correct_terminal() {
+        let config = JarvisConfig::default();
+        assert_eq!(config.terminal.scrollback_lines, 10_000);
+        assert_eq!(config.terminal.cursor_style, CursorStyle::Block);
+        assert!(config.terminal.cursor_blink);
+        assert_eq!(config.terminal.cursor_blink_interval_ms, 500);
+        assert!(config.terminal.true_color);
+        assert!(config.terminal.bell.visual);
+        assert!(!config.terminal.bell.audio);
+        assert!(!config.terminal.mouse.copy_on_select);
+        assert!(config.terminal.mouse.url_detection);
+        assert!(config.terminal.search.wrap_around);
+        assert!(!config.terminal.search.regex);
+    }
+
+    #[test]
+    fn default_config_has_correct_shell() {
+        let config = JarvisConfig::default();
+        assert!(config.shell.program.is_empty());
+        assert!(config.shell.args.is_empty());
+        assert!(config.shell.working_directory.is_none());
+        assert!(config.shell.env.is_empty());
+        assert!(config.shell.login_shell);
+    }
+
+    #[test]
+    fn default_config_has_correct_window() {
+        let config = JarvisConfig::default();
+        assert_eq!(config.window.decorations, WindowDecorations::Full);
+        assert!((config.window.opacity - 1.0).abs() < f64::EPSILON);
+        assert!(!config.window.blur);
+        assert_eq!(config.window.startup_mode, StartupMode::Windowed);
+        assert_eq!(config.window.title, "Jarvis");
+        assert!(config.window.dynamic_title);
+        assert_eq!(config.window.padding.top, 0);
+    }
+
+    #[test]
+    fn default_config_has_correct_font_extensions() {
+        let config = JarvisConfig::default();
+        assert!(config.font.bold_family.is_none());
+        assert!(config.font.italic_family.is_none());
+        assert!(config.font.nerd_font);
+        assert!(!config.font.ligatures);
+        assert!(config.font.fallback_families.is_empty());
+        assert_eq!(config.font.font_weight, 400);
+        assert_eq!(config.font.bold_weight, 700);
+    }
+
+    #[test]
+    fn terminal_config_in_toml() {
+        let toml_str = r#"
+[terminal]
+scrollback_lines = 50000
+cursor_style = "beam"
+cursor_blink = false
+
+[terminal.bell]
+audio = true
+
+[terminal.mouse]
+copy_on_select = true
+"#;
+        let config: JarvisConfig = toml::from_str(toml_str).unwrap();
+        assert_eq!(config.terminal.scrollback_lines, 50_000);
+        assert_eq!(config.terminal.cursor_style, CursorStyle::Beam);
+        assert!(!config.terminal.cursor_blink);
+        assert!(config.terminal.bell.audio);
+        assert!(config.terminal.mouse.copy_on_select);
+        // Defaults preserved
+        assert!(config.terminal.true_color);
+        assert!(config.terminal.bell.visual);
+        assert_eq!(config.theme.name, "jarvis-dark");
+    }
+
+    #[test]
+    fn shell_config_in_toml() {
+        let toml_str = r#"
+[shell]
+program = "/bin/zsh"
+args = ["-l"]
+login_shell = false
+
+[shell.env]
+TERM = "xterm-256color"
+"#;
+        let config: JarvisConfig = toml::from_str(toml_str).unwrap();
+        assert_eq!(config.shell.program, "/bin/zsh");
+        assert_eq!(config.shell.args, vec!["-l"]);
+        assert!(!config.shell.login_shell);
+        assert_eq!(config.shell.env.get("TERM").unwrap(), "xterm-256color");
+    }
+
+    #[test]
+    fn window_config_in_toml() {
+        let toml_str = r#"
+[window]
+decorations = "transparent"
+opacity = 0.9
+blur = true
+startup_mode = "maximized"
+title = "My Terminal"
+
+[window.padding]
+top = 4
+bottom = 4
+left = 8
+right = 8
+"#;
+        let config: JarvisConfig = toml::from_str(toml_str).unwrap();
+        assert_eq!(config.window.decorations, WindowDecorations::Transparent);
+        assert!((config.window.opacity - 0.9).abs() < f64::EPSILON);
+        assert!(config.window.blur);
+        assert_eq!(config.window.startup_mode, StartupMode::Maximized);
+        assert_eq!(config.window.title, "My Terminal");
+        assert_eq!(config.window.padding.top, 4);
+        assert_eq!(config.window.padding.left, 8);
+    }
+
+    #[test]
+    fn new_font_fields_in_toml() {
+        let toml_str = r#"
+[font]
+family = "JetBrains Mono"
+size = 14
+ligatures = true
+nerd_font = false
+bold_family = "JetBrains Mono Bold"
+fallback_families = ["Symbols Nerd Font Mono"]
+font_weight = 300
+"#;
+        let config: JarvisConfig = toml::from_str(toml_str).unwrap();
+        assert_eq!(config.font.family, "JetBrains Mono");
+        assert_eq!(config.font.size, 14);
+        assert!(config.font.ligatures);
+        assert!(!config.font.nerd_font);
+        assert_eq!(
+            config.font.bold_family.as_deref(),
+            Some("JetBrains Mono Bold")
+        );
+        assert_eq!(config.font.fallback_families.len(), 1);
+        assert_eq!(config.font.font_weight, 300);
+        // Defaults preserved
+        assert_eq!(config.font.bold_weight, 700);
+        assert!(config.font.italic_family.is_none());
+    }
+
+    #[test]
+    fn default_config_has_correct_effects() {
+        let config = JarvisConfig::default();
+        assert!(config.effects.enabled);
+        assert!(config.effects.inactive_pane_dim);
+        assert!(config.effects.scanlines.enabled);
+        assert!((config.effects.scanlines.intensity - 0.08).abs() < f32::EPSILON);
+        assert!(config.effects.vignette.enabled);
+        assert!(config.effects.bloom.enabled);
+        assert_eq!(config.effects.bloom.passes, 2);
+        assert!(config.effects.glow.enabled);
+        assert_eq!(config.effects.glow.color, "#00d4ff");
+        assert!(config.effects.flicker.enabled);
+        assert!(!config.effects.crt_curvature);
+    }
+
+    #[test]
+    fn effects_config_in_toml() {
+        let toml_str = r##"
+[effects]
+enabled = true
+inactive_pane_dim = false
+
+[effects.scanlines]
+intensity = 0.15
+
+[effects.bloom]
+passes = 3
+intensity = 1.5
+
+[effects.glow]
+color = "#ff6b00"
+width = 4.0
+
+[effects.flicker]
+enabled = false
+"##;
+        let config: JarvisConfig = toml::from_str(toml_str).unwrap();
+        assert!(config.effects.enabled);
+        assert!(!config.effects.inactive_pane_dim);
+        assert!((config.effects.scanlines.intensity - 0.15).abs() < f32::EPSILON);
+        assert_eq!(config.effects.bloom.passes, 3);
+        assert_eq!(config.effects.glow.color, "#ff6b00");
+        assert!(!config.effects.flicker.enabled);
+        // Defaults preserved
+        assert!(config.effects.vignette.enabled);
+        assert_eq!(config.theme.name, "jarvis-dark");
+    }
+
+    #[test]
+    fn effects_disabled_in_toml() {
+        let toml_str = r#"
+[effects]
+enabled = false
+"#;
+        let config: JarvisConfig = toml::from_str(toml_str).unwrap();
+        assert!(!config.effects.enabled);
+        // Sub-configs still have defaults (master toggle is checked at runtime)
+        assert!(config.effects.scanlines.enabled);
+        assert!(config.effects.bloom.enabled);
+    }
+
+    #[test]
+    fn empty_toml_still_gives_all_defaults_with_new_fields() {
+        let config: JarvisConfig = toml::from_str("").unwrap();
+        // New fields have defaults
+        assert_eq!(config.terminal.scrollback_lines, 10_000);
+        assert!(config.shell.program.is_empty());
+        assert_eq!(config.window.title, "Jarvis");
+        assert!(config.font.nerd_font);
+        assert!(config.effects.enabled);
+        assert_eq!(config.effects.bloom.passes, 2);
     }
 }

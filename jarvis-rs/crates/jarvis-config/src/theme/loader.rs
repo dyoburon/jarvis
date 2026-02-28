@@ -8,14 +8,21 @@ use jarvis_common::ConfigError;
 use std::path::{Path, PathBuf};
 use tracing::info;
 
+/// Theme file extensions to search for, in priority order.
+const THEME_EXTENSIONS: &[&str] = &["toml", "yaml", "yml"];
+
 /// Resolve the filesystem path for a theme by name.
 ///
 /// Built-in themes are looked up in `resources/themes/` relative to the
 /// executable directory. If the name looks like a file path (contains `/`
-/// or ends in `.yaml`/`.yml`), it is used directly.
+/// or ends in a known extension), it is used directly.
 fn resolve_theme_path(name: &str) -> Result<PathBuf, ConfigError> {
     // If the name looks like a direct path, use it as-is
-    if name.contains('/') || name.ends_with(".yaml") || name.ends_with(".yml") {
+    let is_path = name.contains('/')
+        || name.ends_with(".yaml")
+        || name.ends_with(".yml")
+        || name.ends_with(".toml");
+    if is_path {
         let path = PathBuf::from(name);
         if path.exists() {
             return Ok(path);
@@ -23,41 +30,43 @@ fn resolve_theme_path(name: &str) -> Result<PathBuf, ConfigError> {
         return Err(ConfigError::FileNotFound(path));
     }
 
-    // Look for built-in themes relative to the executable
-    if let Ok(exe) = std::env::current_exe() {
-        if let Some(exe_dir) = exe.parent() {
-            let theme_path = exe_dir
-                .join("resources")
-                .join("themes")
-                .join(format!("{name}.yaml"));
+    // Search directories in priority order
+    let search_dirs = search_directories();
+
+    for dir in &search_dirs {
+        for ext in THEME_EXTENSIONS {
+            let theme_path = dir.join(format!("{name}.{ext}"));
             if theme_path.exists() {
                 return Ok(theme_path);
             }
         }
     }
 
-    // Also try relative to the current working directory
-    let local_path = PathBuf::from("resources")
-        .join("themes")
-        .join(format!("{name}.yaml"));
-    if local_path.exists() {
-        return Ok(local_path);
-    }
-
-    // Try config directory
-    if let Some(config_dir) = dirs::config_dir() {
-        let config_theme = config_dir
-            .join("jarvis")
-            .join("themes")
-            .join(format!("{name}.yaml"));
-        if config_theme.exists() {
-            return Ok(config_theme);
-        }
-    }
-
     Err(ConfigError::FileNotFound(PathBuf::from(format!(
         "theme '{name}' not found in any search path"
     ))))
+}
+
+/// Collect theme search directories in priority order.
+fn search_directories() -> Vec<PathBuf> {
+    let mut dirs = Vec::new();
+
+    // 1. Config directory (~/.config/jarvis/themes/)
+    if let Some(config_dir) = dirs::config_dir() {
+        dirs.push(config_dir.join("jarvis").join("themes"));
+    }
+
+    // 2. Relative to executable (resources/themes/)
+    if let Ok(exe) = std::env::current_exe() {
+        if let Some(exe_dir) = exe.parent() {
+            dirs.push(exe_dir.join("resources").join("themes"));
+        }
+    }
+
+    // 3. Relative to current working directory
+    dirs.push(PathBuf::from("resources").join("themes"));
+
+    dirs
 }
 
 /// Load a theme from a YAML file by name.
@@ -79,6 +88,8 @@ pub fn load_theme(name: &str) -> Result<ThemeOverrides, ConfigError> {
 }
 
 /// Load a theme from a specific filesystem path.
+///
+/// Detects format by extension: `.toml` → TOML, `.yaml`/`.yml` → YAML.
 pub fn load_theme_from_path(path: &Path) -> Result<ThemeOverrides, ConfigError> {
     if !path.exists() {
         return Err(ConfigError::FileNotFound(path.to_path_buf()));
@@ -88,12 +99,22 @@ pub fn load_theme_from_path(path: &Path) -> Result<ThemeOverrides, ConfigError> 
         ConfigError::ParseError(format!("failed to read theme file {}: {e}", path.display()))
     })?;
 
-    let theme: ThemeOverrides = serde_yaml::from_str(&content).map_err(|e| {
-        ConfigError::ParseError(format!(
-            "failed to parse theme YAML {}: {e}",
-            path.display()
-        ))
-    })?;
+    let ext = path.extension().and_then(|e| e.to_str()).unwrap_or("yaml");
+
+    let theme: ThemeOverrides = match ext {
+        "toml" => toml::from_str(&content).map_err(|e| {
+            ConfigError::ParseError(format!(
+                "failed to parse theme TOML {}: {e}",
+                path.display()
+            ))
+        })?,
+        _ => serde_yaml::from_str(&content).map_err(|e| {
+            ConfigError::ParseError(format!(
+                "failed to parse theme YAML {}: {e}",
+                path.display()
+            ))
+        })?,
+    };
 
     info!("loaded theme from {}", path.display());
     Ok(theme)
