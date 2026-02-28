@@ -86,6 +86,11 @@ impl JarvisApp {
                     if let Err(e) = handle.send_ipc("focus_changed", &payload) {
                         tracing::warn!(pane_id, error = %e, "Failed to send focus_changed");
                     }
+                    // Give native focus to the focused webview so it receives
+                    // keyboard and mouse events (macOS first responder).
+                    if is_focused {
+                        let _ = handle.focus();
+                    }
                 }
             }
         }

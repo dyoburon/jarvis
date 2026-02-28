@@ -38,6 +38,12 @@ const ALLOWED_IPC_KINDS: &[&str] = &[
     "crypto",
     "window_drag",
     "keybind",
+    "read_file",
+    "clipboard_paste",
+    "open_url",
+    "palette_click",
+    "palette_hover",
+    "debug_event",
 ];
 
 /// Check whether an IPC message kind is in the allowlist.
@@ -163,6 +169,53 @@ impl JarvisApp {
             "keybind" => {
                 self.handle_keybind_from_webview(pane_id, &msg.payload);
             }
+            "read_file" => {
+                self.handle_read_file(pane_id, &msg.payload);
+            }
+            "clipboard_paste" => {
+                self.handle_clipboard_paste(pane_id, &msg.payload);
+            }
+            "open_url" => {
+                if let IpcPayload::Json(ref v) = msg.payload {
+                    if let Some(url) = v.get("url").and_then(|u| u.as_str()) {
+                        let url_owned = url.to_string();
+                        self.dispatch(jarvis_common::actions::Action::OpenURL(url_owned));
+                    }
+                }
+            }
+            "palette_click" => {
+                if let IpcPayload::Json(ref v) = msg.payload {
+                    if let Some(idx) = v.get("index").and_then(|i| i.as_u64()) {
+                        if let Some(ref mut palette) = self.command_palette {
+                            palette.set_selected(idx as usize);
+                            if let Some(action) = palette.confirm() {
+                                self.send_palette_hide();
+                                self.command_palette_open = false;
+                                self.command_palette = None;
+                                self.input.set_mode(jarvis_platform::input_processor::InputMode::Terminal);
+                                self.needs_redraw = true;
+                                self.dispatch(action);
+                            }
+                        }
+                    }
+                }
+            }
+            "palette_hover" => {
+                if let IpcPayload::Json(ref v) = msg.payload {
+                    if let Some(idx) = v.get("index").and_then(|i| i.as_u64()) {
+                        if let Some(ref mut palette) = self.command_palette {
+                            palette.set_selected(idx as usize);
+                            self.send_palette_to_webview("palette_update");
+                            self.needs_redraw = true;
+                        }
+                    }
+                }
+            }
+            "debug_event" => {
+                if let IpcPayload::Json(ref v) = msg.payload {
+                    tracing::info!(pane_id, event = %v, "[JS] webview event");
+                }
+            }
             _ => {
                 // Shouldn't happen — allowlist checked above
                 tracing::warn!(pane_id, kind = %msg.kind, "Unhandled IPC kind");
@@ -195,6 +248,40 @@ impl JarvisApp {
         let alt = obj.get("alt").and_then(|v| v.as_bool()).unwrap_or(false);
         let shift = obj.get("shift").and_then(|v| v.as_bool()).unwrap_or(false);
         let meta = obj.get("meta").and_then(|v| v.as_bool()).unwrap_or(false);
+
+        // When command palette is open, route all keys to the palette handler.
+        if self.command_palette_open {
+            // Cmd+V pastes clipboard text into the palette search
+            if meta && key.eq_ignore_ascii_case("v") {
+                if let Ok(mut cb) = jarvis_platform::Clipboard::new() {
+                    if let Ok(text) = cb.get_text() {
+                        if let Some(ref mut palette) = self.command_palette {
+                            for ch in text.chars() {
+                                if ch.is_ascii_graphic() || ch == ' ' {
+                                    palette.append_char(ch.to_ascii_lowercase());
+                                }
+                            }
+                            self.send_palette_to_webview("palette_update");
+                            self.needs_redraw = true;
+                        }
+                    }
+                }
+                return;
+            }
+            // Route regular keys (typing, Escape, Enter, arrows) to palette
+            if self.handle_palette_key(&key, true) {
+                self.needs_redraw = true;
+                return;
+            }
+        }
+
+        // When assistant overlay is open, route keys there
+        if self.assistant_open {
+            if self.handle_assistant_key(&key, true) {
+                self.needs_redraw = true;
+                return;
+            }
+        }
 
         let combo = KeyCombo::from_winit(ctrl, alt, shift, meta, key.clone());
 
@@ -232,6 +319,8 @@ mod tests {
         assert!(is_ipc_kind_allowed("boot_complete"));
         assert!(is_ipc_kind_allowed("crypto"));
         assert!(is_ipc_kind_allowed("window_drag"));
+        assert!(is_ipc_kind_allowed("read_file"));
+        assert!(is_ipc_kind_allowed("open_url"));
     }
 
     #[test]

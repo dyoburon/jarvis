@@ -28,6 +28,7 @@ impl JarvisApp {
                     self.command_palette_open = false;
                     self.command_palette = None;
                     self.input.set_mode(InputMode::Terminal);
+                    self.notify_overlay_state();
                     self.dispatch(action);
                 }
                 true
@@ -106,5 +107,22 @@ impl JarvisApp {
     /// Convenience: send palette_update with current state.
     fn send_palette_update(&self) {
         self.send_palette_to_webview("palette_update");
+    }
+
+    /// Notify all webviews whether an overlay (palette/assistant) is active.
+    /// This lets the JS keybind interceptor know to forward Cmd+V etc. to Rust.
+    pub(super) fn notify_overlay_state(&self) {
+        let active = self.command_palette_open || self.assistant_open;
+        if let Some(ref registry) = self.webviews {
+            let js = format!(
+                "if(window.jarvis&&window.jarvis._setOverlayActive)window.jarvis._setOverlayActive({});",
+                if active { "true" } else { "false" }
+            );
+            for pane_id in registry.active_panes() {
+                if let Some(handle) = registry.get(pane_id) {
+                    let _ = handle.evaluate_script(&js);
+                }
+            }
+        }
     }
 }

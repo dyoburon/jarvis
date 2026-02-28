@@ -46,6 +46,7 @@ impl ApplicationHandler for JarvisApp {
         }
 
         self.start_presence();
+        self.start_relay_client();
         self.update_window_title();
         self.request_redraw();
     }
@@ -95,6 +96,11 @@ impl ApplicationHandler for JarvisApp {
             }
 
             WindowEvent::MouseInput { state, button, .. } => {
+                tracing::info!(
+                    ?state, ?button,
+                    x = self.cursor_pos.0, y = self.cursor_pos.1,
+                    "[winit] MouseInput"
+                );
                 self.handle_mouse_input(state, button);
             }
 
@@ -103,6 +109,11 @@ impl ApplicationHandler for JarvisApp {
             }
 
             WindowEvent::KeyboardInput { event, .. } => {
+                tracing::info!(
+                    key = ?event.logical_key,
+                    state = ?event.state,
+                    "[winit] KeyboardInput"
+                );
                 self.handle_keyboard_input(event);
             }
 
@@ -148,10 +159,6 @@ impl JarvisApp {
         };
 
         let normalized = normalize_winit_key(&key_name);
-
-        if is_press && self.modifiers.super_key() {
-            tracing::info!(key = %normalized, shift = self.modifiers.shift_key(), "Cmd+key received by winit");
-        }
 
         // If command palette is open, route keys there first
         if self.command_palette_open && is_press && self.handle_palette_key(&normalized, is_press) {
@@ -350,6 +357,27 @@ impl JarvisApp {
                     if should_drag {
                         if let Some(ref w) = self.window {
                             let _ = w.drag_window();
+                        }
+                    } else {
+                        // Click is inside a pane — focus it and give native
+                        // focus to its webview so it receives keyboard input.
+                        let layout = self.tiling.compute_layout(viewport);
+                        if let Some((pane_id, _)) = layout.iter().find(|(_, rect)| {
+                            x >= rect.x
+                                && x < rect.x + rect.width
+                                && y >= rect.y
+                                && y < rect.y + rect.height
+                        }) {
+                            let pid = *pane_id;
+                            if pid != self.tiling.focused_id() {
+                                self.tiling.focus_pane(pid);
+                                self.notify_focus_changed();
+                                self.needs_redraw = true;
+                            } else if let Some(ref registry) = self.webviews {
+                                if let Some(handle) = registry.get(pid) {
+                                    let _ = handle.focus();
+                                }
+                            }
                         }
                     }
                 }

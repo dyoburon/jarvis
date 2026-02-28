@@ -64,6 +64,13 @@ impl CommandPalette {
         }
     }
 
+    /// Set selection to a specific index.
+    pub fn set_selected(&mut self, idx: usize) {
+        if idx < self.filtered.len() {
+            self.selected = idx;
+        }
+    }
+
     /// Move selection up.
     pub fn select_prev(&mut self) {
         if !self.filtered.is_empty() {

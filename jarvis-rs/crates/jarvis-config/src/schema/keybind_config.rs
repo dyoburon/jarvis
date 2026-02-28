@@ -52,7 +52,7 @@ impl Default for KeybindConfig {
             split_vertical: "Cmd+D".into(),
             split_horizontal: "Cmd+Shift+D".into(),
             close_pane: "Cmd+W".into(),
-            command_palette: "Cmd+P".into(),
+            command_palette: "Cmd+Shift+P".into(),
             copy: "Cmd+C".into(),
             paste: "Cmd+V".into(),
         }
