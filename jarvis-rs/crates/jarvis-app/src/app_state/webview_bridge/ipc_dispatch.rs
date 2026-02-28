@@ -21,6 +21,8 @@ const ALLOWED_IPC_KINDS: &[&str] = &[
     "presence_poke",
     "settings_init",
     "settings_set_theme",
+    "assistant_input",
+    "open_panel",
     "ping",
 ];
 
@@ -99,6 +101,12 @@ impl JarvisApp {
             "settings_set_theme" => {
                 self.handle_settings_set_theme(pane_id, &msg.payload);
             }
+            "assistant_input" => {
+                self.handle_assistant_input(pane_id, &msg.payload);
+            }
+            "open_panel" => {
+                self.handle_open_panel(pane_id, &msg.payload);
+            }
             _ => {
                 // Shouldn't happen — allowlist checked above
                 tracing::warn!(pane_id, kind = %msg.kind, "Unhandled IPC kind");
@@ -121,6 +129,8 @@ mod tests {
         assert!(is_ipc_kind_allowed("ping"));
         assert!(is_ipc_kind_allowed("settings_set_theme"));
         assert!(is_ipc_kind_allowed("panel_focus"));
+        assert!(is_ipc_kind_allowed("assistant_input"));
+        assert!(is_ipc_kind_allowed("open_panel"));
     }
 
     #[test]

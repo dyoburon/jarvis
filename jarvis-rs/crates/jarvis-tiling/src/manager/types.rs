@@ -76,6 +76,10 @@ impl TilingManager {
         self.panes.get(&id)
     }
 
+    pub fn pane_mut(&mut self, id: u32) -> Option<&mut Pane> {
+        self.panes.get_mut(&id)
+    }
+
     pub fn tree(&self) -> &SplitNode {
         &self.tree
     }

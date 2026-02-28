@@ -3,6 +3,7 @@
 //! Handles coordinate conversion, IPC message dispatch, and
 //! synchronizing webview bounds to tiling layout rects.
 
+mod assistant_handlers;
 mod bounds;
 mod ipc_dispatch;
 mod lifecycle;

@@ -6,8 +6,10 @@ use winit::event_loop::ActiveEventLoop;
 use winit::keyboard::Key;
 use winit::window::WindowId;
 
+use jarvis_common::types::PaneKind;
 use jarvis_platform::input_processor::{InputResult, Modifiers};
 use jarvis_platform::winit_keys::normalize_winit_key;
+use jarvis_tiling::tree::Direction;
 
 use super::core::JarvisApp;
 
@@ -22,7 +24,11 @@ impl ApplicationHandler for JarvisApp {
             return;
         }
 
+        // Set up default 3-pane layout: 2 assistant + 1 chat
+        self.setup_default_layout();
+
         self.start_presence();
+        self.update_window_title();
         self.request_redraw();
     }
 
@@ -35,6 +41,7 @@ impl ApplicationHandler for JarvisApp {
         match event {
             WindowEvent::CloseRequested => {
                 tracing::info!("Window close requested");
+                self.shutdown();
                 event_loop.exit();
             }
 
@@ -126,6 +133,43 @@ impl JarvisApp {
             }
             InputResult::Consumed => {}
         }
+    }
+
+    /// Set up the default 3-pane layout: 2 assistant panels + 1 chat panel.
+    ///
+    /// Layout: `[Assistant | Assistant / Chat]`
+    /// - Left half: primary assistant panel
+    /// - Right top: secondary assistant panel
+    /// - Right bottom: chat panel
+    fn setup_default_layout(&mut self) {
+        // Pane 1 already exists from TilingManager::new() as Terminal.
+        // Re-label it as Assistant.
+        let pane1 = self.tiling.focused_id();
+        if let Some(pane) = self.tiling.pane_mut(pane1) {
+            pane.kind = PaneKind::Assistant;
+            pane.title = "Assistant".into();
+        }
+        self.create_webview_for_pane_with_kind(pane1, PaneKind::Assistant);
+
+        // Split horizontally → pane 2 (right side) as Assistant
+        if let Some(pane2) =
+            self.tiling
+                .split_with(Direction::Horizontal, PaneKind::Assistant, "Assistant")
+        {
+            self.create_webview_for_pane_with_kind(pane2, PaneKind::Assistant);
+
+            // Split pane 2 vertically → pane 3 (bottom-right) as Chat
+            if let Some(pane3) = self
+                .tiling
+                .split_with(Direction::Vertical, PaneKind::Chat, "Chat")
+            {
+                self.create_webview_for_pane_with_kind(pane3, PaneKind::Chat);
+            }
+        }
+
+        // Focus the primary assistant (pane 1)
+        self.tiling.focus_pane(pane1);
+        self.sync_webview_bounds();
     }
 
     /// Render a single frame (background only — panels are webviews).

@@ -145,6 +145,21 @@ mod tests {
     }
 
     #[test]
+    fn resolve_assistant_panel() {
+        let cp = ContentProvider::new(assets_dir());
+        let result = cp.resolve("panels/assistant/index.html");
+        assert!(result.is_some(), "assistant panel should resolve");
+        let (mime, data) = result.unwrap();
+        assert_eq!(mime.as_ref(), "text/html");
+        let html = String::from_utf8_lossy(&data);
+        assert!(html.contains("Assistant"), "should contain Assistant title");
+        assert!(
+            html.contains("sendIpc"),
+            "assistant panel must use IPC bridge"
+        );
+    }
+
+    #[test]
     fn resolve_presence_panel() {
         let cp = ContentProvider::new(assets_dir());
         let result = cp.resolve("panels/presence/index.html");
@@ -406,6 +421,7 @@ mod tests {
     fn total_assets_under_2mb() {
         let cp = ContentProvider::new(assets_dir());
         let all_files = [
+            "panels/assistant/index.html",
             "panels/chat/index.html",
             "panels/games/asteroids.html",
             "panels/games/tetris.html",

@@ -1,11 +1,26 @@
 //! WebView lifecycle management: create, destroy, sync bounds, poll events.
 
-use jarvis_common::types::Rect;
+use jarvis_common::types::{PaneKind, Rect};
 use jarvis_webview::{WebViewConfig, WebViewEvent};
 
 use crate::app_state::core::JarvisApp;
 
 use super::bounds::tiling_rect_to_wry;
+
+// =============================================================================
+// PANEL URL MAPPING
+// =============================================================================
+
+/// Map a `PaneKind` to its `jarvis://` panel URL.
+fn panel_url(kind: PaneKind) -> &'static str {
+    match kind {
+        PaneKind::Terminal => "jarvis://localhost/terminal/index.html",
+        PaneKind::Assistant => "jarvis://localhost/assistant/index.html",
+        PaneKind::Chat => "jarvis://localhost/chat/index.html",
+        PaneKind::WebView => "jarvis://localhost/terminal/index.html",
+        PaneKind::ExternalApp => "jarvis://localhost/terminal/index.html",
+    }
+}
 
 // =============================================================================
 // WEBVIEW LIFECYCLE
@@ -14,6 +29,62 @@ use super::bounds::tiling_rect_to_wry;
 impl JarvisApp {
     /// Create a webview for a pane, loading the default terminal panel.
     pub(in crate::app_state) fn create_webview_for_pane(&mut self, pane_id: u32) {
+        self.create_webview_for_pane_with_kind(pane_id, PaneKind::Terminal);
+    }
+
+    /// Create a webview for a pane with a specific URL.
+    pub(in crate::app_state) fn create_webview_for_pane_with_url(
+        &mut self,
+        pane_id: u32,
+        url: &str,
+    ) {
+        let window = match &self.window {
+            Some(w) => w,
+            None => {
+                tracing::warn!(pane_id, "Cannot create webview: no window");
+                return;
+            }
+        };
+
+        let registry = match &mut self.webviews {
+            Some(r) => r,
+            None => {
+                tracing::warn!(pane_id, "Cannot create webview: registry not initialized");
+                return;
+            }
+        };
+
+        let window_size = window.inner_size();
+        let viewport = Rect {
+            x: 0.0,
+            y: 0.0,
+            width: window_size.width as f64,
+            height: window_size.height as f64,
+        };
+        let layout = self.tiling.compute_layout(viewport);
+
+        let bounds = layout
+            .iter()
+            .find(|(id, _)| *id == pane_id)
+            .map(|(_, r)| tiling_rect_to_wry(r))
+            .unwrap_or_default();
+
+        let config = WebViewConfig::with_url(url);
+
+        if let Err(e) = registry.create(pane_id, window.as_ref(), bounds, config) {
+            tracing::error!(pane_id, error = %e, "Failed to create webview");
+        } else {
+            tracing::info!(pane_id, url, "WebView created for pane");
+            self.inject_theme_into_all_webviews();
+        }
+    }
+
+    /// Create a webview for a pane with a specific panel kind.
+    pub(in crate::app_state) fn create_webview_for_pane_with_kind(
+        &mut self,
+        pane_id: u32,
+        kind: PaneKind,
+    ) {
         let window = match &self.window {
             Some(w) => w,
             None => {
@@ -46,12 +117,13 @@ impl JarvisApp {
             .map(|(_, r)| tiling_rect_to_wry(r))
             .unwrap_or_default();
 
-        let config = WebViewConfig::with_url("jarvis://localhost/terminal/index.html");
+        let url = panel_url(kind);
+        let config = WebViewConfig::with_url(url);
 
         if let Err(e) = registry.create(pane_id, window.as_ref(), bounds, config) {
             tracing::error!(pane_id, error = %e, "Failed to create webview");
         } else {
-            tracing::info!(pane_id, "WebView created for pane");
+            tracing::info!(pane_id, ?kind, "WebView created for pane");
             // Inject current theme into the new webview
             self.inject_theme_into_all_webviews();
         }
@@ -141,6 +213,61 @@ impl JarvisApp {
                     tracing::debug!(pane_id, "WebView closed event");
                 }
             }
+        }
+    }
+}
+
+// =============================================================================
+// TESTS
+// =============================================================================
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn panel_url_terminal() {
+        assert_eq!(
+            panel_url(PaneKind::Terminal),
+            "jarvis://localhost/terminal/index.html"
+        );
+    }
+
+    #[test]
+    fn panel_url_assistant() {
+        assert_eq!(
+            panel_url(PaneKind::Assistant),
+            "jarvis://localhost/assistant/index.html"
+        );
+    }
+
+    #[test]
+    fn panel_url_chat() {
+        assert_eq!(
+            panel_url(PaneKind::Chat),
+            "jarvis://localhost/chat/index.html"
+        );
+    }
+
+    #[test]
+    fn panel_url_all_variants_return_jarvis_scheme() {
+        let kinds = [
+            PaneKind::Terminal,
+            PaneKind::Assistant,
+            PaneKind::Chat,
+            PaneKind::WebView,
+            PaneKind::ExternalApp,
+        ];
+        for kind in kinds {
+            let url = panel_url(kind);
+            assert!(
+                url.starts_with("jarvis://localhost/"),
+                "{kind:?} URL must use jarvis:// scheme, got {url}"
+            );
+            assert!(
+                url.ends_with(".html"),
+                "{kind:?} URL must end with .html, got {url}"
+            );
         }
     }
 }

@@ -24,6 +24,22 @@ impl Pane {
         }
     }
 
+    pub fn new_assistant(id: PaneId, title: impl Into<String>) -> Self {
+        Self {
+            id,
+            kind: PaneKind::Assistant,
+            title: title.into(),
+        }
+    }
+
+    pub fn new_chat(id: PaneId, title: impl Into<String>) -> Self {
+        Self {
+            id,
+            kind: PaneKind::Chat,
+            title: title.into(),
+        }
+    }
+
     pub fn new_external(id: PaneId, title: impl Into<String>) -> Self {
         Self {
             id,
