@@ -92,6 +92,11 @@ impl TilingManager {
         self.layout_engine.gap
     }
 
+    /// Update the gap between panes (called when settings change).
+    pub fn set_gap(&mut self, gap: u32) {
+        self.layout_engine.gap = gap;
+    }
+
     /// Get the stack at a given leaf position, if one exists.
     pub fn stack(&self, leaf_id: u32) -> Option<&PaneStack> {
         self.stacks.get(&leaf_id)

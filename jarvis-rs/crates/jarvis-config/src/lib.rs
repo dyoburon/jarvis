@@ -20,6 +20,7 @@ pub mod reload;
 pub mod schema;
 pub mod theme;
 pub mod toml_loader;
+pub mod toml_writer;
 pub mod validation;
 pub mod watcher;
 
@@ -27,6 +28,7 @@ pub mod watcher;
 pub use reload::ReloadManager;
 pub use schema::{JarvisConfig, CONFIG_SCHEMA_VERSION};
 pub use theme::{ThemeOverrides, BUILT_IN_THEMES};
+pub use toml_writer::{save_config, save_config_to_path};
 pub use watcher::ConfigWatcher;
 
 use jarvis_common::ConfigError;
@@ -91,6 +93,7 @@ mod tests {
         assert!(json.contains("\"updates\""));
         assert!(json.contains("\"logging\""));
         assert!(json.contains("\"advanced\""));
+        assert!(json.contains("\"auto_open\""));
     }
 
     #[test]

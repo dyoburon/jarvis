@@ -10,4 +10,5 @@ mod lifecycle;
 mod presence_handlers;
 mod pty_handlers;
 mod pty_polling;
+mod settings_handlers;
 mod theme_handlers;

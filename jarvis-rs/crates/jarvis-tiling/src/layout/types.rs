@@ -11,7 +11,7 @@ pub struct LayoutEngine {
 impl Default for LayoutEngine {
     fn default() -> Self {
         Self {
-            gap: 2,
+            gap: 6,
             min_pane_size: 50.0,
         }
     }

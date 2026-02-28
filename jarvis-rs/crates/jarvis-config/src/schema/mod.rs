@@ -3,6 +3,7 @@
 //! All structs use `serde(default)` so partial configs work correctly.
 //! Missing fields are filled with sensible defaults matching the Python schema.
 
+mod auto_open;
 mod background;
 mod effects;
 mod font;
@@ -22,6 +23,7 @@ mod visualizer;
 mod voice;
 mod window;
 
+pub use auto_open::*;
 pub use background::*;
 pub use effects::*;
 pub use font::*;
@@ -76,6 +78,7 @@ pub struct JarvisConfig {
     pub updates: UpdatesConfig,
     pub logging: LoggingConfig,
     pub advanced: AdvancedConfig,
+    pub auto_open: AutoOpenConfig,
 }
 
 // =============================================================================

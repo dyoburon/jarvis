@@ -7,61 +7,130 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
-  --color-primary: #00e5ff;
-  --color-background: #0a0a0a;
-  --color-panel-bg: #0d1117;
-  --color-text: #c0c8d0;
-  --color-text-muted: #888;
-  --color-border: #1a2a3a;
-  --color-border-focused: #2a4a5a;
+  --color-primary: #00d4ff;
+  --color-secondary: #ff6b00;
+  --color-background: #000000;
+  --color-panel-bg: rgba(0,0,0,0.93);
+  --color-text: #f0ece4;
+  --color-text-muted: #888888;
+  --color-border: rgba(0,212,255,0.12);
+  --color-border-focused: rgba(0,212,255,0.5);
   --color-success: #00ff88;
   --color-warning: #ff6b00;
   --color-error: #ff4444;
   --font-family: Menlo, Monaco, 'Courier New', monospace;
   --font-size: 13px;
+  --font-title-size: 15px;
+  --line-height: 1.6;
 }
 
-body {
-  background: var(--color-background);
+html, body {
+  background: transparent;
   color: var(--color-text);
   font-family: var(--font-family);
   font-size: var(--font-size);
-  line-height: 1.5;
+  line-height: var(--line-height);
   height: 100vh;
+  overflow: hidden;
+}
+
+body {
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  background: var(--color-panel-bg);
   border: 1px solid var(--color-border);
-  transition: border-color 0.2s ease;
+  border-radius: 4px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 body.focused {
   border-color: var(--color-border-focused);
+  box-shadow: inset 0 0 12px color-mix(in srgb, var(--color-primary) 8%, transparent);
 }
 
 /* ================================================================ */
-/* HEADER                                                           */
+/* TITLE BAR                                                        */
 /* ================================================================ */
 
-#header {
-  padding: 14px 20px 10px;
+#title-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px 8px;
   border-bottom: 1px solid var(--color-border);
   flex-shrink: 0;
+  -webkit-user-select: none;
+  user-select: none;
 }
-#header h1 {
-  font-size: 14px;
+#title-bar h1 {
+  font-size: var(--font-title-size);
   font-weight: bold;
   color: var(--color-primary);
   letter-spacing: 1px;
 }
+#close-btn {
+  background: none;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  width: 24px;
+  height: 24px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+#close-btn:hover {
+  border-color: var(--color-error);
+  color: var(--color-error);
+}
 
 /* ================================================================ */
-/* CONTENT                                                          */
+/* LAYOUT: SIDEBAR + CONTENT                                        */
 /* ================================================================ */
+
+#main {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+#sidebar {
+  width: 160px;
+  flex-shrink: 0;
+  border-right: 1px solid var(--color-border);
+  padding: 8px 0;
+  overflow-y: auto;
+}
+#sidebar::-webkit-scrollbar { width: 0; }
+
+.nav-item {
+  display: block;
+  padding: 7px 16px;
+  font-size: 12px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.12s;
+  border-left: 2px solid transparent;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.nav-item:hover {
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-primary) 5%, transparent);
+}
+.nav-item.active {
+  color: var(--color-primary);
+  border-left-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+}
 
 #content {
   flex: 1;
   overflow-y: auto;
   padding: 16px 20px;
+  min-width: 0;
 }
 #content::-webkit-scrollbar { width: 3px; }
 #content::-webkit-scrollbar-track { background: transparent; }
@@ -74,17 +143,197 @@ body.focused {
 /* SECTIONS                                                         */
 /* ================================================================ */
 
-.section {
-  margin-bottom: 24px;
-}
+.section { display: none; }
+.section.active { display: block; }
+
 .section-title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--color-text-muted);
+  margin-bottom: 14px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--color-border);
+}
+.section-subtitle {
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 1px;
   color: var(--color-text-muted);
-  margin-bottom: 10px;
-  padding-bottom: 4px;
-  border-bottom: 1px solid var(--color-border);
+  margin: 16px 0 8px;
+}
+
+/* ================================================================ */
+/* FORM CONTROLS                                                    */
+/* ================================================================ */
+
+.control-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 0;
+  min-height: 32px;
+}
+.control-label {
+  font-size: 12px;
+  color: var(--color-text);
+  flex-shrink: 0;
+  margin-right: 12px;
+}
+.control-hint {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+
+/* Toggle switch */
+.toggle {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  flex-shrink: 0;
+}
+.toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+.toggle-track {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in srgb, var(--color-text-muted) 30%, transparent);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.toggle input:checked + .toggle-track {
+  background: var(--color-primary);
+}
+.toggle-track::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--color-text);
+  transition: transform 0.2s;
+}
+.toggle input:checked + .toggle-track::after {
+  transform: translateX(16px);
+}
+
+/* Range slider */
+.range-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.range-wrap input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 120px;
+  height: 4px;
+  background: var(--color-border);
+  border-radius: 2px;
+  outline: none;
+}
+.range-wrap input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  cursor: pointer;
+  border: none;
+}
+.range-value {
+  font-size: 11px;
+  color: var(--color-primary);
+  min-width: 36px;
+  text-align: right;
+  font-family: var(--font-family);
+}
+
+/* Color picker */
+.color-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.color-wrap input[type="color"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+}
+.color-wrap input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 2px;
+}
+.color-wrap input[type="color"]::-webkit-color-swatch {
+  border: none;
+  border-radius: 2px;
+}
+.color-hex {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  font-family: var(--font-family);
+}
+
+/* Select dropdown */
+select {
+  background: color-mix(in srgb, var(--color-primary) 5%, transparent);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  padding: 4px 8px;
+  font-family: var(--font-family);
+  font-size: 12px;
+  cursor: pointer;
+  outline: none;
+}
+select:focus {
+  border-color: var(--color-primary);
+}
+
+/* Number input */
+input[type="number"] {
+  background: color-mix(in srgb, var(--color-primary) 5%, transparent);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  padding: 4px 8px;
+  font-family: var(--font-family);
+  font-size: 12px;
+  width: 70px;
+  outline: none;
+}
+input[type="number"]:focus {
+  border-color: var(--color-primary);
+}
+
+/* Text input */
+input[type="text"] {
+  background: color-mix(in srgb, var(--color-primary) 5%, transparent);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  padding: 4px 8px;
+  font-family: var(--font-family);
+  font-size: 12px;
+  outline: none;
+  width: 160px;
+}
+input[type="text"]:focus {
+  border-color: var(--color-primary);
 }
 
 /* ================================================================ */
@@ -93,44 +342,131 @@ body.focused {
 
 .theme-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
   gap: 8px;
+  margin-top: 8px;
 }
-
 .theme-card {
-  background: var(--color-panel-bg);
+  background: color-mix(in srgb, var(--color-primary) 3%, transparent);
   border: 1px solid var(--color-border);
   border-radius: 4px;
-  padding: 10px;
+  padding: 8px 10px;
   cursor: pointer;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 .theme-card:hover {
   border-color: var(--color-primary);
-  box-shadow: 0 0 8px rgba(0, 229, 255, 0.1);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--color-primary) 15%, transparent);
 }
 .theme-card.active {
   border-color: var(--color-primary);
-  box-shadow: 0 0 12px rgba(0, 229, 255, 0.15);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--color-primary) 20%, transparent);
 }
-.theme-card .theme-name {
-  font-size: 12px;
+.theme-name {
+  font-size: 11px;
   font-weight: bold;
   color: var(--color-primary);
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
-.theme-card .theme-preview {
+.theme-preview {
   display: flex;
-  gap: 3px;
-  height: 12px;
+  gap: 2px;
+  height: 10px;
 }
-.theme-card .theme-preview .swatch {
+.theme-preview .swatch {
   flex: 1;
   border-radius: 2px;
 }
 
 /* ================================================================ */
-/* INFO ROWS                                                        */
+/* KEYBIND INPUT                                                    */
+/* ================================================================ */
+
+.keybind-input {
+  background: color-mix(in srgb, var(--color-primary) 5%, transparent);
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  padding: 4px 10px;
+  font-family: var(--font-family);
+  font-size: 11px;
+  color: var(--color-text);
+  cursor: pointer;
+  min-width: 120px;
+  text-align: center;
+  transition: border-color 0.15s;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.keybind-input:hover {
+  border-color: var(--color-primary);
+}
+.keybind-input.recording {
+  border-color: var(--color-warning);
+  color: var(--color-warning);
+  animation: pulse 1s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* ================================================================ */
+/* AUTO-OPEN PANEL LIST                                             */
+/* ================================================================ */
+
+.panel-list { margin-top: 8px; }
+.panel-entry {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  background: color-mix(in srgb, var(--color-primary) 3%, transparent);
+  border: 1px solid var(--color-border);
+  border-radius: 3px;
+  margin-bottom: 4px;
+}
+.panel-entry select, .panel-entry input[type="text"] {
+  flex: 1;
+  min-width: 0;
+}
+.btn-remove {
+  background: none;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  width: 22px;
+  height: 22px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 12px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-remove:hover {
+  border-color: var(--color-error);
+  color: var(--color-error);
+}
+.btn-add {
+  background: none;
+  border: 1px dashed var(--color-border);
+  color: var(--color-text-muted);
+  padding: 6px 12px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 11px;
+  font-family: var(--font-family);
+  margin-top: 4px;
+  width: 100%;
+  transition: all 0.15s;
+}
+.btn-add:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+/* ================================================================ */
+/* INFO / ABOUT                                                     */
 /* ================================================================ */
 
 .info-row {
@@ -142,27 +478,42 @@ body.focused {
   font-size: 12px;
 }
 .info-row:last-child { border-bottom: none; }
-.info-label {
-  color: var(--color-text-muted);
-}
-.info-value {
-  color: var(--color-text);
-  font-weight: bold;
-}
-
-/* ================================================================ */
-/* CONFIG PATH                                                      */
-/* ================================================================ */
+.info-label { color: var(--color-text-muted); }
+.info-value { color: var(--color-text); font-weight: bold; }
 
 .config-path {
   font-size: 11px;
   color: var(--color-text-muted);
   word-break: break-all;
   padding: 8px 10px;
-  background: var(--color-panel-bg);
+  background: color-mix(in srgb, var(--color-primary) 3%, transparent);
   border: 1px solid var(--color-border);
   border-radius: 3px;
   margin-top: 6px;
+}
+
+/* ================================================================ */
+/* TOAST                                                            */
+/* ================================================================ */
+
+#toast {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  background: color-mix(in srgb, var(--color-success) 15%, var(--color-panel-bg));
+  border: 1px solid var(--color-success);
+  color: var(--color-success);
+  padding: 6px 14px;
+  border-radius: 4px;
+  font-size: 11px;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: all 0.2s;
+  pointer-events: none;
+}
+#toast.show {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 /* ================================================================ */
@@ -170,76 +521,836 @@ body.focused {
 /* ================================================================ */
 
 #status-bar {
-  padding: 4px 20px;
+  padding: 4px 16px;
   font-size: 10px;
   color: var(--color-text-muted);
   border-top: 1px solid var(--color-border);
   flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
 }
 </style>
 </head>
 <body>
-  <div id="header">
-    <h1>[ SETTINGS ]</h1>
+
+<!-- TITLE BAR -->
+<div id="title-bar">
+  <h1>[ SETTINGS ]</h1>
+  <button id="close-btn" title="Close">&times;</button>
+</div>
+
+<!-- MAIN: SIDEBAR + CONTENT -->
+<div id="main">
+
+  <!-- SIDEBAR NAV -->
+  <div id="sidebar">
+    <div class="nav-item active" data-section="appearance">Appearance</div>
+    <div class="nav-item" data-section="visualizer">Visualizer</div>
+    <div class="nav-item" data-section="background">Background</div>
+    <div class="nav-item" data-section="auto-open">Auto-Open</div>
+    <div class="nav-item" data-section="startup">Startup</div>
+    <div class="nav-item" data-section="voice">Voice</div>
+    <div class="nav-item" data-section="keybinds">Keybinds</div>
+    <div class="nav-item" data-section="panels">Panels</div>
+    <div class="nav-item" data-section="games">Games</div>
+    <div class="nav-item" data-section="about">About</div>
   </div>
+
+  <!-- CONTENT AREA -->
   <div id="content">
 
-    <div class="section">
-      <div class="section-title">Theme</div>
-      <div id="theme-grid" class="theme-grid">
-        <!-- Populated by Rust via IPC -->
+    <!-- ============================================================ -->
+    <!-- APPEARANCE                                                    -->
+    <!-- ============================================================ -->
+    <div class="section active" id="sec-appearance">
+      <div class="section-title">Appearance</div>
+
+      <div class="section-subtitle">Theme</div>
+      <div id="theme-grid" class="theme-grid"></div>
+
+      <div class="section-subtitle">Colors</div>
+      <div class="control-row">
+        <span class="control-label">Primary</span>
+        <div class="color-wrap">
+          <input type="color" data-path="colors.primary" value="#00d4ff">
+          <span class="color-hex">#00d4ff</span>
+        </div>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Secondary</span>
+        <div class="color-wrap">
+          <input type="color" data-path="colors.secondary" value="#ff6b00">
+          <span class="color-hex">#ff6b00</span>
+        </div>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Background</span>
+        <div class="color-wrap">
+          <input type="color" data-path="colors.background" value="#000000">
+          <span class="color-hex">#000000</span>
+        </div>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Text</span>
+        <div class="color-wrap">
+          <input type="color" data-path="colors.text" value="#f0ece4">
+          <span class="color-hex">#f0ece4</span>
+        </div>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Text Muted</span>
+        <div class="color-wrap">
+          <input type="color" data-path="colors.text_muted" value="#888888">
+          <span class="color-hex">#888888</span>
+        </div>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Success</span>
+        <div class="color-wrap">
+          <input type="color" data-path="colors.success" value="#00ff88">
+          <span class="color-hex">#00ff88</span>
+        </div>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Warning</span>
+        <div class="color-wrap">
+          <input type="color" data-path="colors.warning" value="#ff6b00">
+          <span class="color-hex">#ff6b00</span>
+        </div>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Error</span>
+        <div class="color-wrap">
+          <input type="color" data-path="colors.error" value="#ff4444">
+          <span class="color-hex">#ff4444</span>
+        </div>
+      </div>
+
+      <div class="section-subtitle">Font</div>
+      <div class="control-row">
+        <span class="control-label">Family</span>
+        <input type="text" data-path="font.family" value="Menlo">
+      </div>
+      <div class="control-row">
+        <span class="control-label">Size</span>
+        <div class="range-wrap">
+          <input type="range" data-path="font.size" min="8" max="32" value="13">
+          <span class="range-value">13</span>
+        </div>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Title Size</span>
+        <div class="range-wrap">
+          <input type="range" data-path="font.title_size" min="8" max="48" value="15">
+          <span class="range-value">15</span>
+        </div>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Line Height</span>
+        <div class="range-wrap">
+          <input type="range" data-path="font.line_height" min="1.0" max="3.0" step="0.1" value="1.6">
+          <span class="range-value">1.6</span>
+        </div>
+      </div>
+
+      <div class="section-subtitle">Opacity</div>
+      <div class="control-row">
+        <span class="control-label">Background</span>
+        <div class="range-wrap">
+          <input type="range" data-path="opacity.background" min="0" max="1" step="0.01" value="1.0">
+          <span class="range-value">1.0</span>
+        </div>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Panel</span>
+        <div class="range-wrap">
+          <input type="range" data-path="opacity.panel" min="0" max="1" step="0.01" value="0.93">
+          <span class="range-value">0.93</span>
+        </div>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Orb</span>
+        <div class="range-wrap">
+          <input type="range" data-path="opacity.orb" min="0" max="1" step="0.01" value="1.0">
+          <span class="range-value">1.0</span>
+        </div>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Hex Grid</span>
+        <div class="range-wrap">
+          <input type="range" data-path="opacity.hex_grid" min="0" max="1" step="0.01" value="0.8">
+          <span class="range-value">0.8</span>
+        </div>
+      </div>
+      <div class="control-row">
+        <span class="control-label">HUD</span>
+        <div class="range-wrap">
+          <input type="range" data-path="opacity.hud" min="0" max="1" step="0.01" value="1.0">
+          <span class="range-value">1.0</span>
+        </div>
       </div>
     </div>
 
-    <div class="section">
-      <div class="section-title">Info</div>
-      <div id="info-rows">
-        <div class="info-row">
-          <span class="info-label">Version</span>
-          <span class="info-value" id="version">--</span>
+    <!-- ============================================================ -->
+    <!-- VISUALIZER                                                    -->
+    <!-- ============================================================ -->
+    <div class="section" id="sec-visualizer">
+      <div class="section-title">Visualizer</div>
+      <div class="control-row">
+        <span class="control-label">Enabled</span>
+        <label class="toggle">
+          <input type="checkbox" data-path="visualizer.enabled" checked>
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Type</span>
+        <select data-path="visualizer.visualizer_type">
+          <option value="orb">Orb</option>
+          <option value="particle">Particle</option>
+          <option value="waveform">Waveform</option>
+          <option value="image">Image</option>
+          <option value="video">Video</option>
+          <option value="none">None</option>
+        </select>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Anchor</span>
+        <select data-path="visualizer.anchor">
+          <option value="center">Center</option>
+          <option value="top_left">Top Left</option>
+          <option value="top_right">Top Right</option>
+          <option value="bottom_left">Bottom Left</option>
+          <option value="bottom_right">Bottom Right</option>
+        </select>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Position X</span>
+        <div class="range-wrap">
+          <input type="range" data-path="visualizer.position_x" min="-1" max="1" step="0.05" value="0">
+          <span class="range-value">0.0</span>
         </div>
-        <div class="info-row">
-          <span class="info-label">Platform</span>
-          <span class="info-value" id="platform">--</span>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Position Y</span>
+        <div class="range-wrap">
+          <input type="range" data-path="visualizer.position_y" min="-1" max="1" step="0.05" value="0">
+          <span class="range-value">0.0</span>
         </div>
-        <div class="info-row">
-          <span class="info-label">Renderer</span>
-          <span class="info-value" id="renderer">--</span>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Scale</span>
+        <div class="range-wrap">
+          <input type="range" data-path="visualizer.scale" min="0.1" max="3.0" step="0.05" value="1.0">
+          <span class="range-value">1.0</span>
         </div>
-        <div class="info-row">
-          <span class="info-label">Panels Open</span>
-          <span class="info-value" id="panel-count">--</span>
+      </div>
+      <div class="control-row">
+        <span class="control-label">React to Audio</span>
+        <label class="toggle">
+          <input type="checkbox" data-path="visualizer.react_to_audio" checked>
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="control-row">
+        <span class="control-label">React to State</span>
+        <label class="toggle">
+          <input type="checkbox" data-path="visualizer.react_to_state" checked>
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+
+      <div class="section-subtitle">Orb Settings</div>
+      <div class="control-row">
+        <span class="control-label">Color</span>
+        <div class="color-wrap">
+          <input type="color" data-path="visualizer.orb.color" value="#00d4ff">
+          <span class="color-hex">#00d4ff</span>
+        </div>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Pulse Speed</span>
+        <div class="range-wrap">
+          <input type="range" data-path="visualizer.orb.pulse_speed" min="0.1" max="5.0" step="0.1" value="1.0">
+          <span class="range-value">1.0</span>
+        </div>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Bloom Intensity</span>
+        <div class="range-wrap">
+          <input type="range" data-path="visualizer.orb.bloom_intensity" min="0" max="3.0" step="0.1" value="1.5">
+          <span class="range-value">1.5</span>
         </div>
       </div>
     </div>
 
-    <div class="section">
-      <div class="section-title">Config File</div>
+    <!-- ============================================================ -->
+    <!-- BACKGROUND                                                    -->
+    <!-- ============================================================ -->
+    <div class="section" id="sec-background">
+      <div class="section-title">Background</div>
+      <div class="control-row">
+        <span class="control-label">Mode</span>
+        <select data-path="background.mode">
+          <option value="hex_grid">Hex Grid</option>
+          <option value="solid">Solid Color</option>
+          <option value="gradient">Gradient</option>
+          <option value="image">Image</option>
+          <option value="video">Video</option>
+          <option value="none">None</option>
+        </select>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Solid Color</span>
+        <div class="color-wrap">
+          <input type="color" data-path="background.solid_color" value="#000000">
+          <span class="color-hex">#000000</span>
+        </div>
+      </div>
+
+      <div class="section-subtitle">Hex Grid</div>
+      <div class="control-row">
+        <span class="control-label">Color</span>
+        <div class="color-wrap">
+          <input type="color" data-path="background.hex_grid.color" value="#00d4ff">
+          <span class="color-hex">#00d4ff</span>
+        </div>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Opacity</span>
+        <div class="range-wrap">
+          <input type="range" data-path="background.hex_grid.opacity" min="0" max="1" step="0.01" value="0.08">
+          <span class="range-value">0.08</span>
+        </div>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Animation Speed</span>
+        <div class="range-wrap">
+          <input type="range" data-path="background.hex_grid.animation_speed" min="0" max="5" step="0.1" value="1.0">
+          <span class="range-value">1.0</span>
+        </div>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Glow Intensity</span>
+        <div class="range-wrap">
+          <input type="range" data-path="background.hex_grid.glow_intensity" min="0" max="3" step="0.1" value="0.5">
+          <span class="range-value">0.5</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- AUTO-OPEN PANELS                                              -->
+    <!-- ============================================================ -->
+    <div class="section" id="sec-auto-open">
+      <div class="section-title">Auto-Open Panels</div>
+      <div class="control-hint" style="margin-bottom:10px">
+        Panels that open automatically when Jarvis starts.
+      </div>
+      <div id="panel-list" class="panel-list"></div>
+      <button class="btn-add" id="btn-add-panel">+ Add Panel</button>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- STARTUP                                                       -->
+    <!-- ============================================================ -->
+    <div class="section" id="sec-startup">
+      <div class="section-title">Startup</div>
+
+      <div class="section-subtitle">Boot Animation</div>
+      <div class="control-row">
+        <span class="control-label">Enabled</span>
+        <label class="toggle">
+          <input type="checkbox" data-path="startup.boot_animation.enabled" checked>
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Duration (s)</span>
+        <div class="range-wrap">
+          <input type="range" data-path="startup.boot_animation.duration" min="1" max="60" step="1" value="27">
+          <span class="range-value">27</span>
+        </div>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Skip on Key</span>
+        <label class="toggle">
+          <input type="checkbox" data-path="startup.boot_animation.skip_on_key" checked>
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+
+      <div class="section-subtitle">Fast Start</div>
+      <div class="control-row">
+        <span class="control-label">Enabled</span>
+        <label class="toggle">
+          <input type="checkbox" data-path="startup.fast_start.enabled">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Delay (s)</span>
+        <div class="range-wrap">
+          <input type="range" data-path="startup.fast_start.delay" min="0" max="5" step="0.1" value="0.5">
+          <span class="range-value">0.5</span>
+        </div>
+      </div>
+
+      <div class="section-subtitle">On Ready</div>
+      <div class="control-row">
+        <span class="control-label">Action</span>
+        <select data-path="startup.on_ready.action">
+          <option value="listening">Listening</option>
+          <option value="panels">Panels</option>
+          <option value="chat">Chat</option>
+          <option value="game">Game</option>
+          <option value="skill">Skill</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- VOICE                                                         -->
+    <!-- ============================================================ -->
+    <div class="section" id="sec-voice">
+      <div class="section-title">Voice</div>
+      <div class="control-row">
+        <span class="control-label">Enabled</span>
+        <label class="toggle">
+          <input type="checkbox" data-path="voice.enabled" checked>
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Mode</span>
+        <select data-path="voice.mode">
+          <option value="ptt">Push to Talk</option>
+          <option value="vad">Voice Activity Detection</option>
+        </select>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Input Device</span>
+        <input type="text" data-path="voice.input_device" value="default">
+      </div>
+      <div class="control-row">
+        <span class="control-label">Sample Rate</span>
+        <select data-path="voice.sample_rate">
+          <option value="16000">16000 Hz</option>
+          <option value="24000" selected>24000 Hz</option>
+          <option value="44100">44100 Hz</option>
+          <option value="48000">48000 Hz</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- KEYBINDS                                                      -->
+    <!-- ============================================================ -->
+    <div class="section" id="sec-keybinds">
+      <div class="section-title">Keybinds</div>
+      <div class="control-hint" style="margin-bottom:10px">
+        Click a keybind to record a new shortcut. Press Escape to cancel.
+      </div>
+      <div class="control-row">
+        <span class="control-label">Push to Talk</span>
+        <div class="keybind-input" data-path="keybinds.push_to_talk">Option+Period</div>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Open Assistant</span>
+        <div class="keybind-input" data-path="keybinds.open_assistant">Cmd+G</div>
+      </div>
+      <div class="control-row">
+        <span class="control-label">New Panel</span>
+        <div class="keybind-input" data-path="keybinds.new_panel">Cmd+T</div>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Close Panel</span>
+        <div class="keybind-input" data-path="keybinds.close_panel">Escape+Escape</div>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Toggle Fullscreen</span>
+        <div class="keybind-input" data-path="keybinds.toggle_fullscreen">Cmd+F</div>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Open Settings</span>
+        <div class="keybind-input" data-path="keybinds.open_settings">Cmd+,</div>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Cycle Panels</span>
+        <div class="keybind-input" data-path="keybinds.cycle_panels">Tab</div>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Cycle Reverse</span>
+        <div class="keybind-input" data-path="keybinds.cycle_panels_reverse">Shift+Tab</div>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- PANELS                                                        -->
+    <!-- ============================================================ -->
+    <div class="section" id="sec-panels">
+      <div class="section-title">Panels</div>
+
+      <div class="section-subtitle">Layout</div>
+      <div class="control-row">
+        <span class="control-label">Panel Gap</span>
+        <div class="range-wrap">
+          <input type="range" data-path="layout.panel_gap" min="0" max="20" value="2">
+          <span class="range-value">2</span>
+        </div>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Border Radius</span>
+        <div class="range-wrap">
+          <input type="range" data-path="layout.border_radius" min="0" max="20" value="4">
+          <span class="range-value">4</span>
+        </div>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Padding</span>
+        <div class="range-wrap">
+          <input type="range" data-path="layout.padding" min="0" max="40" value="14">
+          <span class="range-value">14</span>
+        </div>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Max Panels</span>
+        <div class="range-wrap">
+          <input type="range" data-path="layout.max_panels" min="1" max="10" value="5">
+          <span class="range-value">5</span>
+        </div>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Default Width</span>
+        <div class="range-wrap">
+          <input type="range" data-path="layout.default_panel_width" min="0.3" max="1.0" step="0.01" value="0.72">
+          <span class="range-value">0.72</span>
+        </div>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Scrollbar Width</span>
+        <div class="range-wrap">
+          <input type="range" data-path="layout.scrollbar_width" min="1" max="10" value="3">
+          <span class="range-value">3</span>
+        </div>
+      </div>
+
+      <div class="section-subtitle">History</div>
+      <div class="control-row">
+        <span class="control-label">Enabled</span>
+        <label class="toggle">
+          <input type="checkbox" data-path="panels.history.enabled" checked>
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Max Messages</span>
+        <div class="range-wrap">
+          <input type="range" data-path="panels.history.max_messages" min="100" max="10000" step="100" value="1000">
+          <span class="range-value">1000</span>
+        </div>
+      </div>
+
+      <div class="section-subtitle">Focus</div>
+      <div class="control-row">
+        <span class="control-label">Restore on Activate</span>
+        <label class="toggle">
+          <input type="checkbox" data-path="panels.focus.restore_on_activate" checked>
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Show Indicator</span>
+        <label class="toggle">
+          <input type="checkbox" data-path="panels.focus.show_indicator" checked>
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Border Glow</span>
+        <label class="toggle">
+          <input type="checkbox" data-path="panels.focus.border_glow" checked>
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- GAMES                                                         -->
+    <!-- ============================================================ -->
+    <div class="section" id="sec-games">
+      <div class="section-title">Games</div>
+      <div class="control-row">
+        <span class="control-label">Wordle</span>
+        <label class="toggle">
+          <input type="checkbox" data-path="games.enabled.wordle" checked>
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Connections</span>
+        <label class="toggle">
+          <input type="checkbox" data-path="games.enabled.connections" checked>
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Asteroids</span>
+        <label class="toggle">
+          <input type="checkbox" data-path="games.enabled.asteroids" checked>
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Tetris</span>
+        <label class="toggle">
+          <input type="checkbox" data-path="games.enabled.tetris" checked>
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Pinball</span>
+        <label class="toggle">
+          <input type="checkbox" data-path="games.enabled.pinball" checked>
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Doodle Jump</span>
+        <label class="toggle">
+          <input type="checkbox" data-path="games.enabled.doodlejump" checked>
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Minesweeper</span>
+        <label class="toggle">
+          <input type="checkbox" data-path="games.enabled.minesweeper" checked>
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Draw</span>
+        <label class="toggle">
+          <input type="checkbox" data-path="games.enabled.draw" checked>
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Subway</span>
+        <label class="toggle">
+          <input type="checkbox" data-path="games.enabled.subway" checked>
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Video Player</span>
+        <label class="toggle">
+          <input type="checkbox" data-path="games.enabled.videoplayer" checked>
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- ABOUT                                                         -->
+    <!-- ============================================================ -->
+    <div class="section" id="sec-about">
+      <div class="section-title">About</div>
+      <div class="info-row">
+        <span class="info-label">Version</span>
+        <span class="info-value" id="about-version">0.1.0</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Platform</span>
+        <span class="info-value" id="about-platform">--</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Renderer</span>
+        <span class="info-value" id="about-renderer">wgpu</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Config Schema</span>
+        <span class="info-value">v1</span>
+      </div>
+
+      <div class="section-subtitle">Debug</div>
+      <div class="control-row">
+        <span class="control-label">Show FPS</span>
+        <label class="toggle">
+          <input type="checkbox" data-path="advanced.developer.show_fps">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Show Debug HUD</span>
+        <label class="toggle">
+          <input type="checkbox" data-path="advanced.developer.show_debug_hud">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Inspector</span>
+        <label class="toggle">
+          <input type="checkbox" data-path="advanced.developer.inspector_enabled">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+
+      <div class="section-subtitle">Performance</div>
+      <div class="control-row">
+        <span class="control-label">Preset</span>
+        <select data-path="performance.preset">
+          <option value="low">Low</option>
+          <option value="medium">Medium</option>
+          <option value="high" selected>High</option>
+          <option value="ultra">Ultra</option>
+        </select>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Frame Rate</span>
+        <div class="range-wrap">
+          <input type="range" data-path="performance.frame_rate" min="30" max="120" value="60">
+          <span class="range-value">60</span>
+        </div>
+      </div>
+      <div class="control-row">
+        <span class="control-label">Bloom Passes</span>
+        <div class="range-wrap">
+          <input type="range" data-path="performance.bloom_passes" min="1" max="4" value="2">
+          <span class="range-value">2</span>
+        </div>
+      </div>
+
+      <div class="section-subtitle">Config File</div>
       <div id="config-path" class="config-path">~/.config/jarvis/config.toml</div>
     </div>
 
-  </div>
-  <div id="status-bar">
-    <span id="status-text">Settings loaded</span>
-  </div>
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<div id="status-bar">
+  <span id="status-text">Settings loaded</span>
+  <span id="status-right"></span>
+</div>
+
+<div id="toast">Saved</div>
+
 <script>
 'use strict';
 
 // =========================================================================
-// Theme selection
+// IPC HELPERS
+// =========================================================================
+
+function sendIpc(kind, payload) {
+  if (window.jarvis && window.jarvis.ipc) {
+    window.jarvis.ipc.send(kind, payload || {});
+  }
+}
+
+function onIpc(kind, callback) {
+  if (window.jarvis && window.jarvis.ipc) {
+    window.jarvis.ipc.on(kind, callback);
+  }
+}
+
+// =========================================================================
+// NAVIGATION
+// =========================================================================
+
+var navItems = document.querySelectorAll('.nav-item');
+var sections = document.querySelectorAll('.section');
+
+navItems.forEach(function(item) {
+  item.addEventListener('click', function() {
+    var target = item.getAttribute('data-section');
+    navItems.forEach(function(n) { n.classList.remove('active'); });
+    sections.forEach(function(s) { s.classList.remove('active'); });
+    item.classList.add('active');
+    var sec = document.getElementById('sec-' + target);
+    if (sec) { sec.classList.add('active'); }
+  });
+});
+
+// =========================================================================
+// TOAST
+// =========================================================================
+
+var toastTimer = null;
+function showToast(msg) {
+  var el = document.getElementById('toast');
+  el.textContent = msg || 'Saved';
+  el.classList.add('show');
+  if (toastTimer) { clearTimeout(toastTimer); }
+  toastTimer = setTimeout(function() { el.classList.remove('show'); }, 1500);
+}
+
+// =========================================================================
+// REAL-TIME SETTINGS UPDATE (fires on every input change)
+// =========================================================================
+
+function settingsUpdate(path, value) {
+  sendIpc('settings_update', { path: path, value: value });
+}
+
+// Range sliders — update display + fire IPC on input
+document.querySelectorAll('input[type="range"]').forEach(function(el) {
+  var display = el.parentElement.querySelector('.range-value');
+  el.addEventListener('input', function() {
+    if (display) { display.textContent = el.value; }
+    var val = parseFloat(el.value);
+    if (Number.isInteger(val) && el.step === '1') { val = parseInt(el.value, 10); }
+    settingsUpdate(el.getAttribute('data-path'), val);
+  });
+});
+
+// Color pickers — update hex display + fire IPC
+document.querySelectorAll('input[type="color"]').forEach(function(el) {
+  var display = el.parentElement.querySelector('.color-hex');
+  el.addEventListener('input', function() {
+    if (display) { display.textContent = el.value; }
+    settingsUpdate(el.getAttribute('data-path'), el.value);
+  });
+});
+
+// Toggles — fire IPC
+document.querySelectorAll('.toggle input[type="checkbox"]').forEach(function(el) {
+  el.addEventListener('change', function() {
+    settingsUpdate(el.getAttribute('data-path'), el.checked);
+  });
+});
+
+// Selects — fire IPC
+document.querySelectorAll('select[data-path]').forEach(function(el) {
+  el.addEventListener('change', function() {
+    var val = el.value;
+    // Try to parse as number for sample_rate etc
+    var num = parseFloat(val);
+    if (!isNaN(num) && String(num) === val) { val = num; }
+    settingsUpdate(el.getAttribute('data-path'), val);
+  });
+});
+
+// Text inputs — fire IPC on blur (not every keystroke)
+document.querySelectorAll('input[type="text"][data-path]').forEach(function(el) {
+  el.addEventListener('change', function() {
+    settingsUpdate(el.getAttribute('data-path'), el.value);
+  });
+});
+
+// =========================================================================
+// THEME GRID
 // =========================================================================
 
 function renderThemes(themes, activeTheme) {
   var grid = document.getElementById('theme-grid');
-  // Clear safely
   while (grid.firstChild) { grid.removeChild(grid.firstChild); }
 
   themes.forEach(function(theme) {
     var card = document.createElement('div');
     card.className = 'theme-card';
-    if (theme.name === activeTheme) {
-      card.classList.add('active');
-    }
+    if (theme.name === activeTheme) { card.classList.add('active'); }
 
     var name = document.createElement('div');
     name.className = 'theme-name';
@@ -248,25 +1359,20 @@ function renderThemes(themes, activeTheme) {
 
     var preview = document.createElement('div');
     preview.className = 'theme-preview';
-    var colors = theme.preview_colors || ['#00e5ff', '#0a0a0a', '#0d1117', '#c0c8d0'];
-    colors.forEach(function(color) {
+    var colors = theme.preview_colors || ['#00d4ff', '#000000', '#0d1117', '#f0ece4'];
+    colors.forEach(function(c) {
       var swatch = document.createElement('div');
       swatch.className = 'swatch';
-      swatch.style.background = color;
+      swatch.style.background = c;
       preview.appendChild(swatch);
     });
     card.appendChild(preview);
 
     card.addEventListener('click', function() {
-      if (window.jarvis && window.jarvis.ipc) {
-        window.jarvis.ipc.send('settings_set_theme', { name: theme.name });
-      }
-      // Optimistically update active state
+      sendIpc('settings_set_theme', { name: theme.name });
       var existing = grid.querySelector('.active');
       if (existing) { existing.classList.remove('active'); }
       card.classList.add('active');
-      document.getElementById('status-text').textContent =
-        'Theme changed to ' + theme.name;
     });
 
     grid.appendChild(card);
@@ -274,68 +1380,244 @@ function renderThemes(themes, activeTheme) {
 }
 
 // =========================================================================
-// Info display
+// KEYBIND RECORDING
 // =========================================================================
 
-function updateInfo(info) {
-  if (info.version) {
-    document.getElementById('version').textContent = info.version;
+var recordingEl = null;
+
+document.querySelectorAll('.keybind-input').forEach(function(el) {
+  el.addEventListener('click', function() {
+    if (recordingEl) { recordingEl.classList.remove('recording'); }
+    recordingEl = el;
+    el.classList.add('recording');
+    el.textContent = 'Press keys...';
+  });
+});
+
+document.addEventListener('keydown', function(e) {
+  if (!recordingEl) { return; }
+  e.preventDefault();
+  e.stopPropagation();
+
+  if (e.key === 'Escape') {
+    // Cancel recording — restore original
+    recordingEl.classList.remove('recording');
+    recordingEl = null;
+    return;
   }
-  if (info.platform) {
-    document.getElementById('platform').textContent = info.platform;
+
+  var parts = [];
+  if (e.metaKey) { parts.push('Cmd'); }
+  if (e.ctrlKey) { parts.push('Ctrl'); }
+  if (e.altKey) { parts.push('Option'); }
+  if (e.shiftKey) { parts.push('Shift'); }
+
+  var key = e.key;
+  if (key === ' ') { key = 'Space'; }
+  else if (key === '.') { key = 'Period'; }
+  else if (key === ',') { key = 'Comma'; }
+  else if (key.length === 1) { key = key.toUpperCase(); }
+
+  if (!['Meta', 'Control', 'Alt', 'Shift'].includes(e.key)) {
+    parts.push(key);
+  } else {
+    return; // Wait for a non-modifier key
   }
-  if (info.renderer) {
-    document.getElementById('renderer').textContent = info.renderer;
-  }
-  if (info.panel_count !== undefined) {
-    document.getElementById('panel-count').textContent = String(info.panel_count);
-  }
-  if (info.config_path) {
-    document.getElementById('config-path').textContent = info.config_path;
-  }
+
+  var combo = parts.join('+');
+  recordingEl.textContent = combo;
+  recordingEl.classList.remove('recording');
+  settingsUpdate(recordingEl.getAttribute('data-path'), combo);
+  recordingEl = null;
+}, true);
+
+// =========================================================================
+// AUTO-OPEN PANELS
+// =========================================================================
+
+var autoOpenPanels = [];
+
+function renderAutoOpenPanels() {
+  var list = document.getElementById('panel-list');
+  while (list.firstChild) { list.removeChild(list.firstChild); }
+
+  autoOpenPanels.forEach(function(panel, idx) {
+    var entry = document.createElement('div');
+    entry.className = 'panel-entry';
+
+    var kindSelect = document.createElement('select');
+    ['terminal', 'assistant', 'chat', 'settings', 'presence'].forEach(function(k) {
+      var opt = document.createElement('option');
+      opt.value = k;
+      opt.textContent = k;
+      if (k === panel.kind) { opt.selected = true; }
+      kindSelect.appendChild(opt);
+    });
+    kindSelect.addEventListener('change', function() {
+      autoOpenPanels[idx].kind = kindSelect.value;
+      sendAutoOpenUpdate();
+    });
+
+    var titleInput = document.createElement('input');
+    titleInput.type = 'text';
+    titleInput.value = panel.title || '';
+    titleInput.placeholder = 'Title';
+    titleInput.style.width = '90px';
+    titleInput.addEventListener('change', function() {
+      autoOpenPanels[idx].title = titleInput.value || null;
+      sendAutoOpenUpdate();
+    });
+
+    var cmdInput = document.createElement('input');
+    cmdInput.type = 'text';
+    cmdInput.value = panel.command || '';
+    cmdInput.placeholder = 'Command';
+    cmdInput.style.width = '100px';
+    cmdInput.addEventListener('change', function() {
+      autoOpenPanels[idx].command = cmdInput.value || null;
+      sendAutoOpenUpdate();
+    });
+
+    var removeBtn = document.createElement('button');
+    removeBtn.className = 'btn-remove';
+    removeBtn.textContent = '\u00d7';
+    removeBtn.addEventListener('click', function() {
+      autoOpenPanels.splice(idx, 1);
+      renderAutoOpenPanels();
+      sendAutoOpenUpdate();
+    });
+
+    entry.appendChild(kindSelect);
+    entry.appendChild(titleInput);
+    entry.appendChild(cmdInput);
+    entry.appendChild(removeBtn);
+    list.appendChild(entry);
+  });
 }
 
+function sendAutoOpenUpdate() {
+  settingsUpdate('auto_open.panels', autoOpenPanels);
+}
+
+document.getElementById('btn-add-panel').addEventListener('click', function() {
+  autoOpenPanels.push({ kind: 'terminal', title: 'Terminal', command: null, args: [], working_directory: null });
+  renderAutoOpenPanels();
+  sendAutoOpenUpdate();
+});
+
 // =========================================================================
-// IPC bridge
+// CLOSE BUTTON
 // =========================================================================
 
-if (window.jarvis && window.jarvis.ipc) {
-  window.jarvis.ipc.on('settings_themes', function(payload) {
-    if (payload && Array.isArray(payload.themes)) {
-      renderThemes(payload.themes, payload.active || '');
+document.getElementById('close-btn').addEventListener('click', function() {
+  sendIpc('panel_close', {});
+});
+
+// =========================================================================
+// POPULATE FROM CONFIG
+// =========================================================================
+
+function populateFromConfig(config) {
+  if (!config) { return; }
+
+  // Set all data-path controls from config
+  document.querySelectorAll('[data-path]').forEach(function(el) {
+    var path = el.getAttribute('data-path');
+    var val = getNestedValue(config, path);
+    if (val === undefined || val === null) { return; }
+
+    if (el.type === 'checkbox') {
+      el.checked = Boolean(val);
+    } else if (el.type === 'range') {
+      el.value = val;
+      var display = el.parentElement.querySelector('.range-value');
+      if (display) { display.textContent = val; }
+    } else if (el.type === 'color') {
+      // Convert rgba/named to hex if needed, or just set if hex
+      if (typeof val === 'string' && val.startsWith('#') && val.length <= 9) {
+        el.value = val.substring(0, 7);
+      }
+      var hexDisplay = el.parentElement.querySelector('.color-hex');
+      if (hexDisplay) { hexDisplay.textContent = val; }
+    } else if (el.tagName === 'SELECT') {
+      el.value = String(val);
+    } else if (el.tagName === 'INPUT') {
+      el.value = val;
+    } else if (el.classList.contains('keybind-input')) {
+      el.textContent = val;
     }
   });
 
-  window.jarvis.ipc.on('settings_info', function(payload) {
-    if (payload) { updateInfo(payload); }
-  });
-
-  window.jarvis.ipc.on('settings_theme_changed', function(payload) {
-    if (payload && payload.name) {
-      var grid = document.getElementById('theme-grid');
-      var cards = grid.querySelectorAll('.theme-card');
-      cards.forEach(function(card) {
-        var nameEl = card.querySelector('.theme-name');
-        if (nameEl && nameEl.textContent === payload.name) {
-          var existing = grid.querySelector('.active');
-          if (existing) { existing.classList.remove('active'); }
-          card.classList.add('active');
-        }
-      });
-      document.getElementById('status-text').textContent =
-        'Theme: ' + payload.name;
-    }
-  });
-
-  // Request initial data
-  window.jarvis.ipc.send('settings_init', {});
+  // Auto-open panels
+  if (config.auto_open && Array.isArray(config.auto_open.panels)) {
+    autoOpenPanels = config.auto_open.panels.map(function(p) {
+      return {
+        kind: p.kind || 'terminal',
+        title: p.title || null,
+        command: p.command || null,
+        args: p.args || [],
+        working_directory: p.working_directory || null
+      };
+    });
+    renderAutoOpenPanels();
+  }
 }
 
-// Focus management
+function getNestedValue(obj, path) {
+  var parts = path.split('.');
+  var current = obj;
+  for (var i = 0; i < parts.length; i++) {
+    if (current === undefined || current === null) { return undefined; }
+    current = current[parts[i]];
+  }
+  return current;
+}
+
+// =========================================================================
+// IPC LISTENERS
+// =========================================================================
+
+onIpc('settings_data', function(payload) {
+  if (payload && payload.currentTheme) {
+    // Theme list from settings_init
+    if (Array.isArray(payload.availableThemes)) {
+      renderThemes(payload.availableThemes, payload.currentTheme);
+    }
+  }
+  // Full config data
+  if (payload && payload.config) {
+    populateFromConfig(payload.config);
+  }
+});
+
+onIpc('settings_saved', function() {
+  showToast('Saved');
+});
+
+onIpc('settings_theme_changed', function(payload) {
+  if (payload && payload.name) {
+    var grid = document.getElementById('theme-grid');
+    var cards = grid.querySelectorAll('.theme-card');
+    cards.forEach(function(card) {
+      var nameEl = card.querySelector('.theme-name');
+      if (nameEl && nameEl.textContent === payload.name) {
+        var existing = grid.querySelector('.active');
+        if (existing) { existing.classList.remove('active'); }
+        card.classList.add('active');
+      }
+    });
+  }
+});
+
+// Request initial data
+sendIpc('settings_init', {});
+
+// =========================================================================
+// FOCUS MANAGEMENT
+// =========================================================================
+
 document.addEventListener('mousedown', function() {
-  if (window.jarvis && window.jarvis.ipc) {
-    window.jarvis.ipc.send('panel_focus', {});
-  }
+  sendIpc('panel_focus', {});
 });
 
 function setFocused(isFocused) {

@@ -27,6 +27,7 @@ impl JarvisApp {
     pub(super) fn initialize_window(&mut self, event_loop: &ActiveEventLoop) -> bool {
         let attrs = WindowAttributes::default()
             .with_title("Jarvis")
+            .with_transparent(true)
             .with_inner_size(winit::dpi::LogicalSize::new(1280.0, 800.0));
 
         let window = match event_loop.create_window(attrs) {

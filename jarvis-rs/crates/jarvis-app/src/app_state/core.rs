@@ -13,6 +13,7 @@ use jarvis_platform::input_processor::InputProcessor;
 use jarvis_renderer::{AssistantPanel, RenderState, UiChrome};
 use jarvis_social::presence::PresenceEvent;
 use jarvis_social::OnlineUser;
+use jarvis_tiling::layout::LayoutEngine;
 use jarvis_tiling::TilingManager;
 use jarvis_webview::WebViewRegistry;
 
@@ -78,6 +79,10 @@ pub struct JarvisApp {
 impl JarvisApp {
     pub fn new(config: JarvisConfig, registry: KeybindRegistry) -> Self {
         let chrome = UiChrome::from_config(&config.layout);
+        let layout_engine = LayoutEngine {
+            gap: config.layout.panel_gap,
+            ..Default::default()
+        };
         Self {
             config,
             registry,
@@ -86,7 +91,7 @@ impl JarvisApp {
             notifications: NotificationQueue::new(16),
             window: None,
             render_state: None,
-            tiling: TilingManager::new(),
+            tiling: TilingManager::with_layout(layout_engine),
             webviews: None,
             ptys: PtyManager::new(),
             chrome,

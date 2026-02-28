@@ -117,10 +117,12 @@ impl JarvisApp {
     pub(in crate::app_state) fn handle_settings_init(&self, pane_id: u32, _payload: &IpcPayload) {
         if let Some(ref registry) = self.webviews {
             if let Some(handle) = registry.get(pane_id) {
-                // Send current theme name and available themes
+                let config_json = jarvis_config::config_to_json(&self.config);
                 let payload = serde_json::json!({
                     "currentTheme": self.config.theme.name,
                     "availableThemes": jarvis_config::BUILT_IN_THEMES,
+                    "config": serde_json::from_str::<serde_json::Value>(&config_json)
+                        .unwrap_or(serde_json::Value::Null),
                 });
                 if let Err(e) = handle.send_ipc("settings_data", &payload) {
                     tracing::warn!(pane_id, error = %e, "Failed to send settings_data");

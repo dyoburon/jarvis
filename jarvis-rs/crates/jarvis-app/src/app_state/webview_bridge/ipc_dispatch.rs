@@ -21,6 +21,9 @@ const ALLOWED_IPC_KINDS: &[&str] = &[
     "presence_poke",
     "settings_init",
     "settings_set_theme",
+    "settings_update",
+    "settings_reset_section",
+    "settings_get_config",
     "assistant_input",
     "open_panel",
     "panel_close",
@@ -102,6 +105,15 @@ impl JarvisApp {
             "settings_set_theme" => {
                 self.handle_settings_set_theme(pane_id, &msg.payload);
             }
+            "settings_update" => {
+                self.handle_settings_update(pane_id, &msg.payload);
+            }
+            "settings_reset_section" => {
+                self.handle_settings_reset_section(pane_id, &msg.payload);
+            }
+            "settings_get_config" => {
+                self.handle_settings_get_config(pane_id, &msg.payload);
+            }
             "assistant_input" => {
                 self.handle_assistant_input(pane_id, &msg.payload);
             }
@@ -132,6 +144,9 @@ mod tests {
         assert!(is_ipc_kind_allowed("pty_input"));
         assert!(is_ipc_kind_allowed("ping"));
         assert!(is_ipc_kind_allowed("settings_set_theme"));
+        assert!(is_ipc_kind_allowed("settings_update"));
+        assert!(is_ipc_kind_allowed("settings_reset_section"));
+        assert!(is_ipc_kind_allowed("settings_get_config"));
         assert!(is_ipc_kind_allowed("panel_focus"));
         assert!(is_ipc_kind_allowed("assistant_input"));
         assert!(is_ipc_kind_allowed("open_panel"));
