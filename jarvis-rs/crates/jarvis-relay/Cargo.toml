@@ -1,0 +1,19 @@
+[package]
+name = "jarvis-relay"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "jarvis-relay"
+path = "src/main.rs"
+
+[dependencies]
+tokio = { workspace = true }
+tokio-tungstenite = { workspace = true }
+futures-util = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+clap = { workspace = true }

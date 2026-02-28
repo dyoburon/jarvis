@@ -13,6 +13,7 @@ mod layout;
 mod livechat;
 mod panels;
 mod performance;
+mod relay;
 mod shell;
 mod social;
 mod startup;
@@ -34,6 +35,7 @@ pub use layout::*;
 pub use livechat::*;
 pub use panels::*;
 pub use performance::*;
+pub use relay::*;
 pub use shell::*;
 pub use social::*;
 pub use startup::*;
@@ -82,6 +84,7 @@ pub struct JarvisConfig {
     pub advanced: AdvancedConfig,
     pub auto_open: AutoOpenConfig,
     pub status_bar: StatusBarConfig,
+    pub relay: RelayConfig,
 }
 
 // =============================================================================
