@@ -335,6 +335,13 @@
   }
   drawField();
 
+  // Drag window on mousedown anywhere
+  document.addEventListener('mousedown', function(e) {
+    if (e.button === 0 && window.jarvis && window.jarvis.ipc) {
+      window.jarvis.ipc.send('window_drag');
+    }
+  });
+
   // Skip on keypress
   document.addEventListener('keydown', function() {
     fill.style.width = '100%';
