@@ -66,6 +66,14 @@ pub struct JarvisApp {
     pub(super) assistant_rx: Option<std::sync::mpsc::Receiver<AssistantEvent>>,
     pub(super) assistant_tx: Option<std::sync::mpsc::Sender<String>>,
 
+    // Mobile relay bridge
+    pub(super) mobile_broadcaster: Option<Arc<super::ws_server::MobileBroadcaster>>,
+    pub(super) mobile_cmd_rx: Option<std::sync::mpsc::Receiver<super::ws_server::ClientCommand>>,
+    pub(super) relay_event_rx: Option<std::sync::mpsc::Receiver<super::ws_server::RelayEvent>>,
+    pub(super) relay_session_id: Option<String>,
+    pub(super) relay_peer_connected: bool,
+    pub(super) relay_shutdown_tx: Option<tokio::sync::mpsc::Sender<()>>,
+
     // Crypto service (identity + encryption)
     pub(super) crypto: Option<jarvis_platform::CryptoService>,
 
@@ -117,6 +125,12 @@ impl JarvisApp {
             assistant_open: false,
             assistant_rx: None,
             assistant_tx: None,
+            mobile_broadcaster: None,
+            mobile_cmd_rx: None,
+            relay_event_rx: None,
+            relay_session_id: None,
+            relay_peer_connected: false,
+            relay_shutdown_tx: None,
             crypto: None,
             boot: None,
             boot_webview_active: false,

@@ -16,6 +16,7 @@ mod resize_drag;
 mod shutdown;
 mod social;
 mod title;
+mod ws_server;
 mod types;
 mod ui_state;
 mod webview_bridge;

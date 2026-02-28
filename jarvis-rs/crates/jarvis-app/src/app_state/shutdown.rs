@@ -34,6 +34,16 @@ impl JarvisApp {
         self.online_users.clear();
         self.online_count = 0;
 
+        // 3.5. Shut down mobile relay bridge
+        if let Some(tx) = self.relay_shutdown_tx.take() {
+            let _ = tx.try_send(());
+        }
+        self.mobile_broadcaster = None;
+        self.mobile_cmd_rx = None;
+        self.relay_event_rx = None;
+        self.relay_session_id = None;
+        self.relay_peer_connected = false;
+
         // 4. Shut down tokio runtime (cancels presence background task)
         if let Some(rt) = self.tokio_runtime.take() {
             rt.shutdown_timeout(Duration::from_secs(2));
