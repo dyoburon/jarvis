@@ -79,11 +79,12 @@ impl JarvisApp {
             }
         };
 
+        let scale_factor = window.scale_factor();
         let window_size = window.inner_size();
         let viewport = tiling_viewport(
             &self.config,
-            window_size.width as f64,
-            window_size.height as f64,
+            window_size.width as f64 / scale_factor,
+            window_size.height as f64 / scale_factor,
         );
         let layout = self.tiling.compute_layout(viewport);
 
@@ -125,11 +126,12 @@ impl JarvisApp {
         };
 
         // Compute the bounds for this pane from the tiling layout
+        let scale_factor = window.scale_factor();
         let window_size = window.inner_size();
         let viewport = tiling_viewport(
             &self.config,
-            window_size.width as f64,
-            window_size.height as f64,
+            window_size.width as f64 / scale_factor,
+            window_size.height as f64 / scale_factor,
         );
         let layout = self.tiling.compute_layout(viewport);
 
@@ -207,10 +209,13 @@ impl JarvisApp {
             }
         };
 
+        let scale_factor = window.scale_factor();
         let size = window.inner_size();
+        let logical_width = size.width as f64 / scale_factor;
+        let logical_height = size.height as f64 / scale_factor;
         let bounds = wry::Rect {
             position: wry::dpi::Position::Logical(wry::dpi::LogicalPosition::new(0.0, 0.0)),
-            size: wry::dpi::Size::Physical(wry::dpi::PhysicalSize::new(size.width, size.height)),
+            size: wry::dpi::Size::Logical(wry::dpi::LogicalSize::new(logical_width, logical_height)),
         };
 
         // Use pane_id 0 — reserved for the boot webview (no tiling pane owns it)
@@ -259,11 +264,15 @@ impl JarvisApp {
             None => return,
         };
 
-        let window_size = window.inner_size();
+        // Use logical size — webview bounds use logical coordinates
+        let scale_factor = window.scale_factor();
+        let physical_size = window.inner_size();
+        let logical_width = physical_size.width as f64 / scale_factor;
+        let logical_height = physical_size.height as f64 / scale_factor;
         let viewport = tiling_viewport(
             &self.config,
-            window_size.width as f64,
-            window_size.height as f64,
+            logical_width,
+            logical_height,
         );
         let layout = self.tiling.compute_layout(viewport);
 

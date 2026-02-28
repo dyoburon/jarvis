@@ -19,6 +19,18 @@ const MAX_INPUT_LEN: usize = 4096;
 /// Allowed panel names for the `open_panel` IPC command.
 const ALLOWED_PANELS: &[&str] = &["terminal", "assistant", "chat", "settings", "presence"];
 
+/// Allowed game names for the `launch_game` IPC command.
+const ALLOWED_GAMES: &[&str] = &[
+    "tetris",
+    "asteroids",
+    "minesweeper",
+    "pinball",
+    "doodlejump",
+    "draw",
+    "subway",
+    "videoplayer",
+];
+
 // =============================================================================
 // IPC HANDLERS
 // =============================================================================
@@ -61,6 +73,45 @@ impl JarvisApp {
             self.ensure_assistant_runtime();
             if let Some(ref tx) = self.assistant_tx {
                 let _ = tx.send(text.to_string());
+            }
+        }
+    }
+
+    /// Handle `launch_game` — launch a fullscreen game in the requesting panel.
+    ///
+    /// The payload must contain `{ "game": "tetris" | "asteroids" | ... }`.
+    pub(in crate::app_state) fn handle_launch_game(
+        &mut self,
+        pane_id: u32,
+        payload: &IpcPayload,
+    ) {
+        let game_name = match payload {
+            IpcPayload::Json(obj) => obj.get("game").and_then(|v| v.as_str()),
+            _ => None,
+        };
+
+        let game_name = match game_name {
+            Some(name) if ALLOWED_GAMES.contains(&name) => name,
+            Some(name) => {
+                tracing::warn!(pane_id, game = %name, "launch_game: unknown game name");
+                return;
+            }
+            None => {
+                tracing::warn!(pane_id, "launch_game: missing game name");
+                return;
+            }
+        };
+
+        let url = format!("jarvis://localhost/games/{}.html", game_name);
+
+        if let Some(ref registry) = self.webviews {
+            if let Some(handle) = registry.get(pane_id) {
+                let js = format!("window.showFullscreenGame('{}')", url);
+                if let Err(e) = handle.evaluate_script(&js) {
+                    tracing::warn!(pane_id, error = %e, "Failed to launch game");
+                } else {
+                    tracing::info!(pane_id, game = %game_name, "Game launched");
+                }
             }
         }
     }

@@ -1,6 +1,7 @@
 //! IPC message validation and dispatch from webview to Rust handlers.
 
-use jarvis_webview::IpcMessage;
+use jarvis_platform::input::KeyCombo;
+use jarvis_webview::{IpcMessage, IpcPayload};
 
 use crate::app_state::core::JarvisApp;
 
@@ -30,8 +31,13 @@ const ALLOWED_IPC_KINDS: &[&str] = &[
     "panel_toggle",
     "open_settings",
     "status_bar_init",
+    "launch_game",
+    "game_exit",
     "ping",
     "boot_complete",
+    "crypto",
+    "window_drag",
+    "keybind",
 ];
 
 /// Check whether an IPC message kind is in the allowlist.
@@ -137,13 +143,65 @@ impl JarvisApp {
             "open_settings" => {
                 self.handle_open_settings(pane_id);
             }
+            "launch_game" => {
+                self.handle_launch_game(pane_id, &msg.payload);
+            }
+            "game_exit" => {
+                tracing::debug!(pane_id, "Game exited");
+            }
             "status_bar_init" => {
                 self.handle_status_bar_init(pane_id);
+            }
+            "crypto" => {
+                self.handle_crypto(pane_id, &msg.payload);
+            }
+            "window_drag" => {
+                if let Some(ref w) = self.window {
+                    let _ = w.drag_window();
+                }
+            }
+            "keybind" => {
+                self.handle_keybind_from_webview(pane_id, &msg.payload);
             }
             _ => {
                 // Shouldn't happen — allowlist checked above
                 tracing::warn!(pane_id, kind = %msg.kind, "Unhandled IPC kind");
             }
+        }
+    }
+}
+
+impl JarvisApp {
+    /// Handle a `keybind` IPC message — keyboard shortcut forwarded from webview JS.
+    ///
+    /// WKWebView captures Cmd+key before winit sees them, so the JS-side
+    /// IPC init script intercepts these and sends them here.
+    pub(in crate::app_state) fn handle_keybind_from_webview(
+        &mut self,
+        pane_id: u32,
+        payload: &IpcPayload,
+    ) {
+        let obj = match payload {
+            IpcPayload::Json(v) => v,
+            _ => return,
+        };
+
+        let key = match obj.get("key").and_then(|v| v.as_str()) {
+            Some(k) => k.to_string(),
+            None => return,
+        };
+
+        let ctrl = obj.get("ctrl").and_then(|v| v.as_bool()).unwrap_or(false);
+        let alt = obj.get("alt").and_then(|v| v.as_bool()).unwrap_or(false);
+        let shift = obj.get("shift").and_then(|v| v.as_bool()).unwrap_or(false);
+        let meta = obj.get("meta").and_then(|v| v.as_bool()).unwrap_or(false);
+
+        let combo = KeyCombo::from_winit(ctrl, alt, shift, meta, key.clone());
+
+        if let Some(action) = self.registry.lookup(&combo) {
+            let action = action.clone();
+            tracing::debug!(pane_id, key = %key, ?action, "Keybind from webview");
+            self.dispatch(action);
         }
     }
 }
@@ -172,6 +230,8 @@ mod tests {
         assert!(is_ipc_kind_allowed("open_settings"));
         assert!(is_ipc_kind_allowed("status_bar_init"));
         assert!(is_ipc_kind_allowed("boot_complete"));
+        assert!(is_ipc_kind_allowed("crypto"));
+        assert!(is_ipc_kind_allowed("window_drag"));
     }
 
     #[test]

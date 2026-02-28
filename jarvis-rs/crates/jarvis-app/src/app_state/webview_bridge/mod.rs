@@ -5,6 +5,7 @@
 
 mod assistant_handlers;
 mod bounds;
+mod crypto_handlers;
 mod ipc_dispatch;
 mod lifecycle;
 mod presence_handlers;
