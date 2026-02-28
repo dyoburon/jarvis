@@ -77,7 +77,7 @@ export default function SessionTokenInput({
       <TextInput
         value={inputValue}
         onChangeText={setInputValue}
-        placeholder="paste session token"
+        placeholder="paste pairing data"
         placeholderTextColor="rgba(0, 212, 255, 0.2)"
         autoCapitalize="none"
         autoCorrect={false}

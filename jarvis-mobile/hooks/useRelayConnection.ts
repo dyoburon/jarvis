@@ -3,10 +3,8 @@ import type { TerminalWebViewHandle } from '../components/TerminalWebView';
 import { createRelayConnection, IRelayConnection, ConnectionStatus } from '../lib/relay-connection';
 import { loadSessionToken, saveSessionToken, clearSessionToken } from '../lib/session-store';
 
-const USE_MOCK = true; // Toggle to false when real relay is ready
-
 export function useRelayConnection(terminalRef: React.RefObject<TerminalWebViewHandle | null>) {
-  const connectionRef = useRef<IRelayConnection>(createRelayConnection(USE_MOCK));
+  const connectionRef = useRef<IRelayConnection>(createRelayConnection('relay'));
   const [status, setStatus] = useState<ConnectionStatus>('disconnected');
   const [sessionToken, setSessionToken] = useState<string | null>(null);
   const [terminalReady, setTerminalReady] = useState(false);
