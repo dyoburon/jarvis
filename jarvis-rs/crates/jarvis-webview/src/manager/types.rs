@@ -22,7 +22,7 @@ impl Default for WebViewConfig {
         Self {
             url: None,
             html: None,
-            transparent: false,
+            transparent: true,
             devtools: cfg!(debug_assertions),
             user_agent: Some("Jarvis/0.1".to_string()),
             clipboard: true,
