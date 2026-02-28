@@ -1,5 +1,6 @@
 pub mod clipboard;
 pub mod crash_report;
+pub mod crypto;
 pub mod input;
 pub mod input_processor;
 pub mod keymap;
@@ -9,6 +10,7 @@ pub mod paths;
 pub mod winit_keys;
 
 pub use clipboard::Clipboard;
+pub use crypto::CryptoService;
 pub use input::{KeyCombo, KeybindRegistry};
 pub use input_processor::{InputMode, InputProcessor, InputResult};
 pub use keymap::{KeyBind, Modifier};
