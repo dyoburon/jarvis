@@ -111,15 +111,9 @@ pub(crate) async fn connection_loop(
                 while let Some(msg_result) = read_stream.next().await {
                     match msg_result {
                         Ok(WsMessage::Text(text)) => {
-                            if let Ok(phoenix_msg) =
-                                serde_json::from_str::<PhoenixMessage>(&text)
-                            {
-                                handle_phoenix_message(
-                                    &phoenix_msg,
-                                    &joined_channels,
-                                    &event_tx,
-                                )
-                                .await;
+                            if let Ok(phoenix_msg) = serde_json::from_str::<PhoenixMessage>(&text) {
+                                handle_phoenix_message(&phoenix_msg, &joined_channels, &event_tx)
+                                    .await;
                             } else {
                                 tracing::debug!(text = %text, "Unrecognized message from Supabase");
                             }

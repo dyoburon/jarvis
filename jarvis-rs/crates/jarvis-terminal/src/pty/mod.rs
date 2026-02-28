@@ -15,12 +15,11 @@ pub use types::*;
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use std::time::{Duration, Instant};
-
     #[test]
     #[cfg(unix)]
     fn test_spawn_and_echo() {
+        use super::*;
+        use std::time::{Duration, Instant};
         // Spawn /bin/echo which prints "hello" and exits immediately.
         // Spawn a shell, write a command, and read back the output.
         let mut mgr = PtyManager::spawn("/bin/sh", 80, 24, None).expect("spawn sh");

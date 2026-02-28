@@ -8,9 +8,7 @@ use tracing::{debug, info};
 
 use crate::protocol::ScreenShareSignal;
 
-use super::types::{
-    ScreenShareConfig, ScreenShareEvent, ScreenShareSession, ShareQuality,
-};
+use super::types::{ScreenShareConfig, ScreenShareEvent, ScreenShareSession, ShareQuality};
 
 // ---------------------------------------------------------------------------
 // Screen Share Manager
