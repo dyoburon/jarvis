@@ -116,6 +116,7 @@ var term = new Terminal({
 var fitAddon = new FitAddon.FitAddon();
 term.loadAddon(fitAddon);
 term.open(container);
+window._xtermInstance = term;
 fitAddon.fit();
 
 var ro = new ResizeObserver(function() {

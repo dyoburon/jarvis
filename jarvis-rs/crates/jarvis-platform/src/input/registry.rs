@@ -40,6 +40,8 @@ impl KeybindRegistry {
             (&config.split_horizontal, Action::SplitHorizontal),
             (&config.close_pane, Action::ClosePane),
             (&config.command_palette, Action::OpenCommandPalette),
+            (&config.copy, Action::Copy),
+            (&config.paste, Action::Paste),
         ];
 
         for (binding_str, action) in mappings {

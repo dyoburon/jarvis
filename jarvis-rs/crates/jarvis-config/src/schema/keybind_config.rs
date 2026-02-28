@@ -29,6 +29,8 @@ pub struct KeybindConfig {
     pub split_horizontal: String,
     pub close_pane: String,
     pub command_palette: String,
+    pub copy: String,
+    pub paste: String,
 }
 
 impl Default for KeybindConfig {
@@ -51,6 +53,8 @@ impl Default for KeybindConfig {
             split_horizontal: "Cmd+Shift+D".into(),
             close_pane: "Cmd+W".into(),
             command_palette: "Cmd+P".into(),
+            copy: "Cmd+C".into(),
+            paste: "Cmd+V".into(),
         }
     }
 }

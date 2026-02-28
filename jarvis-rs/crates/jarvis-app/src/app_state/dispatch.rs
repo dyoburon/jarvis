@@ -140,9 +140,52 @@ impl JarvisApp {
                     self.needs_redraw = true;
                 }
             }
-            Action::Copy | Action::Paste => {
-                // Will be handled by webview panels in future phases
-                tracing::debug!("clipboard action: will be handled by webview");
+            Action::Copy => {
+                let focused = self.tiling.focused_id();
+                if let Some(ref registry) = self.webviews {
+                    if let Some(handle) = registry.get(focused) {
+                        let _ = handle.evaluate_script(
+                            "document.execCommand('copy')"
+                        );
+                    }
+                }
+            }
+            Action::Paste => {
+                // Read clipboard on the Rust side (no WebView permission needed)
+                let text = match jarvis_platform::Clipboard::new() {
+                    Ok(mut clip) => clip.get_text().ok(),
+                    Err(_) => None,
+                };
+                if let Some(text) = text {
+                    if !text.is_empty() {
+                        let focused = self.tiling.focused_id();
+                        if let Some(ref registry) = self.webviews {
+                            if let Some(handle) = registry.get(focused) {
+                                // Escape text for JS string literal
+                                let escaped = text
+                                    .replace('\\', "\\\\")
+                                    .replace('\'', "\\'")
+                                    .replace('\n', "\\n")
+                                    .replace('\r', "\\r");
+                                let js = format!(concat!(
+                                    "(function(){{",
+                                      "var t='{}';",
+                                      "var a=document.activeElement;",
+                                      "if(a&&(a.tagName==='INPUT'||a.tagName==='TEXTAREA')){{",
+                                        "var s=a.selectionStart||0,e=a.selectionEnd||0;",
+                                        "a.value=a.value.slice(0,s)+t+a.value.slice(e);",
+                                        "a.selectionStart=a.selectionEnd=s+t.length;",
+                                        "a.dispatchEvent(new Event('input',{{bubbles:true}}));",
+                                      "}}else if(window.jarvis&&window.jarvis.ipc){{",
+                                        "window.jarvis.ipc.send('pty_input',{{data:t}});",
+                                      "}}",
+                                    "}})()"
+                                ), escaped);
+                                let _ = handle.evaluate_script(&js);
+                            }
+                        }
+                    }
+                }
             }
             Action::ReloadConfig => match jarvis_config::load_config() {
                 Ok(c) => {

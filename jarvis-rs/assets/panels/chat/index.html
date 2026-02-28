@@ -101,6 +101,170 @@ body {
 
 #user-count {
   color: var(--color-text-muted);
+  cursor: pointer;
+  position: relative;
+  transition: color 0.15s;
+}
+#user-count:hover {
+  color: var(--primary);
+}
+
+/* ================================================================ */
+/* ONLINE USERS DROPDOWN                                            */
+/* ================================================================ */
+
+#online-dropdown {
+  display: none;
+  position: absolute;
+  top: 44px;
+  right: 16px;
+  background: rgba(13, 17, 23, 0.72);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  min-width: 220px;
+  max-height: 320px;
+  overflow-y: auto;
+  z-index: 20;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+}
+#online-dropdown.open { display: block; }
+#online-dropdown::-webkit-scrollbar { width: 3px; }
+#online-dropdown::-webkit-scrollbar-track { background: transparent; }
+#online-dropdown::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 2px;
+}
+
+.dd-header {
+  font-size: 10px;
+  color: var(--color-text-muted);
+  padding: 8px 12px 4px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: 1px solid var(--border);
+}
+
+.user-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+}
+.user-row:last-child { border-bottom: none; }
+.user-row:hover { background: rgba(0, 212, 255, 0.03); }
+
+.user-name {
+  color: var(--primary);
+  opacity: 0.65;
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.online-dot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 4px rgba(0, 255, 136, 0.4);
+  margin-right: 5px;
+  vertical-align: middle;
+}
+
+.dd-empty {
+  padding: 16px 12px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+/* ================================================================ */
+/* CHANNEL DROPDOWN                                                  */
+/* ================================================================ */
+
+#channel-title {
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+#channel-title:hover {
+  text-shadow: 0 0 14px var(--glow-cyan);
+}
+
+.channel-chevron {
+  font-size: 10px;
+  opacity: 0.5;
+  transition: transform 0.15s, opacity 0.15s;
+}
+#channel-title:hover .channel-chevron {
+  opacity: 0.8;
+}
+#channel-title.open .channel-chevron {
+  transform: rotate(180deg);
+}
+
+#channel-dropdown {
+  display: none;
+  position: absolute;
+  top: 44px;
+  left: 16px;
+  background: rgba(13, 17, 23, 0.72);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  min-width: 220px;
+  max-height: 320px;
+  overflow-y: auto;
+  z-index: 20;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+}
+#channel-dropdown.open { display: block; }
+#channel-dropdown::-webkit-scrollbar { width: 3px; }
+#channel-dropdown::-webkit-scrollbar-track { background: transparent; }
+#channel-dropdown::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 2px;
+}
+
+.channel-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--primary);
+  opacity: 0.65;
+}
+.channel-row:last-child { border-bottom: none; }
+.channel-row:hover { background: rgba(0, 212, 255, 0.03); opacity: 0.85; }
+.channel-row.active {
+  opacity: 1;
+  font-weight: bold;
+  background: rgba(0, 212, 255, 0.05);
+}
+
+.unread-badge {
+  background: var(--primary);
+  color: var(--bg);
+  font-size: 9px;
+  font-weight: bold;
+  padding: 1px 6px;
+  border-radius: 8px;
+  min-width: 16px;
+  text-align: center;
 }
 
 /* ================================================================ */
@@ -164,6 +328,76 @@ body {
 .msg-text {
   color: var(--color-text);
   font-family: var(--font-ui);
+}
+
+.msg-verify {
+  flex-shrink: 0;
+  font-size: 10px;
+  min-width: 14px;
+  text-align: center;
+  padding-top: 2px;
+  cursor: help;
+}
+.msg-verify.verified { color: var(--success); opacity: 0.7; }
+.msg-verify.unverified { color: var(--color-text-muted); opacity: 0.5; }
+.msg-verify.key-changed { color: var(--accent); opacity: 0.9; }
+.msg-verify.invalid { color: var(--danger); opacity: 0.9; }
+
+.dm-btn {
+  background: rgba(0, 212, 255, 0.06);
+  border: 1px solid var(--border);
+  color: var(--primary);
+  opacity: 0.45;
+  font-family: 'Courier New', monospace;
+  font-size: 9px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.15s;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+.dm-btn:hover {
+  opacity: 0.9;
+  box-shadow: 0 0 6px rgba(0, 229, 255, 0.15);
+}
+
+#dm-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 16px;
+  background: rgba(0, 212, 255, 0.04);
+  border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+  font-size: 11px;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+#dm-header.hidden { display: none; }
+#dm-header-info { display: flex; align-items: center; gap: 8px; }
+#dm-header-icon { font-size: 14px; }
+.dm-fp {
+  font-size: 9px;
+  color: var(--color-text-muted);
+  font-family: 'Courier New', monospace;
+}
+#dm-close-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--color-text-muted);
+  font-family: 'Courier New', monospace;
+  font-size: 10px;
+  padding: 2px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+#dm-close-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+#messages.dm-active {
+  background: rgba(0, 212, 255, 0.02);
 }
 
 .msg-system {
@@ -396,13 +630,45 @@ body {
 <!-- ============================================================== -->
 
 <div id="header">
-  <h1>Livechat</h1>
+  <h1 id="channel-title" title="Click to switch channels">
+    <span id="channel-name"># general</span>
+    <span class="channel-chevron">&#9662;</span>
+  </h1>
   <div id="header-meta">
     <span id="my-nick" title="Click to change nickname"></span>
     <span><span id="status-dot"></span><span id="status-text">offline</span></span>
     <span id="user-count">0 online</span>
   </div>
   <button id="close-btn" title="Close panel" onclick="if(window.ipc&&window.ipc.postMessage)window.ipc.postMessage(JSON.stringify({kind:'panel_close',payload:{}}))">&times;</button>
+</div>
+
+<!-- ============================================================== -->
+<!-- ONLINE USERS DROPDOWN                                          -->
+<!-- ============================================================== -->
+
+<div id="online-dropdown">
+  <div class="dd-header">Online Users</div>
+  <div id="online-user-list"></div>
+</div>
+
+<div id="dm-header" class="hidden">
+  <div id="dm-header-info">
+    <span id="dm-header-icon">&#128274;</span>
+    <span>DM with <strong id="dm-header-nick"></strong></span>
+    <span id="dm-header-fp" class="dm-fp"></span>
+  </div>
+  <button id="dm-close-btn" title="Close DM and return to group chat">&#10005; Close</button>
+</div>
+
+<!-- ============================================================== -->
+<!-- CHANNEL DROPDOWN                                               -->
+<!-- ============================================================== -->
+
+<div id="channel-dropdown">
+  <div class="dd-header">CHANNELS</div>
+  <div id="channel-list"></div>
+  <div class="dd-header" id="dm-section-header" style="display:none;">DIRECT MESSAGES</div>
+  <div id="dm-list"></div>
 </div>
 
 <!-- ============================================================== -->
@@ -476,12 +742,18 @@ const CONFIG = {
   SUPABASE_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qbXF6YWdrdHprdWFsemdwY2JxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5ODY1ODIsImV4cCI6MjA4NzU2MjU4Mn0.WkDiksXkye-YyL1RSbAYv1iVW_Sv5zwST0RcloN_0jQ',
 
   ROOM: 'jarvis-livechat',
+  CHANNELS: [
+    { id: 'jarvis-livechat', name: 'general', type: 'channel' },
+    { id: 'jarvis-livechat-discord', name: 'discord', type: 'channel' },
+  ],
+  DEFAULT_CHANNEL: 'jarvis-livechat',
   MAX_MSG_LEN: 500,
   RATE_LIMIT_COUNT: 5,      // max messages per window
   RATE_LIMIT_WINDOW: 10000, // window in ms (10 seconds)
   SPAM_REPEAT_LIMIT: 3,     // block after N identical consecutive messages
   SPAM_CHAR_RATIO: 0.8,     // block if >80% of message is same character
   MIN_MSG_LEN: 1,
+  DM_CHANNEL_PREFIX: 'jarvis-dm-',
 };
 
 // =================================================================
@@ -674,68 +946,124 @@ class AutoMod {
 // =================================================================
 
 const Crypto = {
-  _key: null,
-  _encoder: new TextEncoder(),
-  _decoder: new TextDecoder(),
+  _defaultKeyHandle: null,
 
-  /** Derive AES-GCM-256 key from room name via PBKDF2. */
+  /** Derive AES-GCM-256 key from room name via PBKDF2 (Rust-side). */
   async deriveKey(roomName) {
-    const salt = this._encoder.encode('jarvis-livechat-salt-v1');
-    const keyMaterial = await crypto.subtle.importKey(
-      'raw',
-      this._encoder.encode(roomName),
-      'PBKDF2',
-      false,
-      ['deriveKey']
-    );
-    this._key = await crypto.subtle.deriveKey(
-      { name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' },
-      keyMaterial,
-      { name: 'AES-GCM', length: 256 },
-      false,
-      ['encrypt', 'decrypt']
-    );
+    var resp = await window.jarvis.ipc.request('crypto', {
+      op: 'derive_room_key', params: { room: roomName }
+    });
+    this._defaultKeyHandle = resp.keyHandle;
   },
 
-  /** Encrypt plaintext. Returns { iv, ct } as base64 strings. */
-  async encrypt(plaintext) {
-    if (!this._key) throw new Error('Key not derived');
-    const iv = crypto.getRandomValues(new Uint8Array(12));
-    const ct = await crypto.subtle.encrypt(
-      { name: 'AES-GCM', iv },
-      this._key,
-      this._encoder.encode(plaintext)
-    );
-    return {
-      iv: this._toBase64(iv),
-      ct: this._toBase64(new Uint8Array(ct)),
-    };
+  /** Encrypt plaintext. Returns { iv, ct } as base64 strings. Optional keyHandle overrides default. */
+  async encrypt(plaintext, keyHandle) {
+    var kh = keyHandle || this._defaultKeyHandle;
+    if (kh == null) throw new Error('Key not derived');
+    return await window.jarvis.ipc.request('crypto', {
+      op: 'encrypt', params: { plaintext: plaintext, keyHandle: kh }
+    });
   },
 
-  /** Decrypt { iv, ct } payload. Returns plaintext string. */
-  async decrypt(ivB64, ctB64) {
-    if (!this._key) throw new Error('Key not derived');
-    const iv = this._fromBase64(ivB64);
-    const ct = this._fromBase64(ctB64);
-    const plain = await crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv },
-      this._key,
-      ct
-    );
-    return this._decoder.decode(plain);
+  /** Decrypt { iv, ct } payload. Returns plaintext string. Optional keyHandle overrides default. */
+  async decrypt(ivB64, ctB64, keyHandle) {
+    var kh = keyHandle || this._defaultKeyHandle;
+    if (kh == null) throw new Error('Key not derived');
+    var resp = await window.jarvis.ipc.request('crypto', {
+      op: 'decrypt', params: { iv: ivB64, ct: ctB64, keyHandle: kh }
+    });
+    return resp.plaintext;
+  },
+};
+
+// =================================================================
+// CRYPTOGRAPHIC IDENTITY (ECDSA P-256)
+// =================================================================
+
+const Identity = {
+  fingerprint: null,
+  pubkeyBase64: null,
+  dhPubkeyBase64: null,
+
+  /** Load identity from Rust CryptoService (keys managed Rust-side). */
+  async init() {
+    var resp = await window.jarvis.ipc.request('crypto', {
+      op: 'init', params: {}
+    });
+    this.fingerprint = resp.fingerprint;
+    this.pubkeyBase64 = resp.pubkey;
+    this.dhPubkeyBase64 = resp.dhPubkey;
   },
 
-  _toBase64(bytes) {
-    let binary = '';
-    for (const b of bytes) binary += String.fromCharCode(b);
-    return btoa(binary);
+  /** Sign data with ECDSA-P256-SHA256 (Rust-side). Returns base64 signature. */
+  async sign(dataString) {
+    var resp = await window.jarvis.ipc.request('crypto', {
+      op: 'sign', params: { data: dataString }
+    });
+    return resp.signature;
   },
 
-  _fromBase64(b64) {
-    const binary = atob(b64);
-    const bytes = new Uint8Array(binary.length);
-    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-    return bytes;
+  /** Verify ECDSA-P256-SHA256 signature (Rust-side). Returns boolean. */
+  async verify(dataString, signatureBase64, pubkeyBase64) {
+    var resp = await window.jarvis.ipc.request('crypto', {
+      op: 'verify', params: {
+        data: dataString,
+        signature: signatureBase64,
+        pubkey: pubkeyBase64
+      }
+    });
+    return resp.valid;
+  },
+
+  /** Derive shared AES-256 key via ECDH (Rust-side). Returns opaque key handle. */
+  async deriveSharedKey(otherDhPubkeyBase64) {
+    var resp = await window.jarvis.ipc.request('crypto', {
+      op: 'derive_shared_key', params: { dhPubkey: otherDhPubkeyBase64 }
+    });
+    return resp.keyHandle;
+  },
+};
+
+// =================================================================
+// TOFU TRUST STORE
+// =================================================================
+
+const TrustStore = {
+  _KEY: 'jarvis-chat-tofu',
+  _store: {},
+
+  init() {
+    try {
+      this._store = JSON.parse(localStorage.getItem(this._KEY) || '{}');
+    } catch (_) {
+      this._store = {};
+    }
+  },
+
+  check(nick, fingerprint) {
+    var entry = this._store[nick];
+    if (!entry) {
+      this._store[nick] = { fingerprint: fingerprint, firstSeen: Date.now(), lastSeen: Date.now() };
+      this._save();
+      return 'new';
+    }
+    if (entry.fingerprint === fingerprint) {
+      entry.lastSeen = Date.now();
+      this._save();
+      return 'trusted';
+    }
+    return 'changed';
+  },
+
+  getFingerprint(nick) {
+    var entry = this._store[nick];
+    return entry ? entry.fingerprint : null;
+  },
+
+  _save() {
+    try {
+      localStorage.setItem(this._KEY, JSON.stringify(this._store));
+    } catch (_) {}
   },
 };
 
@@ -816,7 +1144,7 @@ const UI = {
     this.myNick.textContent = nick;
   },
 
-  addMessage(nick, text, time, nickColor) {
+  addMessage(nick, text, time, nickColor, verifyStatus) {
     this._hideEmpty();
     const row = document.createElement('div');
     row.className = 'msg';
@@ -824,6 +1152,26 @@ const UI = {
     const timeEl = document.createElement('span');
     timeEl.className = 'msg-time';
     timeEl.textContent = time;
+
+    const verifyEl = document.createElement('span');
+    verifyEl.className = 'msg-verify';
+    if (verifyStatus === 'verified' || verifyStatus === 'self') {
+      verifyEl.classList.add('verified');
+      verifyEl.textContent = '\u2713';
+      verifyEl.title = verifyStatus === 'self' ? 'Your message' : 'Verified identity';
+    } else if (verifyStatus === 'key-changed') {
+      verifyEl.classList.add('key-changed');
+      verifyEl.textContent = '\u26A0';
+      verifyEl.title = 'Identity key changed! Possible impersonation.';
+    } else if (verifyStatus === 'invalid') {
+      verifyEl.classList.add('invalid');
+      verifyEl.textContent = '\u2717';
+      verifyEl.title = 'Signature verification failed';
+    } else {
+      verifyEl.classList.add('unverified');
+      verifyEl.textContent = '?';
+      verifyEl.title = 'Unverified (no signature)';
+    }
 
     const nickEl = document.createElement('span');
     nickEl.className = 'msg-nick';
@@ -835,6 +1183,7 @@ const UI = {
     textEl.textContent = text; // textContent = XSS safe
 
     row.appendChild(timeEl);
+    row.appendChild(verifyEl);
     row.appendChild(nickEl);
     row.appendChild(textEl);
     this.messagesEl.appendChild(row);
@@ -874,6 +1223,35 @@ const UI = {
     this._rateFeedbackTimeout = setTimeout(() => {
       this.rateFeedback.classList.remove('show');
     }, 2000);
+  },
+
+  updateChannelName(name) {
+    $('#channel-name').textContent = name;
+  },
+
+  clearMessages() {
+    while (this.messagesEl.firstChild) {
+      this.messagesEl.removeChild(this.messagesEl.firstChild);
+    }
+    this.emptyState = null;
+  },
+
+  showEmptyState() {
+    if (this.emptyState) return;
+    var empty = document.createElement('div');
+    empty.id = 'empty-state';
+    var icon = document.createElement('div');
+    icon.className = 'icon';
+    icon.innerHTML = '&#9881;';
+    var line1 = document.createElement('div');
+    line1.textContent = 'No messages yet.';
+    var line2 = document.createElement('div');
+    line2.textContent = 'Say something to get started.';
+    empty.appendChild(icon);
+    empty.appendChild(line1);
+    empty.appendChild(line2);
+    this.messagesEl.appendChild(empty);
+    this.emptyState = empty;
   },
 
   updateCharCount(len) {
@@ -929,10 +1307,34 @@ function formatTime(ts) {
 const Chat = {
   userId: null,
   nick: null,
-  channel: null,
   client: null,
   automod: null,
   _senderRateBucket: [],
+  _activeChannelId: null,
+  _channels: new Map(),
+  _dmList: [],
+  _unreadCounts: new Map(),
+  _keyCache: new Map(),
+  _dmMode: false,
+  _dmKey: null,
+  _dmTargetNick: null,
+  _dmTargetFp: null,
+  _switching: false,
+
+  /** Get the primary (general) channel subscription. */
+  get _primaryChannel() {
+    var data = this._channels.get(CONFIG.DEFAULT_CHANNEL);
+    return data ? data.sub : null;
+  },
+
+  /** Get display name for a channel ID. */
+  _getChannelDisplayName(channelId) {
+    var ch = CONFIG.CHANNELS.find(function(c) { return c.id === channelId; });
+    if (ch) return '# ' + ch.name;
+    var dm = this._dmList.find(function(d) { return d.channelId === channelId; });
+    if (dm) return '@ ' + dm.nick;
+    return channelId;
+  },
 
   async start(nickname) {
     // Guard: Supabase CDN must have loaded
@@ -947,6 +1349,17 @@ const Chat = {
     this.userId = crypto.randomUUID();
     this.nick = nickname.trim().slice(0, 20);
     if (!this.automod) this.automod = new AutoMod();
+    this._signingDisabled = false;
+
+    // Initialize cryptographic identity
+    try {
+      await Identity.init();
+      TrustStore.init();
+      TrustStore.check(this.nick, Identity.fingerprint);
+    } catch (err) {
+      this._signingDisabled = true;
+      console.warn('Identity init failed, messages will be unsigned:', err);
+    }
 
     // Moderate nickname before joining
     const nickCheck = this.automod.checkKeywords(this.nick);
@@ -961,9 +1374,6 @@ const Chat = {
     // Save nick to localStorage for persistence
     try { localStorage.setItem('jarvis-chat-nick', this.nick); } catch (_) {}
 
-    // Derive E2E encryption key
-    await Crypto.deriveKey(CONFIG.ROOM);
-
     // Initialize Supabase client
     const { createClient } = supabase;
     this.client = createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_KEY, {
@@ -973,151 +1383,317 @@ const Chat = {
     UI.setStatus('connecting');
     UI.hideNickOverlay();
 
-    // Create channel with self-send disabled (we render our own messages locally)
-    this.channel = this.client.channel(CONFIG.ROOM, {
+    // Initialize per-channel message stores
+    this._channels = new Map();
+    this._unreadCounts = new Map();
+    this._keyCache = new Map();
+    this._dmList = [];
+
+    for (var i = 0; i < CONFIG.CHANNELS.length; i++) {
+      var ch = CONFIG.CHANNELS[i];
+      this._channels.set(ch.id, { sub: null, messages: [] });
+      this._unreadCounts.set(ch.id, 0);
+    }
+
+    // Subscribe to ALL channels at startup (general carries presence)
+    this._activeChannelId = CONFIG.DEFAULT_CHANNEL;
+    this._reconnectAttempts = 0;
+    for (var i = 0; i < CONFIG.CHANNELS.length; i++) {
+      var ch = CONFIG.CHANNELS[i];
+      var isPrimary = (ch.id === CONFIG.DEFAULT_CHANNEL);
+      await this._subscribeChannel(ch.id, isPrimary);
+    }
+
+    UI.updateChannelName(this._getChannelDisplayName(this._activeChannelId));
+  },
+
+  /** Subscribe to a Supabase channel. isPrimary=true for the general channel (carries presence). */
+  async _subscribeChannel(channelId, isPrimary) {
+    // Derive E2E key for this channel
+    await Crypto.deriveKey(channelId);
+    // Cache the key for background decryption
+    this._keyCache.set(channelId, Crypto._defaultKeyHandle);
+
+    var channelConfig = {
       config: {
         broadcast: { self: false, ack: true },
-        presence: { key: this.userId },
       },
+    };
+
+    if (isPrimary) {
+      channelConfig.config.presence = { key: this.userId };
+    }
+
+    var sub = this.client.channel(channelId, channelConfig);
+    var self = this;
+
+    // Broadcast listener
+    sub.on('broadcast', { event: 'message' }, function(payload) {
+      self._onChannelMessage(channelId, payload.payload);
     });
 
-    // Listen for broadcast messages
-    this.channel.on('broadcast', { event: 'message' }, (payload) => {
-      this._onReceive(payload.payload);
-    });
+    // Presence listeners (only on primary)
+    if (isPrimary) {
+      sub.on('presence', { event: 'sync' }, function() {
+        var state = sub.presenceState();
+        UI.setUserCount(Object.keys(state).length);
+      });
+      sub.on('presence', { event: 'join' }, function(data) {
+        if (data.key !== self.userId && data.newPresences.length > 0) {
+          var joiner = data.newPresences[0].nick || 'Unknown';
+          self._addSystemToChannel(self._activeChannelId, joiner + ' joined', 'join');
+        }
+      });
+      sub.on('presence', { event: 'leave' }, function(data) {
+        if (data.leftPresences.length > 0) {
+          var leaver = data.leftPresences[0].nick || 'Unknown';
+          self._addSystemToChannel(self._activeChannelId, leaver + ' left', 'leave');
+        }
+      });
+    }
 
-    // Listen for presence events
-    this.channel.on('presence', { event: 'sync' }, () => {
-      const state = this.channel.presenceState();
-      const count = Object.keys(state).length;
-      UI.setUserCount(count);
-    });
+    // Store the subscription reference
+    var channelData = this._channels.get(channelId);
+    if (channelData) {
+      channelData.sub = sub;
+    } else {
+      this._channels.set(channelId, { sub: sub, messages: [] });
+    }
 
-    this.channel.on('presence', { event: 'join' }, ({ key, newPresences }) => {
-      if (key !== this.userId && newPresences.length > 0) {
-        const joiner = newPresences[0].nick || 'Unknown';
-        UI.addSystemMessage(joiner + ' joined', 'join');
-      }
-    });
-
-    this.channel.on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
-      if (leftPresences.length > 0) {
-        const leaver = leftPresences[0].nick || 'Unknown';
-        UI.addSystemMessage(leaver + ' left', 'leave');
-      }
-    });
-
-    // Subscribe and track presence (with connection timeout)
-    this._reconnectAttempts = 0;
-    let connected = false;
-    const connectTimeout = setTimeout(() => {
+    // Connection timeout
+    var connected = false;
+    var connectTimeout = setTimeout(function() {
       if (!connected) {
         UI.setStatus('');
-        UI.addSystemMessage('Connection timed out. Click RETRY to try again.', 'leave');
-        UI.showRetryButton(() => {
+        self._addSystemToChannel(channelId, 'Connection timed out. Click RETRY to try again.', 'leave');
+        UI.showRetryButton(function() {
           UI.hideRetryButton();
-          this.client.removeChannel(this.channel);
-          this.channel = null;
-          this.client = null;
-          Chat.start(this.nick);
+          self.client.removeChannel(sub);
+          self.client = null;
+          Chat.start(self.nick);
         });
       }
     }, 10000);
 
-    this.channel.subscribe(async (status) => {
+    sub.subscribe(async function(status) {
       if (status === 'SUBSCRIBED') {
         connected = true;
         clearTimeout(connectTimeout);
         UI.setStatus('connected');
         UI.enableInput();
-        this._reconnectAttempts = 0;
-        await this.channel.track({
-          nick: this.nick,
-          online_at: new Date().toISOString(),
-        });
-        UI.addSystemMessage('Connected as ' + this.nick, 'join');
+        self._reconnectAttempts = 0;
+        if (isPrimary) {
+          await sub.track({
+            nick: self.nick,
+            online_at: new Date().toISOString(),
+            pubkey: Identity.pubkeyBase64 || null,
+            fingerprint: Identity.fingerprint || null,
+            dhPubkey: Identity.dhPubkeyBase64 || null,
+          });
+        }
+        self._addSystemToChannel(channelId, 'Connected as ' + self.nick, 'join');
       } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
-        UI.setStatus('');
-        UI.disableInput();
-        UI.addSystemMessage('Disconnected from server.', 'leave');
-        this._scheduleReconnect();
+        if (isPrimary) {
+          UI.setStatus('');
+          UI.disableInput();
+          self._addSystemToChannel(channelId, 'Disconnected from server.', 'leave');
+          self._scheduleReconnect();
+        }
       }
     });
   },
 
+  /** Derive and cache an E2E key for a channel (for background decryption). */
+  async _deriveKeyForChannel(channelId) {
+    if (this._keyCache.has(channelId)) return this._keyCache.get(channelId);
+    var resp = await window.jarvis.ipc.request('crypto', {
+      op: 'derive_room_key', params: { room: channelId }
+    });
+    this._keyCache.set(channelId, resp.keyHandle);
+    return resp.keyHandle;
+  },
+
+  /** Store a system message in a channel's history and render if active. */
+  _addSystemToChannel(channelId, text, systemType) {
+    var channelData = this._channels.get(channelId);
+    if (channelData) {
+      channelData.messages.push({ type: 'system', text: text, systemType: systemType });
+      if (channelData.messages.length > 500) channelData.messages.shift();
+    }
+    if (channelId === this._activeChannelId) {
+      UI.addSystemMessage(text, systemType);
+    }
+  },
+
+  /** Unified message handler for all channels. */
+  async _onChannelMessage(channelId, payload) {
+    if (!payload || !payload.iv || !payload.ct) return;
+    if (payload.userId === this.userId) return;
+
+    // Decrypt with the correct key for this channel
+    var plaintext;
+    try {
+      if (channelId === this._activeChannelId && !this._dmMode) {
+        plaintext = await Crypto.decrypt(payload.iv, payload.ct);
+      } else {
+        var key = await this._deriveKeyForChannel(channelId);
+        plaintext = await Crypto.decrypt(payload.iv, payload.ct, key);
+      }
+    } catch (err) {
+      return;
+    }
+
+    // Automod
+    var filterResult = this.automod.filter(plaintext, payload.userId);
+    if (!filterResult.ok) return;
+    if (!this.automod.checkRateLimit(payload.userId, Date.now())) return;
+
+    var nick = (typeof payload.nick === 'string')
+      ? payload.nick.trim().slice(0, 20) : 'Unknown';
+    var nickCheck = this.automod.checkKeywords(nick);
+    if (!nickCheck.ok) nick = 'Censored';
+
+    // Verify signature
+    var verifyStatus = 'unverified';
+    if (payload.sig && payload.pubkey && payload.fingerprint) {
+      var canonical = [payload.id, payload.userId, payload.nick, payload.ts, payload.iv, payload.ct].join('|');
+      try {
+        var valid = await Identity.verify(canonical, payload.sig, payload.pubkey);
+        if (valid) {
+          var tofuResult = TrustStore.check(nick, payload.fingerprint);
+          if (tofuResult === 'trusted' || tofuResult === 'new') {
+            verifyStatus = 'verified';
+          } else if (tofuResult === 'changed') {
+            verifyStatus = 'key-changed';
+            this._addSystemToChannel(channelId,
+              '\u26A0 WARNING: ' + nick + '\'s identity key has changed!', 'leave');
+          }
+        } else {
+          verifyStatus = 'invalid';
+        }
+      } catch (err) {
+        verifyStatus = 'invalid';
+      }
+    }
+
+    var time = formatTime(payload.ts || Date.now());
+    var msgObj = { nick: nick, text: plaintext, time: time, color: nickColor(nick), verifyStatus: verifyStatus, type: 'msg' };
+
+    // Store in channel's message array
+    var channelData = this._channels.get(channelId);
+    if (channelData) {
+      channelData.messages.push(msgObj);
+      if (channelData.messages.length > 500) channelData.messages.shift();
+    }
+
+    // Render or increment unread
+    if (channelId === this._activeChannelId) {
+      UI.addMessage(nick, plaintext, time, nickColor(nick), verifyStatus);
+    } else {
+      var current = this._unreadCounts.get(channelId) || 0;
+      this._unreadCounts.set(channelId, current + 1);
+    }
+  },
+
+  /** Switch to a different channel (instant — all channels pre-subscribed). */
+  switchChannel(channelId) {
+    if (channelId === this._activeChannelId) return;
+    if (this._switching) return;
+    this._switching = true;
+
+    try {
+      // Close DM mode if active
+      if (this._dmMode) {
+        this._closeDMChannel();
+      }
+
+      // Switch active channel
+      this._activeChannelId = channelId;
+
+      // Set the crypto default key from cache
+      var cachedKey = this._keyCache.get(channelId);
+      if (cachedKey != null) {
+        Crypto._defaultKeyHandle = cachedKey;
+      }
+
+      // Clear unread
+      this._unreadCounts.set(channelId, 0);
+
+      // Re-render messages from the new channel's history
+      UI.clearMessages();
+      var channelData = this._channels.get(channelId);
+      var messages = channelData ? channelData.messages : [];
+      if (messages.length === 0) {
+        UI.showEmptyState();
+      } else {
+        for (var i = 0; i < messages.length; i++) {
+          var m = messages[i];
+          if (m.type === 'system') {
+            UI.addSystemMessage(m.text, m.systemType);
+          } else {
+            UI.addMessage(m.nick, m.text, m.time, m.color, m.verifyStatus);
+          }
+        }
+      }
+
+      // Update header
+      UI.updateChannelName(this._getChannelDisplayName(channelId));
+      var chName = this._getChannelDisplayName(channelId);
+      UI.msgInput.placeholder = 'Message ' + chName + '...';
+      UI.msgInput.focus();
+    } finally {
+      this._switching = false;
+    }
+  },
+
   /** Reconnect with exponential backoff (handles 24h Supabase limit). */
   _scheduleReconnect() {
-    const MAX_ATTEMPTS = 8;
+    var MAX_ATTEMPTS = 8;
     if (this._reconnectAttempts >= MAX_ATTEMPTS) {
       UI.addSystemMessage('Max reconnect attempts reached. Reload the page.', 'leave');
       return;
     }
     this._reconnectAttempts++;
-    const baseDelay = 2000;
-    const maxDelay = 30000;
-    const delay = Math.min(baseDelay * Math.pow(2, this._reconnectAttempts - 1), maxDelay);
-    // Add jitter (±25%)
-    const jitter = delay * (0.75 + Math.random() * 0.5);
+    var baseDelay = 2000;
+    var maxDelay = 30000;
+    var delay = Math.min(baseDelay * Math.pow(2, this._reconnectAttempts - 1), maxDelay);
+    var jitter = delay * (0.75 + Math.random() * 0.5);
+    var self = this;
 
     UI.addSystemMessage(
       'Reconnecting in ' + Math.round(jitter / 1000) + 's (attempt ' +
       this._reconnectAttempts + '/' + MAX_ATTEMPTS + ')...'
     );
 
-    this._reconnectTimeout = setTimeout(async () => {
+    this._reconnectTimeout = setTimeout(async function() {
       UI.setStatus('connecting');
       try {
-        // Remove old channel and re-subscribe
-        if (this.channel) {
-          this.client.removeChannel(this.channel);
+        // Remove old primary channel
+        var primaryData = self._channels.get(CONFIG.DEFAULT_CHANNEL);
+        if (primaryData && primaryData.sub) {
+          self.client.removeChannel(primaryData.sub);
+          primaryData.sub = null;
         }
-        this.channel = this.client.channel(CONFIG.ROOM, {
-          config: {
-            broadcast: { self: false, ack: true },
-            presence: { key: this.userId },
-          },
-        });
-        this.channel.on('broadcast', { event: 'message' }, (payload) => {
-          this._onReceive(payload.payload);
-        });
-        this.channel.on('presence', { event: 'sync' }, () => {
-          const state = this.channel.presenceState();
-          UI.setUserCount(Object.keys(state).length);
-        });
-        this.channel.on('presence', { event: 'join' }, ({ key, newPresences }) => {
-          if (key !== this.userId && newPresences.length > 0) {
-            UI.addSystemMessage(newPresences[0].nick || 'Unknown' + ' joined', 'join');
+        // Reconnect primary
+        await self._subscribeChannel(CONFIG.DEFAULT_CHANNEL, true);
+        // If viewing a different channel, reconnect that too
+        if (self._activeChannelId !== CONFIG.DEFAULT_CHANNEL) {
+          var activeData = self._channels.get(self._activeChannelId);
+          if (activeData && activeData.sub) {
+            self.client.removeChannel(activeData.sub);
+            activeData.sub = null;
           }
-        });
-        this.channel.on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
-          if (leftPresences.length > 0) {
-            UI.addSystemMessage(leftPresences[0].nick || 'Unknown' + ' left', 'leave');
-          }
-        });
-        this.channel.subscribe(async (status) => {
-          if (status === 'SUBSCRIBED') {
-            UI.setStatus('connected');
-            UI.enableInput();
-            this._reconnectAttempts = 0;
-            await this.channel.track({
-              nick: this.nick,
-              online_at: new Date().toISOString(),
-            });
-            UI.addSystemMessage('Reconnected.', 'join');
-          } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
-            UI.setStatus('');
-            UI.disableInput();
-            this._scheduleReconnect();
-          }
-        });
+          await self._subscribeChannel(self._activeChannelId, false);
+        }
       } catch (err) {
         UI.addSystemMessage('Reconnect failed.', 'leave');
-        this._scheduleReconnect();
+        self._scheduleReconnect();
       }
     }, jitter);
   },
 
   async send(text) {
+    if (this._dmMode) return this.sendDM(text);
     text = text.trim();
     if (text.length === 0 || text.length > CONFIG.MAX_MSG_LEN) return;
 
@@ -1127,15 +1703,15 @@ const Chat = {
       return;
     }
 
-    // Sender-side automod (prevent sending banned content)
-    const filterResult = this.automod.filter(text, this.userId);
+    // Sender-side automod
+    var filterResult = this.automod.filter(text, this.userId);
     if (!filterResult.ok) {
       UI.addBlockedNotice('Your message was blocked: ' + filterResult.reason);
       return;
     }
 
     // Encrypt the message
-    let encrypted;
+    var encrypted;
     try {
       encrypted = await Crypto.encrypt(text);
     } catch (err) {
@@ -1143,78 +1719,61 @@ const Chat = {
       return;
     }
 
-    const ts = Date.now();
-    const msgId = crypto.randomUUID();
-    const payload = {
+    var ts = Date.now();
+    var msgId = crypto.randomUUID();
+
+    // Sign the message
+    var sig = null;
+    if (!this._signingDisabled) {
+      try {
+        var canonical = [msgId, this.userId, this.nick, ts, encrypted.iv, encrypted.ct].join('|');
+        sig = await Identity.sign(canonical);
+      } catch (err) {
+        console.warn('Signing failed:', err);
+      }
+    }
+
+    var payload = {
       id: msgId,
       userId: this.userId,
       nick: this.nick,
       ts: ts,
       iv: encrypted.iv,
       ct: encrypted.ct,
+      sig: sig,
+      pubkey: Identity.pubkeyBase64 || null,
+      fingerprint: Identity.fingerprint || null,
     };
 
-    // Send via broadcast
-    const resp = await this.channel.send({
+    // Send via the active channel's subscription
+    var activeSub = this._channels.get(this._activeChannelId);
+    if (!activeSub || !activeSub.sub) {
+      UI.addSystemMessage('Not connected to channel.', 'leave');
+      return;
+    }
+
+    await activeSub.sub.send({
       type: 'broadcast',
       event: 'message',
       payload: payload,
     });
 
-    // Render locally (self-send is off, so we show our own message)
-    UI.addMessage(this.nick, text, formatTime(ts), nickColor(this.nick));
+    // Store in local history
+    var msgObj = { nick: this.nick, text: text, time: formatTime(ts), color: nickColor(this.nick), verifyStatus: 'self', type: 'msg' };
+    activeSub.messages.push(msgObj);
+    if (activeSub.messages.length > 500) activeSub.messages.shift();
+
+    // Render locally
+    UI.addMessage(this.nick, text, formatTime(ts), nickColor(this.nick), 'self');
     UI.msgInput.value = '';
     UI.updateCharCount(0);
   },
 
-  async _onReceive(payload) {
-    if (!payload) return;
-
-    // Must have encrypted fields (iv + ct)
-    if (!payload.iv || !payload.ct) return;
-
-    // Ignore our own messages (shouldn't arrive with self:false, but guard)
-    if (payload.userId === this.userId) return;
-
-    // Decrypt
-    let plaintext;
-    try {
-      plaintext = await Crypto.decrypt(payload.iv, payload.ct);
-    } catch (err) {
-      // Decryption failed — likely different key or corrupt message
-      return;
-    }
-
-    // Receiver-side automod filter
-    const filterResult = this.automod.filter(plaintext, payload.userId);
-    if (!filterResult.ok) {
-      // Silently drop — don't even show a blocked notice for others' messages
-      return;
-    }
-
-    // Receiver-side rate limit check (use local time, never trust sender timestamp)
-    if (!this.automod.checkRateLimit(payload.userId, Date.now())) {
-      return; // rate limited sender
-    }
-
-    // Moderate and display the message
-    let nick = (typeof payload.nick === 'string')
-      ? payload.nick.trim().slice(0, 20)
-      : 'Unknown';
-    // Run nick through keyword filter — replace with censored if banned
-    const nickCheck = this.automod.checkKeywords(nick);
-    if (!nickCheck.ok) {
-      nick = 'Censored';
-    }
-    const time = formatTime(payload.ts || Date.now());
-    UI.addMessage(nick, plaintext, time, nickColor(nick));
-  },
-
   /** Sender-side rate limit (local only). */
   _checkSenderRateLimit() {
-    const now = Date.now();
-    const cutoff = now - CONFIG.RATE_LIMIT_WINDOW;
-    this._senderRateBucket = this._senderRateBucket.filter(t => t > cutoff);
+    var now = Date.now();
+    var cutoff = now - CONFIG.RATE_LIMIT_WINDOW;
+    this._senderRateBucket = this._senderRateBucket.filter(function(t) { return t > cutoff; });
     if (this._senderRateBucket.length >= CONFIG.RATE_LIMIT_COUNT) {
       return false;
     }
@@ -1227,31 +1786,285 @@ const Chat = {
     newNick = newNick.trim().slice(0, 20);
     if (newNick.length < 1) return;
 
-    // Moderate the new nickname
-    const nickCheck = this.automod.checkKeywords(newNick);
+    var nickCheck = this.automod.checkKeywords(newNick);
     if (!nickCheck.ok) {
       UI.addSystemMessage('That nickname is not allowed. Try another.', 'leave');
       UI.showNickOverlay();
       return;
     }
 
-    const oldNick = this.nick;
+    var oldNick = this.nick;
     this.nick = newNick;
     UI.setMyNick(newNick);
     UI.hideNickOverlay();
     UI.enableInput();
 
-    // Persist to localStorage
     try { localStorage.setItem('jarvis-chat-nick', newNick); } catch (_) {}
 
-    // Update presence so others see the new nick
-    if (this.channel) {
-      await this.channel.track({
+    // Update presence on the primary channel
+    var primary = this._primaryChannel;
+    if (primary) {
+      await primary.track({
         nick: this.nick,
         online_at: new Date().toISOString(),
+        pubkey: Identity.pubkeyBase64 || null,
+        fingerprint: Identity.fingerprint || null,
+        dhPubkey: Identity.dhPubkeyBase64 || null,
       });
     }
-    UI.addSystemMessage(oldNick + ' is now ' + newNick, 'join');
+    if (Identity.fingerprint) {
+      TrustStore.check(newNick, Identity.fingerprint);
+    }
+    this._addSystemToChannel(this._activeChannelId, oldNick + ' is now ' + newNick, 'join');
+  },
+
+  /** Open a private DM with another user. */
+  async startDM(nick, fingerprint, dhPubkey) {
+    if (!dhPubkey) {
+      UI.addSystemMessage('Cannot DM: user has no encryption key.', 'leave');
+      return;
+    }
+
+    var channelId = this._dmChannelName(fingerprint);
+
+    // Already viewing this DM
+    if (this._activeChannelId === channelId) return;
+
+    // Close existing DM if switching
+    if (this._dmMode) this._closeDMChannel();
+
+    // Derive shared AES key from ECDH
+    try {
+      this._dmKey = await Identity.deriveSharedKey(dhPubkey);
+    } catch (err) {
+      UI.addSystemMessage('Failed to establish secure DM channel.', 'leave');
+      console.warn('ECDH derive failed:', err);
+      return;
+    }
+
+    // Add to DM list if not already there
+    if (!this._dmList.find(function(d) { return d.channelId === channelId; })) {
+      this._dmList.push({ channelId: channelId, nick: nick, fingerprint: fingerprint, dhPubkey: dhPubkey });
+    }
+
+    // Set DM state
+    this._dmMode = true;
+    this._dmTargetNick = nick;
+    this._dmTargetFp = fingerprint;
+
+    // Create channel entry if needed
+    if (!this._channels.has(channelId)) {
+      this._channels.set(channelId, { sub: null, messages: [] });
+    }
+    this._unreadCounts.set(channelId, 0);
+
+    // Subscribe to DM channel
+    var sub = this.client.channel(channelId, {
+      config: { broadcast: { self: false, ack: true } },
+    });
+    var self = this;
+    sub.on('broadcast', { event: 'message' }, function(payload) {
+      self._onReceiveDM(channelId, payload.payload);
+    });
+    sub.subscribe(function(status) {
+      if (status === 'SUBSCRIBED') {
+        self._addSystemToChannel(channelId, 'Secure DM with ' + nick + ' established.', 'join');
+      } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+        self._addSystemToChannel(channelId, 'DM connection lost.', 'leave');
+      }
+    });
+    this._channels.get(channelId).sub = sub;
+
+    // Unsubscribe from previous non-primary channel
+    var prevId = this._activeChannelId;
+    if (prevId !== CONFIG.DEFAULT_CHANNEL) {
+      var prevData = this._channels.get(prevId);
+      if (prevData && prevData.sub) {
+        this.client.removeChannel(prevData.sub);
+        prevData.sub = null;
+      }
+    }
+
+    // Switch view
+    this._activeChannelId = channelId;
+    UI.clearMessages();
+    var messages = this._channels.get(channelId).messages;
+    for (var i = 0; i < messages.length; i++) {
+      var m = messages[i];
+      if (m.type === 'system') {
+        UI.addSystemMessage(m.text, m.systemType);
+      } else {
+        UI.addMessage(m.nick, m.text, m.time, m.color, m.verifyStatus);
+      }
+    }
+    UI.updateChannelName('@ ' + nick);
+    UI.msgInput.placeholder = 'DM to ' + nick + '...';
+    UI.msgInput.focus();
+
+    // Show DM header bar
+    $('#dm-header-nick').textContent = nick;
+    $('#dm-header-fp').textContent = fingerprint || '';
+    $('#dm-header').classList.remove('hidden');
+  },
+
+  /** Send a DM message. */
+  async sendDM(text) {
+    text = text.trim();
+    if (text.length === 0 || text.length > CONFIG.MAX_MSG_LEN) return;
+
+    if (!this._checkSenderRateLimit()) {
+      UI.showRateLimitFeedback();
+      return;
+    }
+
+    var filterResult = this.automod.filter(text, this.userId);
+    if (!filterResult.ok) {
+      UI.addBlockedNotice('Your message was blocked: ' + filterResult.reason);
+      return;
+    }
+
+    var encrypted;
+    try {
+      encrypted = await Crypto.encrypt(text, this._dmKey);
+    } catch (err) {
+      UI.addSystemMessage('DM encryption error. Message not sent.', 'leave');
+      return;
+    }
+
+    var ts = Date.now();
+    var msgId = crypto.randomUUID();
+
+    var sig = null;
+    if (!this._signingDisabled) {
+      try {
+        var canonical = [msgId, this.userId, this.nick, ts, encrypted.iv, encrypted.ct].join('|');
+        sig = await Identity.sign(canonical);
+      } catch (err) {
+        console.warn('Signing failed:', err);
+      }
+    }
+
+    var payload = {
+      id: msgId,
+      userId: this.userId,
+      nick: this.nick,
+      ts: ts,
+      iv: encrypted.iv,
+      ct: encrypted.ct,
+      sig: sig,
+      pubkey: Identity.pubkeyBase64 || null,
+      fingerprint: Identity.fingerprint || null,
+    };
+
+    var activeSub = this._channels.get(this._activeChannelId);
+    if (!activeSub || !activeSub.sub) {
+      UI.addSystemMessage('DM not connected.', 'leave');
+      return;
+    }
+
+    await activeSub.sub.send({
+      type: 'broadcast',
+      event: 'message',
+      payload: payload,
+    });
+
+    // Store in local history
+    var msgObj = { nick: this.nick, text: text, time: formatTime(ts), color: nickColor(this.nick), verifyStatus: 'self', type: 'msg' };
+    activeSub.messages.push(msgObj);
+    if (activeSub.messages.length > 500) activeSub.messages.shift();
+
+    UI.addMessage(this.nick, text, formatTime(ts), nickColor(this.nick), 'self');
+    UI.msgInput.value = '';
+    UI.updateCharCount(0);
+  },
+
+  /** Handle incoming DM message. */
+  async _onReceiveDM(channelId, payload) {
+    if (!payload || !payload.iv || !payload.ct) return;
+    if (payload.userId === this.userId) return;
+
+    var plaintext;
+    try {
+      plaintext = await Crypto.decrypt(payload.iv, payload.ct, this._dmKey);
+    } catch (err) {
+      return;
+    }
+
+    var filterResult = this.automod.filter(plaintext, payload.userId);
+    if (!filterResult.ok) return;
+    if (!this.automod.checkRateLimit(payload.userId, Date.now())) return;
+
+    var nick = (typeof payload.nick === 'string')
+      ? payload.nick.trim().slice(0, 20) : 'Unknown';
+    var nickCheck = this.automod.checkKeywords(nick);
+    if (!nickCheck.ok) nick = 'Censored';
+
+    var verifyStatus = 'unverified';
+    if (payload.sig && payload.pubkey && payload.fingerprint) {
+      var canonical = [payload.id, payload.userId, payload.nick, payload.ts, payload.iv, payload.ct].join('|');
+      try {
+        var valid = await Identity.verify(canonical, payload.sig, payload.pubkey);
+        if (valid) {
+          var tofuResult = TrustStore.check(nick, payload.fingerprint);
+          if (tofuResult === 'trusted' || tofuResult === 'new') {
+            verifyStatus = 'verified';
+          } else if (tofuResult === 'changed') {
+            verifyStatus = 'key-changed';
+          }
+        } else {
+          verifyStatus = 'invalid';
+        }
+      } catch (err) {
+        verifyStatus = 'invalid';
+      }
+    }
+
+    var time = formatTime(payload.ts || Date.now());
+    var msgObj = { nick: nick, text: plaintext, time: time, color: nickColor(nick), verifyStatus: verifyStatus, type: 'msg' };
+
+    var channelData = this._channels.get(channelId);
+    if (channelData) {
+      channelData.messages.push(msgObj);
+      if (channelData.messages.length > 500) channelData.messages.shift();
+    }
+
+    if (channelId === this._activeChannelId) {
+      UI.addMessage(nick, plaintext, time, nickColor(nick), verifyStatus);
+    } else {
+      var current = this._unreadCounts.get(channelId) || 0;
+      this._unreadCounts.set(channelId, current + 1);
+    }
+  },
+
+  /** Close the DM channel subscription (internal). */
+  _closeDMChannel() {
+    if (!this._dmMode) return;
+    var dmChannelId = this._activeChannelId;
+    var dmData = this._channels.get(dmChannelId);
+    if (dmData && dmData.sub) {
+      this.client.removeChannel(dmData.sub);
+      dmData.sub = null;
+    }
+    this._dmMode = false;
+    this._dmKey = null;
+    this._dmTargetNick = null;
+    this._dmTargetFp = null;
+    $('#dm-header').classList.add('hidden');
+  },
+
+  /** Close DM and return to general. */
+  closeDM() {
+    if (!this._dmMode) return;
+    this._closeDMChannel();
+    this.switchChannel(CONFIG.DEFAULT_CHANNEL);
+  },
+
+  /** Compute deterministic DM channel name from two fingerprints. */
+  _dmChannelName(otherFingerprint) {
+    var a = (Identity.fingerprint || '').replace(/:/g, '');
+    var b = (otherFingerprint || '').replace(/:/g, '');
+    var sorted = [a, b].sort();
+    return CONFIG.DM_CHANNEL_PREFIX + sorted[0] + '-' + sorted[1];
   },
 
   /** Cleanup on page unload. */
@@ -1263,9 +2076,15 @@ const Chat = {
     if (this.automod) {
       this.automod.destroy();
     }
-    if (this.channel) {
-      this.channel.untrack();
-      this.client.removeChannel(this.channel);
+    if (this._channels && this.client) {
+      for (var entry of this._channels) {
+        var id = entry[0];
+        var data = entry[1];
+        if (data.sub) {
+          if (id === CONFIG.DEFAULT_CHANNEL) data.sub.untrack();
+          this.client.removeChannel(data.sub);
+        }
+      }
     }
   },
 };
@@ -1316,7 +2135,7 @@ document.addEventListener('DOMContentLoaded', () => {
       UI.addSystemMessage('Nickname can only contain letters, numbers, spaces, dashes, and underscores.', 'leave');
       return;
     }
-    if (Chat.channel) {
+    if (Chat._primaryChannel) {
       Chat.changeNick(nick);
     } else {
       Chat.start(nick);
@@ -1330,7 +2149,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Click header nick to change nickname
   $('#my-nick').addEventListener('click', () => {
-    if (!Chat.channel) return; // not connected yet
+    if (!Chat._primaryChannel) return; // not connected yet
     UI.nickInput.value = Chat.nick;
     UI.showNickOverlay();
   });
@@ -1360,6 +2179,235 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('beforeunload', () => {
     Chat.destroy();
   });
+
+  // DM close button
+  $('#dm-close-btn').addEventListener('click', function() {
+    Chat.closeDM();
+  });
+
+  // Channel dropdown
+  var channelDropdownOpen = false;
+
+  $('#channel-title').addEventListener('click', function(e) {
+    e.stopPropagation();
+    // Close online users dropdown if open
+    if (onlineDropdownOpen) {
+      onlineDropdownOpen = false;
+      $('#online-dropdown').classList.remove('open');
+    }
+    channelDropdownOpen = !channelDropdownOpen;
+    var dd = $('#channel-dropdown');
+    var title = $('#channel-title');
+    if (channelDropdownOpen) {
+      dd.classList.add('open');
+      title.classList.add('open');
+      renderChannelDropdown();
+    } else {
+      dd.classList.remove('open');
+      title.classList.remove('open');
+    }
+  });
+
+  document.addEventListener('click', function(e) {
+    if (channelDropdownOpen
+        && !e.target.closest('#channel-dropdown')
+        && !e.target.closest('#channel-title')) {
+      channelDropdownOpen = false;
+      $('#channel-dropdown').classList.remove('open');
+      $('#channel-title').classList.remove('open');
+    }
+  });
+
+  function renderChannelDropdown() {
+    var channelList = $('#channel-list');
+    var dmListEl = $('#dm-list');
+    var dmHeader = $('#dm-section-header');
+
+    while (channelList.firstChild) channelList.removeChild(channelList.firstChild);
+    while (dmListEl.firstChild) dmListEl.removeChild(dmListEl.firstChild);
+
+    // Render channels
+    CONFIG.CHANNELS.forEach(function(ch) {
+      var row = document.createElement('div');
+      row.className = 'channel-row';
+      row.setAttribute('data-channel-id', ch.id);
+      if (ch.id === Chat._activeChannelId) row.classList.add('active');
+
+      var nameSpan = document.createElement('span');
+      nameSpan.textContent = '# ' + ch.name;
+      row.appendChild(nameSpan);
+
+      var unread = Chat._unreadCounts.get(ch.id) || 0;
+      if (unread > 0) {
+        var badge = document.createElement('span');
+        badge.className = 'unread-badge';
+        badge.textContent = unread;
+        row.appendChild(badge);
+      }
+
+      row.addEventListener('click', function() {
+        Chat.switchChannel(ch.id);
+        channelDropdownOpen = false;
+        $('#channel-dropdown').classList.remove('open');
+        $('#channel-title').classList.remove('open');
+      });
+
+      channelList.appendChild(row);
+    });
+
+    // Render DMs
+    if (Chat._dmList && Chat._dmList.length > 0) {
+      dmHeader.style.display = '';
+      Chat._dmList.forEach(function(dm) {
+        var row = document.createElement('div');
+        row.className = 'channel-row';
+        row.setAttribute('data-channel-id', dm.channelId);
+        if (dm.channelId === Chat._activeChannelId) row.classList.add('active');
+
+        var nameSpan = document.createElement('span');
+        nameSpan.textContent = '@ ' + dm.nick;
+        row.appendChild(nameSpan);
+
+        var unread = Chat._unreadCounts.get(dm.channelId) || 0;
+        if (unread > 0) {
+          var badge = document.createElement('span');
+          badge.className = 'unread-badge';
+          badge.textContent = unread;
+          row.appendChild(badge);
+        }
+
+        row.addEventListener('click', function() {
+          Chat.startDM(dm.nick, dm.fingerprint, dm.dhPubkey);
+          channelDropdownOpen = false;
+          $('#channel-dropdown').classList.remove('open');
+          $('#channel-title').classList.remove('open');
+        });
+
+        dmListEl.appendChild(row);
+      });
+    } else {
+      dmHeader.style.display = 'none';
+    }
+  }
+
+  // Online users dropdown
+  var onlineDropdownOpen = false;
+
+  $('#user-count').addEventListener('click', function(e) {
+    e.stopPropagation();
+    // Close channel dropdown if open
+    if (channelDropdownOpen) {
+      channelDropdownOpen = false;
+      $('#channel-dropdown').classList.remove('open');
+      $('#channel-title').classList.remove('open');
+    }
+    onlineDropdownOpen = !onlineDropdownOpen;
+    var dd = $('#online-dropdown');
+    if (onlineDropdownOpen) {
+      dd.classList.add('open');
+      renderOnlineUsers();
+    } else {
+      dd.classList.remove('open');
+    }
+  });
+
+  document.addEventListener('click', function(e) {
+    if (onlineDropdownOpen
+        && !e.target.closest('#online-dropdown')
+        && !e.target.closest('#user-count')) {
+      onlineDropdownOpen = false;
+      $('#online-dropdown').classList.remove('open');
+    }
+  });
+
+  function renderOnlineUsers() {
+    var list = $('#online-user-list');
+    while (list.firstChild) { list.removeChild(list.firstChild); }
+
+    if (!Chat._primaryChannel) {
+      var emptyDiv = document.createElement('div');
+      emptyDiv.className = 'dd-empty';
+      emptyDiv.textContent = 'Not connected';
+      list.appendChild(emptyDiv);
+      return;
+    }
+
+    var state = Chat._primaryChannel.presenceState();
+    var keys = Object.keys(state);
+
+    if (keys.length === 0) {
+      var emptyDiv = document.createElement('div');
+      emptyDiv.className = 'dd-empty';
+      emptyDiv.textContent = 'No users online';
+      list.appendChild(emptyDiv);
+      return;
+    }
+
+    keys.forEach(function(key) {
+      var presences = state[key];
+      if (!presences || presences.length === 0) return;
+      var p = presences[0];
+      var nick = (p.nick || 'Unknown').slice(0, 20);
+      var fp = p.fingerprint || null;
+
+      var row = document.createElement('div');
+      row.className = 'user-row';
+
+      var nameEl = document.createElement('div');
+      nameEl.className = 'user-name';
+
+      var dot = document.createElement('span');
+      dot.className = 'online-dot';
+      nameEl.appendChild(dot);
+
+      // Verification badge
+      if (fp) {
+        var trustStatus = TrustStore.check(nick, fp);
+        var badge = document.createElement('span');
+        badge.style.marginRight = '4px';
+        badge.style.fontSize = '10px';
+        if (trustStatus === 'trusted' || trustStatus === 'new') {
+          badge.textContent = '\u2713';
+          badge.style.color = '#58a6ff';
+          badge.title = 'Verified: ' + fp;
+        } else if (trustStatus === 'changed') {
+          badge.textContent = '\u26A0';
+          badge.style.color = '#d29922';
+          badge.title = 'Key changed! Was: ' + (TrustStore.getFingerprint(nick) || '?') + ' Now: ' + fp;
+        }
+        nameEl.appendChild(badge);
+      }
+
+      var nameText = document.createTextNode(nick);
+      nameEl.appendChild(nameText);
+
+      // Highlight current user
+      if (key === Chat.userId) {
+        nameEl.style.opacity = '1';
+        nameEl.style.fontWeight = 'bold';
+      }
+
+      row.appendChild(nameEl);
+
+      // DM button (only for other users with ECDH key)
+      if (key !== Chat.userId && fp && Identity.fingerprint && p.dhPubkey) {
+        var dmBtn = document.createElement('button');
+        dmBtn.className = 'dm-btn';
+        dmBtn.textContent = 'DM';
+        dmBtn.title = 'Direct message ' + nick;
+        var _dhPub = p.dhPubkey;
+        dmBtn.addEventListener('click', function(e) {
+          e.stopPropagation();
+          Chat.startDM(nick, fp, _dhPub);
+          $('#online-dropdown').classList.remove('open');
+          onlineDropdownOpen = false;
+        });
+        row.appendChild(dmBtn);
+      }
+
+      list.appendChild(row);
+    });
+  }
 
   // Focus nickname input
   UI.nickInput.focus();
