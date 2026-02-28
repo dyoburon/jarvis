@@ -87,7 +87,7 @@ fn validate_color_rejects_invalid() {
 fn parse_all_default_colors() {
     // Verify all default colors from the schema are parseable
     let colors = [
-        "#ffcc66",
+        "#cba6f7",
         "#ffa659",
         "#1f2430",
         "rgba(36,41,54,0.88)",

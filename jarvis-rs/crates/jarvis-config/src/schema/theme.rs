@@ -44,24 +44,24 @@ pub struct ColorConfig {
 impl Default for ColorConfig {
     fn default() -> Self {
         Self {
-            // Ayu Mirage palette (https://github.com/ayu-theme/ayu-colors)
-            primary: "#ffcc66".into(),
-            secondary: "#ffa659".into(),
-            background: "#1f2430".into(),
-            panel_bg: "rgba(36,41,54,0.88)".into(),
-            text: "#cccac2".into(),
-            text_muted: "#707a8c".into(),
-            border: "#171B24".into(),
-            border_focused: "rgba(255,204,102,0.12)".into(),
-            user_text: "rgba(115,208,255,0.75)".into(),
-            tool_read: "rgba(115,208,255,0.9)".into(),
-            tool_edit: "rgba(255,213,128,0.9)".into(),
-            tool_write: "rgba(255,166,89,0.9)".into(),
-            tool_run: "rgba(186,230,126,0.9)".into(),
-            tool_search: "rgba(223,191,255,0.9)".into(),
-            success: "#87d96c".into(),
-            warning: "#ffa659".into(),
-            error: "#ff6666".into(),
+            // Catppuccin Mocha palette (https://github.com/catppuccin/catppuccin)
+            primary: "#cba6f7".into(),                       // Mauve
+            secondary: "#f5c2e7".into(),                     // Pink
+            background: "#1e1e2e".into(),                    // Base
+            panel_bg: "rgba(30,30,46,0.88)".into(),          // Base with alpha
+            text: "#cdd6f4".into(),                          // Text
+            text_muted: "#6c7086".into(),                    // Overlay0
+            border: "#181825".into(),                        // Mantle
+            border_focused: "rgba(203,166,247,0.15)".into(), // Mauve glow
+            user_text: "rgba(137,180,250,0.85)".into(),      // Blue
+            tool_read: "rgba(137,180,250,0.9)".into(),       // Blue
+            tool_edit: "rgba(249,226,175,0.9)".into(),       // Yellow
+            tool_write: "rgba(250,179,135,0.9)".into(),      // Peach
+            tool_run: "rgba(166,227,161,0.9)".into(),        // Green
+            tool_search: "rgba(203,166,247,0.9)".into(),     // Mauve
+            success: "#a6e3a1".into(),                       // Green
+            warning: "#f9e2af".into(),                       // Yellow
+            error: "#f38ba8".into(),                         // Red
         }
     }
 }

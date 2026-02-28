@@ -101,23 +101,23 @@ mod tests {
     #[test]
     fn default_config_has_correct_colors() {
         let config = JarvisConfig::default();
-        assert_eq!(config.colors.primary, "#ffcc66");
-        assert_eq!(config.colors.secondary, "#ffa659");
-        assert_eq!(config.colors.background, "#1f2430");
-        assert_eq!(config.colors.panel_bg, "rgba(36,41,54,0.88)");
-        assert_eq!(config.colors.text, "#cccac2");
-        assert_eq!(config.colors.text_muted, "#707a8c");
-        assert_eq!(config.colors.border, "#171B24");
-        assert_eq!(config.colors.border_focused, "rgba(255,204,102,0.12)");
-        assert_eq!(config.colors.user_text, "rgba(115,208,255,0.75)");
-        assert_eq!(config.colors.tool_read, "rgba(115,208,255,0.9)");
-        assert_eq!(config.colors.tool_edit, "rgba(255,213,128,0.9)");
-        assert_eq!(config.colors.tool_write, "rgba(255,166,89,0.9)");
-        assert_eq!(config.colors.tool_run, "rgba(186,230,126,0.9)");
-        assert_eq!(config.colors.tool_search, "rgba(223,191,255,0.9)");
-        assert_eq!(config.colors.success, "#87d96c");
-        assert_eq!(config.colors.warning, "#ffa659");
-        assert_eq!(config.colors.error, "#ff6666");
+        assert_eq!(config.colors.primary, "#cba6f7");
+        assert_eq!(config.colors.secondary, "#f5c2e7");
+        assert_eq!(config.colors.background, "#1e1e2e");
+        assert_eq!(config.colors.panel_bg, "rgba(30,30,46,0.88)");
+        assert_eq!(config.colors.text, "#cdd6f4");
+        assert_eq!(config.colors.text_muted, "#6c7086");
+        assert_eq!(config.colors.border, "#181825");
+        assert_eq!(config.colors.border_focused, "rgba(203,166,247,0.15)");
+        assert_eq!(config.colors.user_text, "rgba(137,180,250,0.85)");
+        assert_eq!(config.colors.tool_read, "rgba(137,180,250,0.9)");
+        assert_eq!(config.colors.tool_edit, "rgba(249,226,175,0.9)");
+        assert_eq!(config.colors.tool_write, "rgba(250,179,135,0.9)");
+        assert_eq!(config.colors.tool_run, "rgba(166,227,161,0.9)");
+        assert_eq!(config.colors.tool_search, "rgba(203,166,247,0.9)");
+        assert_eq!(config.colors.success, "#a6e3a1");
+        assert_eq!(config.colors.warning, "#f9e2af");
+        assert_eq!(config.colors.error, "#f38ba8");
     }
 
     #[test]
@@ -300,7 +300,7 @@ mod tests {
         assert_eq!(config.status_bar.height, 28);
         assert!(config.status_bar.show_panel_buttons);
         assert!(config.status_bar.show_online_count);
-        assert_eq!(config.status_bar.bg, "rgba(23,27,36,0.95)");
+        assert_eq!(config.status_bar.bg, "rgba(24,24,37,0.95)");
     }
 
     #[test]
@@ -330,8 +330,8 @@ primary = "#ff0000"
         // Defaults preserved
         assert!((config.font.line_height - 1.6).abs() < f64::EPSILON);
         assert_eq!(config.font.title_size, 14);
-        assert_eq!(config.colors.background, "#1f2430");
-        assert_eq!(config.colors.text, "#cccac2");
+        assert_eq!(config.colors.background, "#1e1e2e");
+        assert_eq!(config.colors.text, "#cdd6f4");
         assert_eq!(config.theme.name, "jarvis-dark");
         assert_eq!(config.background.mode, BackgroundMode::HexGrid);
         assert!(config.visualizer.enabled);
@@ -614,7 +614,7 @@ font_weight = 300
         assert!(config.effects.bloom.enabled);
         assert_eq!(config.effects.bloom.passes, 2);
         assert!(config.effects.glow.enabled);
-        assert_eq!(config.effects.glow.color, "#ffcc66");
+        assert_eq!(config.effects.glow.color, "#cba6f7");
         assert!((config.effects.glow.intensity - 0.0).abs() < f64::EPSILON);
         assert!(config.effects.flicker.enabled);
         assert!(!config.effects.crt_curvature);

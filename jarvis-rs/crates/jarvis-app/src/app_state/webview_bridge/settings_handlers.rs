@@ -738,7 +738,7 @@ mod tests {
         config.colors.primary = "#ff0000".into();
         config.colors.secondary = "#00ff00".into();
         reset_section(&mut config, "colors");
-        assert_eq!(config.colors.primary, "#ffcc66");
-        assert_eq!(config.colors.secondary, "#ffa659");
+        assert_eq!(config.colors.primary, "#cba6f7");
+        assert_eq!(config.colors.secondary, "#f5c2e7");
     }
 }

@@ -8,11 +8,11 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   :root {
-    --bg: #1F2430;
-    --accent: #FFCC66;
-    --text: #CCCAC2;
-    --muted: #707A8C;
-    --border: #171B24;
+    --bg: #1E1E2E;
+    --accent: #CBA6F7;
+    --text: #CDD6F4;
+    --muted: #6C7086;
+    --border: #181825;
   }
 
   body {
@@ -96,7 +96,7 @@
     letter-spacing: 0.5em;
     color: var(--accent);
     margin-bottom: 48px;
-    text-shadow: 0 0 20px rgba(255,204,102,0.3);
+    text-shadow: 0 0 20px rgba(203,166,247,0.3);
   }
 
   .status {
@@ -124,7 +124,7 @@
     height: 100%; width: 0%;
     background: var(--accent);
     border-radius: 2px;
-    box-shadow: 0 0 8px rgba(255,204,102,0.4);
+    box-shadow: 0 0 8px rgba(203,166,247,0.4);
     transition: width 0.1s linear;
   }
   .progress-pct {
@@ -278,7 +278,7 @@
       if (s.y < 0) s.y += H; if (s.y > H) s.y -= H;
       ctx.beginPath();
       ctx.arc(s.x, s.y, s.s, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(255,204,102,' + s.a + ')';
+      ctx.fillStyle = 'rgba(203,166,247,' + s.a + ')';
       ctx.fill();
     }
 
@@ -311,7 +311,7 @@
           else ctx.lineTo(gx, gy);
         }
         ctx.closePath();
-        ctx.strokeStyle = 'rgba(255,204,102,' + fade + ')';
+        ctx.strokeStyle = 'rgba(203,166,247,' + fade + ')';
         ctx.lineWidth = 0.4;
         ctx.stroke();
       }
@@ -326,7 +326,7 @@
         else ctx.lineTo(px, py);
       }
       ctx.closePath();
-      ctx.strokeStyle = 'rgba(255,204,102,' + a.a + ')';
+      ctx.strokeStyle = 'rgba(203,166,247,' + a.a + ')';
       ctx.lineWidth = 0.8;
       ctx.stroke();
     }

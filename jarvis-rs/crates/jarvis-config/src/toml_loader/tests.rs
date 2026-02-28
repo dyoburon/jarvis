@@ -33,7 +33,7 @@ primary = "#ff0000"
     assert_eq!(config.font.size, 14);
     assert_eq!(config.colors.primary, "#ff0000");
     // Defaults preserved
-    assert_eq!(config.colors.background, "#1f2430");
+    assert_eq!(config.colors.background, "#1e1e2e");
     assert_eq!(config.theme.name, "jarvis-dark");
 }
 
@@ -77,7 +77,7 @@ fn create_and_load_default_config() {
 
     let config = load_from_path(&path).unwrap();
     assert_eq!(config.theme.name, "jarvis-dark");
-    assert_eq!(config.colors.primary, "#ffcc66");
+    assert_eq!(config.colors.primary, "#cba6f7");
 }
 
 #[test]

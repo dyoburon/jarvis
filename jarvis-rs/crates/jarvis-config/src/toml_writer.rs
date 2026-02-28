@@ -82,7 +82,7 @@ mod tests {
         let contents = std::fs::read_to_string(&path).unwrap();
         let parsed: JarvisConfig = toml::from_str(&contents).unwrap();
         assert_eq!(parsed.theme.name, "jarvis-dark");
-        assert_eq!(parsed.colors.primary, "#ffcc66");
+        assert_eq!(parsed.colors.primary, "#cba6f7");
     }
 
     #[test]

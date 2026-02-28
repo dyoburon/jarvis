@@ -92,24 +92,24 @@ pub fn config_to_xterm_theme(config: &JarvisConfig) -> serde_json::Value {
             "selectionBackground": format!("rgba({}, 0.25)",
                 hex_to_rgb_args(&c.primary).unwrap_or_else(|| "255, 204, 102".to_string())
             ),
-            "selectionForeground": "#ffffff",
-            // Ayu Mirage ANSI palette
-            "black": "#171b24",
-            "red": "#f28779",
-            "green": "#bae67e",
-            "yellow": "#ffd580",
-            "blue": "#73d0ff",
-            "magenta": "#d4bfff",
-            "cyan": "#95e6cb",
-            "white": c.text,
-            "brightBlack": "#707a8c",
-            "brightRed": "#f28779",
-            "brightGreen": "#bae67e",
-            "brightYellow": "#ffd580",
-            "brightBlue": "#73d0ff",
-            "brightMagenta": "#d4bfff",
-            "brightCyan": "#95e6cb",
-            "brightWhite": "#f3f4f5"
+            "selectionForeground": "#1e1e2e",
+            // Catppuccin Mocha ANSI palette
+            "black": "#45475a",
+            "red": "#f38ba8",
+            "green": "#a6e3a1",
+            "yellow": "#f9e2af",
+            "blue": "#89b4fa",
+            "magenta": "#f5c2e7",
+            "cyan": "#94e2d5",
+            "white": "#bac2de",
+            "brightBlack": "#585b70",
+            "brightRed": "#f38ba8",
+            "brightGreen": "#a6e3a1",
+            "brightYellow": "#f9e2af",
+            "brightBlue": "#89b4fa",
+            "brightMagenta": "#f5c2e7",
+            "brightCyan": "#94e2d5",
+            "brightWhite": "#a6adc8"
         },
         "fontSize": f.size,
         "fontFamily": format!("'{}', monospace", f.family),
@@ -316,8 +316,8 @@ mod tests {
             .map(|(n, v, _)| (n.as_str(), v.as_str()))
             .collect();
 
-        assert_eq!(map["--color-primary"], "#ffcc66");
-        assert_eq!(map["--color-background"], "#1f2430");
+        assert_eq!(map["--color-primary"], "#cba6f7");
+        assert_eq!(map["--color-background"], "#1e1e2e");
         assert_eq!(map["--font-size"], "13px");
         assert_eq!(map["--line-height"], "1.6");
         assert_eq!(map["--font-family"], "Menlo");
@@ -356,9 +356,9 @@ mod tests {
         let config = JarvisConfig::default();
         let theme = config_to_xterm_theme(&config);
 
-        assert_eq!(theme["xterm"]["background"], "#1f2430");
-        assert_eq!(theme["xterm"]["foreground"], "#cccac2");
-        assert_eq!(theme["xterm"]["cursor"], "#ffcc66");
+        assert_eq!(theme["xterm"]["background"], "#1e1e2e");
+        assert_eq!(theme["xterm"]["foreground"], "#cdd6f4");
+        assert_eq!(theme["xterm"]["cursor"], "#cba6f7");
         assert_eq!(theme["fontSize"], 13);
         assert_eq!(theme["cursorStyle"], "block");
         assert_eq!(theme["cursorBlink"], true);

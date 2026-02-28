@@ -28,7 +28,7 @@ impl Default for StatusBarConfig {
             height: 28,
             show_panel_buttons: true,
             show_online_count: true,
-            bg: "rgba(23,27,36,0.95)".into(),
+            bg: "rgba(24,24,37,0.95)".into(),
         }
     }
 }
@@ -48,7 +48,7 @@ mod tests {
         assert_eq!(config.height, 28);
         assert!(config.show_panel_buttons);
         assert!(config.show_online_count);
-        assert_eq!(config.bg, "rgba(23,27,36,0.95)");
+        assert_eq!(config.bg, "rgba(24,24,37,0.95)");
     }
 
     #[test]
@@ -63,7 +63,7 @@ height = 32
         // Defaults preserved
         assert!(config.show_panel_buttons);
         assert!(config.show_online_count);
-        assert_eq!(config.bg, "rgba(23,27,36,0.95)");
+        assert_eq!(config.bg, "rgba(24,24,37,0.95)");
     }
 
     #[test]

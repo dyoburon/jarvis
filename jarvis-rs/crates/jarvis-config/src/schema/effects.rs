@@ -80,7 +80,7 @@ impl Default for GlowConfig {
     fn default() -> Self {
         Self {
             enabled: true,
-            color: "#ffcc66".into(),
+            color: "#cba6f7".into(),
             width: 2.0,
             intensity: 0.0,
         }
@@ -174,7 +174,7 @@ mod tests {
         assert!((config.bloom.intensity - 0.9).abs() < f32::EPSILON);
         assert_eq!(config.bloom.passes, 2);
         assert!(config.glow.enabled);
-        assert_eq!(config.glow.color, "#ffcc66");
+        assert_eq!(config.glow.color, "#cba6f7");
         assert!((config.glow.width - 2.0).abs() < f32::EPSILON);
         assert!((config.glow.intensity - 0.0).abs() < f64::EPSILON);
         assert!(config.flicker.enabled);

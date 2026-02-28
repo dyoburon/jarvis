@@ -10,17 +10,18 @@ pub(crate) fn default_config_toml() -> String {
 name = "jarvis-dark"
 
 [colors]
-# primary = "#ffcc66"
-# secondary = "#ffa659"
-# background = "#1f2430"
-# panel_bg = "rgba(36,41,54,0.88)"
-# text = "#cccac2"
-# text_muted = "#707a8c"
-# border = "#171B24"
-# border_focused = "rgba(255,204,102,0.12)"
-# success = "#87d96c"
-# warning = "#ffa659"
-# error = "#ff6666"
+# Catppuccin Mocha palette
+# primary = "#cba6f7"
+# secondary = "#f5c2e7"
+# background = "#1e1e2e"
+# panel_bg = "rgba(30,30,46,0.88)"
+# text = "#cdd6f4"
+# text_muted = "#6c7086"
+# border = "#181825"
+# border_focused = "rgba(203,166,247,0.15)"
+# success = "#a6e3a1"
+# warning = "#f9e2af"
+# error = "#f38ba8"
 
 [window]
 # titlebar_height = 38   # macOS custom titlebar height (0 = system default)
@@ -30,7 +31,7 @@ name = "jarvis-dark"
 # height = 28            # 20-48
 # show_panel_buttons = true
 # show_online_count = true
-# bg = "rgba(23,27,36,0.95)"
+# bg = "rgba(24,24,37,0.95)"
 
 [font]
 # family = "Menlo"
@@ -75,7 +76,7 @@ name = "jarvis-dark"
 
 [effects.glow]
 # enabled = true
-# color = "#ffcc66"
+# color = "#cba6f7"
 # width = 2.0             # 0.0-10.0
 # intensity = 0.0          # 0.0-1.0 (focus glow)
 
