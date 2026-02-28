@@ -192,6 +192,16 @@ function setFocused(isFocused) {
   if (isFocused) { term.focus(); }
 }
 
+// Listen for focus_changed IPC from Rust
+if (window.jarvis && window.jarvis.ipc) {
+  window.jarvis.ipc.on('focus_changed', function(payload) {
+    setFocused(payload && payload.focused);
+  });
+}
+
+// Re-focus xterm on any click within the terminal
+document.addEventListener('click', function() { term.focus(); });
+
 // Restart button
 document.querySelector('.restart-btn').addEventListener('click', function() {
   document.getElementById('exit-overlay').classList.remove('visible');

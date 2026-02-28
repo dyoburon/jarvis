@@ -330,6 +330,81 @@ body {
   font-family: var(--font-ui);
 }
 
+.msg-image {
+  max-width: 300px;
+  max-height: 200px;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 1px solid var(--color-border);
+  transition: border-color 0.15s ease, opacity 0.15s ease;
+}
+.msg-image:hover {
+  border-color: var(--color-border-focused);
+  opacity: 0.9;
+}
+
+#image-lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  cursor: pointer;
+}
+#image-lightbox.open { display: flex; }
+#image-lightbox img {
+  max-width: 90vw;
+  max-height: 90vh;
+  border-radius: 6px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6);
+}
+
+#paste-preview {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-top: var(--border-width) solid var(--color-border);
+  background: rgba(0, 212, 255, 0.03);
+  flex-shrink: 0;
+}
+#paste-preview.show { display: flex; }
+#paste-preview img {
+  max-width: 60px;
+  max-height: 40px;
+  border-radius: 3px;
+  border: 1px solid var(--color-border);
+}
+#paste-preview .paste-info {
+  flex: 1;
+  font-size: 10px;
+  color: var(--color-text-muted);
+}
+#paste-cancel {
+  background: none;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-family: var(--font-ui);
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+#paste-send {
+  background: none;
+  border: 1px solid var(--color-border-focused);
+  color: var(--color-primary);
+  font-family: var(--font-ui);
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+
 .msg-verify {
   flex-shrink: 0;
   font-size: 10px;
@@ -697,6 +772,19 @@ body {
 <!-- RATE LIMIT FEEDBACK                                            -->
 <!-- ============================================================== -->
 
+<!-- Image paste preview bar -->
+<div id="paste-preview">
+  <img id="paste-thumb" src="" alt="preview">
+  <span class="paste-info" id="paste-info">Image ready to send</span>
+  <button id="paste-cancel">Cancel</button>
+  <button id="paste-send">Send</button>
+</div>
+
+<!-- Image lightbox overlay -->
+<div id="image-lightbox">
+  <img id="lightbox-img" src="" alt="Full size">
+</div>
+
 <div id="rate-feedback">Slow down! Rate limit reached.</div>
 <button id="retry-btn" class="hidden" style="
   position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%);
@@ -748,6 +836,9 @@ const CONFIG = {
   ],
   DEFAULT_CHANNEL: 'jarvis-livechat',
   MAX_MSG_LEN: 500,
+  MAX_IMAGE_LEN: 300000,    // max base64 data URL length (~200KB image)
+  IMAGE_MAX_WIDTH: 400,     // compress images to this max width
+  IMAGE_QUALITY: 0.7,       // JPEG compression quality
   RATE_LIMIT_COUNT: 5,      // max messages per window
   RATE_LIMIT_WINDOW: 10000, // window in ms (10 seconds)
   SPAM_REPEAT_LIMIT: 3,     // block after N identical consecutive messages
@@ -1190,6 +1281,54 @@ const UI = {
     this._scrollToBottom();
   },
 
+  addImage(nick, dataUrl, time, nickColor, verifyStatus) {
+    this._hideEmpty();
+    const row = document.createElement('div');
+    row.className = 'msg';
+
+    const timeEl = document.createElement('span');
+    timeEl.className = 'msg-time';
+    timeEl.textContent = time;
+
+    const verifyEl = document.createElement('span');
+    verifyEl.className = 'msg-verify';
+    if (verifyStatus === 'verified' || verifyStatus === 'self') {
+      verifyEl.classList.add('verified');
+      verifyEl.textContent = '\u2713';
+    } else if (verifyStatus === 'key-changed') {
+      verifyEl.classList.add('key-changed');
+      verifyEl.textContent = '\u26A0';
+    } else if (verifyStatus === 'invalid') {
+      verifyEl.classList.add('invalid');
+      verifyEl.textContent = '\u2717';
+    } else {
+      verifyEl.classList.add('unverified');
+      verifyEl.textContent = '?';
+    }
+
+    const nickEl = document.createElement('span');
+    nickEl.className = 'msg-nick';
+    nickEl.textContent = nick + ':';
+    nickEl.style.color = nickColor || var_primary();
+
+    const imgEl = document.createElement('img');
+    imgEl.className = 'msg-image';
+    imgEl.src = dataUrl;
+    imgEl.alt = 'Image from ' + nick;
+    imgEl.addEventListener('click', function() {
+      var lb = document.getElementById('image-lightbox');
+      document.getElementById('lightbox-img').src = dataUrl;
+      lb.classList.add('open');
+    });
+
+    row.appendChild(timeEl);
+    row.appendChild(verifyEl);
+    row.appendChild(nickEl);
+    row.appendChild(imgEl);
+    this.messagesEl.appendChild(row);
+    this._scrollToBottom();
+  },
+
   addSystemMessage(text, type) {
     this._hideEmpty();
     const row = document.createElement('div');
@@ -1298,6 +1437,77 @@ function formatTime(ts) {
   const d = new Date(ts);
   return d.getHours().toString().padStart(2, '0') + ':' +
          d.getMinutes().toString().padStart(2, '0');
+}
+
+// =================================================================
+// EMOJI SHORTCODES
+// =================================================================
+
+const EMOJI_MAP = {
+  ':smile:':'\u{1F604}',':grin:':'\u{1F601}',':laugh:':'\u{1F602}',':joy:':'\u{1F602}',
+  ':wink:':'\u{1F609}',':blush:':'\u{1F60A}',':heart_eyes:':'\u{1F60D}',':kiss:':'\u{1F618}',
+  ':thinking:':'\u{1F914}',':neutral:':'\u{1F610}',':expressionless:':'\u{1F611}',
+  ':unamused:':'\u{1F612}',':sweat:':'\u{1F613}',':pensive:':'\u{1F614}',
+  ':confused:':'\u{1F615}',':disappointed:':'\u{1F61E}',':worried:':'\u{1F61F}',
+  ':angry:':'\u{1F620}',':rage:':'\u{1F621}',':cry:':'\u{1F622}',':sob:':'\u{1F62D}',
+  ':scream:':'\u{1F631}',':cool:':'\u{1F60E}',':nerd:':'\u{1F913}',':clown:':'\u{1F921}',
+  ':skull:':'\u{1F480}',':ghost:':'\u{1F47B}',':alien:':'\u{1F47D}',':robot:':'\u{1F916}',
+  ':wave:':'\u{1F44B}',':ok:':'\u{1F44C}',':thumbsup:':'\u{1F44D}',':thumbsdown:':'\u{1F44E}',
+  ':clap:':'\u{1F44F}',':pray:':'\u{1F64F}',':muscle:':'\u{1F4AA}',':fire:':'\u{1F525}',
+  ':heart:':'\u{2764}\u{FE0F}',':broken_heart:':'\u{1F494}',':star:':'\u{2B50}',
+  ':sparkles:':'\u{2728}',':100:':'\u{1F4AF}',':check:':'\u{2705}',':x:':'\u{274C}',
+  ':warning:':'\u{26A0}\u{FE0F}',':question:':'\u{2753}',':exclamation:':'\u{2757}',
+  ':rocket:':'\u{1F680}',':eyes:':'\u{1F440}',':brain:':'\u{1F9E0}',':bug:':'\u{1F41B}',
+  ':gear:':'\u{2699}\u{FE0F}',':lock:':'\u{1F512}',':key:':'\u{1F511}',':bulb:':'\u{1F4A1}',
+  ':zap:':'\u{26A1}',':boom:':'\u{1F4A5}',':party:':'\u{1F389}',':trophy:':'\u{1F3C6}',
+};
+
+/** Replace :shortcode: with emoji in text. */
+function replaceEmoji(text) {
+  return text.replace(/:[a-z_]+:/g, function(match) {
+    return EMOJI_MAP[match] || match;
+  });
+}
+
+/** Check if a string is an image data URL. */
+function isImageDataUrl(text) {
+  return typeof text === 'string' && text.startsWith('data:image/');
+}
+
+/** Compress an image blob to JPEG data URL via canvas. */
+function compressImage(blob) {
+  return new Promise(function(resolve, reject) {
+    var img = new Image();
+    img.onload = function() {
+      var w = img.width;
+      var h = img.height;
+      if (w > CONFIG.IMAGE_MAX_WIDTH) {
+        h = Math.round(h * (CONFIG.IMAGE_MAX_WIDTH / w));
+        w = CONFIG.IMAGE_MAX_WIDTH;
+      }
+      var canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      var ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      var dataUrl = canvas.toDataURL('image/jpeg', CONFIG.IMAGE_QUALITY);
+      URL.revokeObjectURL(img.src);
+      resolve(dataUrl);
+    };
+    img.onerror = function() {
+      URL.revokeObjectURL(img.src);
+      reject(new Error('Failed to load image'));
+    };
+    img.src = URL.createObjectURL(blob);
+  });
+}
+
+/** Check if text looks like a local image file path. */
+function isImagePath(text) {
+  var trimmed = text.trim();
+  if (trimmed.length < 4) return false;
+  if (!/^(\/|~\/|\.\/|\.\.\/)/.test(trimmed)) return false;
+  return /\.(png|jpg|jpeg|gif|webp|bmp|svg|tiff?)$/i.test(trimmed);
 }
 
 // =================================================================
@@ -1543,9 +1753,14 @@ const Chat = {
       return;
     }
 
-    // Automod
-    var filterResult = this.automod.filter(plaintext, payload.userId);
-    if (!filterResult.ok) return;
+    // Detect image messages (skip text automod for images)
+    var isImage = isImageDataUrl(plaintext);
+
+    // Automod (text messages only)
+    if (!isImage) {
+      var filterResult = this.automod.filter(plaintext, payload.userId);
+      if (!filterResult.ok) return;
+    }
     if (!this.automod.checkRateLimit(payload.userId, Date.now())) return;
 
     var nick = (typeof payload.nick === 'string')
@@ -1577,7 +1792,8 @@ const Chat = {
     }
 
     var time = formatTime(payload.ts || Date.now());
-    var msgObj = { nick: nick, text: plaintext, time: time, color: nickColor(nick), verifyStatus: verifyStatus, type: 'msg' };
+    var msgType = isImage ? 'image' : 'msg';
+    var msgObj = { nick: nick, text: plaintext, time: time, color: nickColor(nick), verifyStatus: verifyStatus, type: msgType };
 
     // Store in channel's message array
     var channelData = this._channels.get(channelId);
@@ -1588,7 +1804,11 @@ const Chat = {
 
     // Render or increment unread
     if (channelId === this._activeChannelId) {
-      UI.addMessage(nick, plaintext, time, nickColor(nick), verifyStatus);
+      if (isImage) {
+        UI.addImage(nick, plaintext, time, nickColor(nick), verifyStatus);
+      } else {
+        UI.addMessage(nick, plaintext, time, nickColor(nick), verifyStatus);
+      }
     } else {
       var current = this._unreadCounts.get(channelId) || 0;
       this._unreadCounts.set(channelId, current + 1);
@@ -1630,6 +1850,8 @@ const Chat = {
           var m = messages[i];
           if (m.type === 'system') {
             UI.addSystemMessage(m.text, m.systemType);
+          } else if (m.type === 'image') {
+            UI.addImage(m.nick, m.text, m.time, m.color, m.verifyStatus);
           } else {
             UI.addMessage(m.nick, m.text, m.time, m.color, m.verifyStatus);
           }
@@ -1695,7 +1917,21 @@ const Chat = {
   async send(text) {
     if (this._dmMode) return this.sendDM(text);
     text = text.trim();
-    if (text.length === 0 || text.length > CONFIG.MAX_MSG_LEN) return;
+    if (text.length === 0) return;
+
+    var isImage = isImageDataUrl(text);
+    var maxLen = isImage ? CONFIG.MAX_IMAGE_LEN : CONFIG.MAX_MSG_LEN;
+    if (text.length > maxLen) {
+      if (isImage) {
+        UI.addSystemMessage('Image too large to send.', 'leave');
+      }
+      return;
+    }
+
+    // Apply emoji shortcode replacement for text messages
+    if (!isImage) {
+      text = replaceEmoji(text);
+    }
 
     // Sender-side rate limit
     if (!this._checkSenderRateLimit()) {
@@ -1703,11 +1939,13 @@ const Chat = {
       return;
     }
 
-    // Sender-side automod
-    var filterResult = this.automod.filter(text, this.userId);
-    if (!filterResult.ok) {
-      UI.addBlockedNotice('Your message was blocked: ' + filterResult.reason);
-      return;
+    // Sender-side automod (text only)
+    if (!isImage) {
+      var filterResult = this.automod.filter(text, this.userId);
+      if (!filterResult.ok) {
+        UI.addBlockedNotice('Your message was blocked: ' + filterResult.reason);
+        return;
+      }
     }
 
     // Encrypt the message
@@ -1759,12 +1997,17 @@ const Chat = {
     });
 
     // Store in local history
-    var msgObj = { nick: this.nick, text: text, time: formatTime(ts), color: nickColor(this.nick), verifyStatus: 'self', type: 'msg' };
+    var msgType = isImage ? 'image' : 'msg';
+    var msgObj = { nick: this.nick, text: text, time: formatTime(ts), color: nickColor(this.nick), verifyStatus: 'self', type: msgType };
     activeSub.messages.push(msgObj);
     if (activeSub.messages.length > 500) activeSub.messages.shift();
 
     // Render locally
-    UI.addMessage(this.nick, text, formatTime(ts), nickColor(this.nick), 'self');
+    if (isImage) {
+      UI.addImage(this.nick, text, formatTime(ts), nickColor(this.nick), 'self');
+    } else {
+      UI.addMessage(this.nick, text, formatTime(ts), nickColor(this.nick), 'self');
+    }
     UI.msgInput.value = '';
     UI.updateCharCount(0);
   },
@@ -1910,17 +2153,25 @@ const Chat = {
   /** Send a DM message. */
   async sendDM(text) {
     text = text.trim();
-    if (text.length === 0 || text.length > CONFIG.MAX_MSG_LEN) return;
+    if (text.length === 0) return;
+
+    var isImage = isImageDataUrl(text);
+    var maxLen = isImage ? CONFIG.MAX_IMAGE_LEN : CONFIG.MAX_MSG_LEN;
+    if (text.length > maxLen) return;
+
+    if (!isImage) text = replaceEmoji(text);
 
     if (!this._checkSenderRateLimit()) {
       UI.showRateLimitFeedback();
       return;
     }
 
-    var filterResult = this.automod.filter(text, this.userId);
-    if (!filterResult.ok) {
-      UI.addBlockedNotice('Your message was blocked: ' + filterResult.reason);
-      return;
+    if (!isImage) {
+      var filterResult = this.automod.filter(text, this.userId);
+      if (!filterResult.ok) {
+        UI.addBlockedNotice('Your message was blocked: ' + filterResult.reason);
+        return;
+      }
     }
 
     var encrypted;
@@ -1969,11 +2220,17 @@ const Chat = {
     });
 
     // Store in local history
-    var msgObj = { nick: this.nick, text: text, time: formatTime(ts), color: nickColor(this.nick), verifyStatus: 'self', type: 'msg' };
+    var dmIsImage = isImageDataUrl(text);
+    var dmMsgType = dmIsImage ? 'image' : 'msg';
+    var msgObj = { nick: this.nick, text: text, time: formatTime(ts), color: nickColor(this.nick), verifyStatus: 'self', type: dmMsgType };
     activeSub.messages.push(msgObj);
     if (activeSub.messages.length > 500) activeSub.messages.shift();
 
-    UI.addMessage(this.nick, text, formatTime(ts), nickColor(this.nick), 'self');
+    if (dmIsImage) {
+      UI.addImage(this.nick, text, formatTime(ts), nickColor(this.nick), 'self');
+    } else {
+      UI.addMessage(this.nick, text, formatTime(ts), nickColor(this.nick), 'self');
+    }
     UI.msgInput.value = '';
     UI.updateCharCount(0);
   },
@@ -1990,8 +2247,12 @@ const Chat = {
       return;
     }
 
-    var filterResult = this.automod.filter(plaintext, payload.userId);
-    if (!filterResult.ok) return;
+    var dmRxIsImage = isImageDataUrl(plaintext);
+
+    if (!dmRxIsImage) {
+      var filterResult = this.automod.filter(plaintext, payload.userId);
+      if (!filterResult.ok) return;
+    }
     if (!this.automod.checkRateLimit(payload.userId, Date.now())) return;
 
     var nick = (typeof payload.nick === 'string')
@@ -2020,7 +2281,8 @@ const Chat = {
     }
 
     var time = formatTime(payload.ts || Date.now());
-    var msgObj = { nick: nick, text: plaintext, time: time, color: nickColor(nick), verifyStatus: verifyStatus, type: 'msg' };
+    var dmRxMsgType = dmRxIsImage ? 'image' : 'msg';
+    var msgObj = { nick: nick, text: plaintext, time: time, color: nickColor(nick), verifyStatus: verifyStatus, type: dmRxMsgType };
 
     var channelData = this._channels.get(channelId);
     if (channelData) {
@@ -2029,7 +2291,11 @@ const Chat = {
     }
 
     if (channelId === this._activeChannelId) {
-      UI.addMessage(nick, plaintext, time, nickColor(nick), verifyStatus);
+      if (dmRxIsImage) {
+        UI.addImage(nick, plaintext, time, nickColor(nick), verifyStatus);
+      } else {
+        UI.addMessage(nick, plaintext, time, nickColor(nick), verifyStatus);
+      }
     } else {
       var current = this._unreadCounts.get(channelId) || 0;
       this._unreadCounts.set(channelId, current + 1);
@@ -2154,12 +2420,34 @@ document.addEventListener('DOMContentLoaded', () => {
     UI.showNickOverlay();
   });
 
-  // Message sending
+  // Message sending (with file path interception)
   const sendMessage = () => {
     const text = UI.msgInput.value;
-    if (text.trim().length > 0) {
-      Chat.send(text);
+    if (text.trim().length === 0) return;
+
+    // Detect file paths to images — read via IPC and send as data URL
+    if (isImagePath(text.trim()) && window.jarvis && window.jarvis.ipc) {
+      var path = text.trim();
+      UI.msgInput.value = '';
+      UI.updateCharCount(0);
+      (async function() {
+        try {
+          var resp = await window.jarvis.ipc.request('read_file', { path: path });
+          if (resp && resp.data_url) {
+            var blob = await fetch(resp.data_url).then(function(r) { return r.blob(); });
+            var compressed = await compressImage(blob);
+            Chat.send(compressed);
+          } else {
+            UI.addSystemMessage('Failed to read image: ' + (resp && resp.error || 'unknown error'), 'leave');
+          }
+        } catch (err) {
+          UI.addSystemMessage('Failed to read image file.', 'leave');
+        }
+      })();
+      return;
     }
+
+    Chat.send(text);
   };
 
   $('#send-btn').addEventListener('click', sendMessage);
@@ -2174,6 +2462,94 @@ document.addEventListener('DOMContentLoaded', () => {
   UI.msgInput.addEventListener('input', () => {
     UI.updateCharCount(UI.msgInput.value.length);
   });
+
+  // ── Clipboard paste via Rust IPC ──
+  // WKWebView doesn't fire DOM paste events for image clipboard data.
+  // Instead we intercept Cmd+V, ask Rust to read the system clipboard,
+  // and handle the response (image data URL or text).
+  var _pendingImageDataUrl = null;
+
+  document.addEventListener('keydown', function(e) {
+    if (e.metaKey && e.key.toUpperCase() === 'V' && !e.repeat) {
+      if (!window.jarvis || !window.jarvis.ipc) return;
+      e.preventDefault();
+      e.stopPropagation();
+      window.jarvis.ipc.send('debug_event', { type: 'paste_cmd_v_intercepted' });
+      window.jarvis.ipc.request('clipboard_paste', {}).then(function(resp) {
+        window.jarvis.ipc.send('debug_event', {
+          type: 'clipboard_paste_response',
+          kind: resp.kind || 'error',
+          has_data_url: !!resp.data_url,
+          text_len: resp.text ? resp.text.length : 0,
+          error: resp.error || null
+        });
+        if (resp.error) return;
+        if (resp.kind === 'image' && resp.data_url) {
+          // Show image paste preview (same flow as the old DOM paste handler)
+          if (resp.data_url.length > CONFIG.MAX_IMAGE_LEN) {
+            UI.addSystemMessage('Image too large.', 'leave');
+            return;
+          }
+          _pendingImageDataUrl = resp.data_url;
+          $('#paste-thumb').src = resp.data_url;
+          var sizeKB = Math.round(resp.data_url.length * 3 / 4 / 1024);
+          $('#paste-info').textContent = 'Image ready (' + sizeKB + ' KB)';
+          $('#paste-preview').classList.add('show');
+          UI.msgInput.focus();
+        } else if (resp.kind === 'text' && resp.text) {
+          // If the text looks like an image file path, load it as an image
+          if (isImagePath(resp.text)) {
+            window.jarvis.ipc.request('read_file', { path: resp.text.trim() }).then(function(fileResp) {
+              if (fileResp && fileResp.data_url) {
+                _pendingImageDataUrl = fileResp.data_url;
+                $('#paste-thumb').src = fileResp.data_url;
+                var sizeKB = Math.round(fileResp.data_url.length * 3 / 4 / 1024);
+                $('#paste-info').textContent = 'Image ready (' + sizeKB + ' KB)';
+                $('#paste-preview').classList.add('show');
+                UI.msgInput.focus();
+              } else {
+                // Not a valid image file — just insert as text
+                UI.msgInput.focus();
+                document.execCommand('insertText', false, resp.text);
+              }
+            }).catch(function() {
+              UI.msgInput.focus();
+              document.execCommand('insertText', false, resp.text);
+            });
+          } else {
+            // Plain text paste
+            UI.msgInput.focus();
+            document.execCommand('insertText', false, resp.text);
+          }
+        }
+      });
+    }
+  }, true);
+
+  // Paste preview: send
+  $('#paste-send').addEventListener('click', function() {
+    if (_pendingImageDataUrl) {
+      Chat.send(_pendingImageDataUrl);
+      _pendingImageDataUrl = null;
+      $('#paste-preview').classList.remove('show');
+    }
+  });
+
+  // Paste preview: cancel
+  $('#paste-cancel').addEventListener('click', function() {
+    _pendingImageDataUrl = null;
+    $('#paste-preview').classList.remove('show');
+  });
+
+  // ── Image lightbox dismiss ──
+  $('#image-lightbox').addEventListener('click', function() {
+    this.classList.remove('open');
+  });
+
+  // ── File path detection on send ──
+  var _origSendMessage = sendMessage;
+  // Override sendMessage to check for file paths
+  // (File path reading requires IPC — send as-is for now, Rust handler will be added)
 
   // Cleanup on unload
   window.addEventListener('beforeunload', () => {
@@ -2409,9 +2785,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Focus nickname input
-  UI.nickInput.focus();
-  UI.nickInput.select();
+  // Focus nickname input only if this pane has focus
+  // (avoids stealing focus from terminal panes on startup)
+  if (window.jarvis && window.jarvis.ipc) {
+    window.jarvis.ipc.on('focus_changed', function(payload) {
+      if (payload && payload.focused && UI.nickOverlay && !UI.nickOverlay.classList.contains('hidden')) {
+        UI.nickInput.focus();
+      } else if (payload && payload.focused && UI.msgInput && !UI.msgInput.disabled) {
+        UI.msgInput.focus();
+      }
+    });
+  }
 
 
 });
