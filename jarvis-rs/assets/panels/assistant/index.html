@@ -78,6 +78,22 @@ body {
   animation: pulse-dot 2s ease-in-out infinite;
 }
 
+#close-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  opacity: 0.5;
+  transition: opacity 0.15s, color 0.15s;
+}
+#close-btn:hover {
+  opacity: 1;
+  color: var(--error);
+}
+
 @keyframes pulse-dot {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.4; }
@@ -344,6 +360,7 @@ body {
     <div class="status-dot"></div>
     <span id="status-text">ready</span>
   </div>
+  <button id="close-btn" title="Close panel" onclick="sendIpc('panel_close', {})">&times;</button>
 </div>
 
 <div id="messages">
@@ -425,7 +442,7 @@ function handleCommand(text) {
       clearMessages();
       return true;
     case '/open':
-      sendIpc('open_panel', { panel_type: args || 'terminal' });
+      sendIpc('open_panel', { panel: args || 'terminal' });
       addMessage('system', 'Opening ' + (args || 'terminal') + '...');
       return true;
     case '/theme':
@@ -433,7 +450,7 @@ function handleCommand(text) {
       addMessage('system', 'Theme: ' + (args || 'cyberpunk'));
       return true;
     case '/settings':
-      sendIpc('open_panel', { panel_type: 'settings' });
+      sendIpc('open_panel', { panel: 'settings' });
       addMessage('system', 'Opening settings...');
       return true;
     case '/model':

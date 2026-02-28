@@ -61,6 +61,22 @@ body {
   font-size: 11px;
 }
 
+#close-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  opacity: 0.5;
+  transition: opacity 0.15s, color 0.15s;
+}
+#close-btn:hover {
+  opacity: 1;
+  color: var(--error);
+}
+
 #my-nick {
   color: var(--primary);
   cursor: pointer;
@@ -368,6 +384,7 @@ body {
     <span><span id="status-dot"></span><span id="status-text">offline</span></span>
     <span id="user-count">0 online</span>
   </div>
+  <button id="close-btn" title="Close panel" onclick="if(window.ipc&&window.ipc.postMessage)window.ipc.postMessage(JSON.stringify({kind:'panel_close',payload:{}}))">&times;</button>
 </div>
 
 <!-- ============================================================== -->

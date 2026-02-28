@@ -23,6 +23,7 @@ const ALLOWED_IPC_KINDS: &[&str] = &[
     "settings_set_theme",
     "assistant_input",
     "open_panel",
+    "panel_close",
     "ping",
 ];
 
@@ -107,6 +108,9 @@ impl JarvisApp {
             "open_panel" => {
                 self.handle_open_panel(pane_id, &msg.payload);
             }
+            "panel_close" => {
+                self.handle_panel_close(pane_id);
+            }
             _ => {
                 // Shouldn't happen — allowlist checked above
                 tracing::warn!(pane_id, kind = %msg.kind, "Unhandled IPC kind");
@@ -131,6 +135,7 @@ mod tests {
         assert!(is_ipc_kind_allowed("panel_focus"));
         assert!(is_ipc_kind_allowed("assistant_input"));
         assert!(is_ipc_kind_allowed("open_panel"));
+        assert!(is_ipc_kind_allowed("panel_close"));
     }
 
     #[test]

@@ -129,6 +129,25 @@ impl JarvisApp {
         }
     }
 
+    /// Handle `panel_close` IPC — a panel requested its own removal.
+    ///
+    /// Refuses to close if it's the last pane (always keep at least one).
+    pub(in crate::app_state) fn handle_panel_close(&mut self, pane_id: u32) {
+        if self.tiling.pane_count() <= 1 {
+            tracing::info!(pane_id, "panel_close: refusing to close last pane");
+            return;
+        }
+
+        if self.tiling.close_pane(pane_id) {
+            self.destroy_webview_for_pane(pane_id);
+            self.sync_webview_bounds();
+            self.needs_redraw = true;
+            tracing::info!(pane_id, "Panel closed via IPC");
+        } else {
+            tracing::warn!(pane_id, "panel_close: pane not found in tiling tree");
+        }
+    }
+
     /// Destroy the webview and PTY for a pane.
     pub(in crate::app_state) fn destroy_webview_for_pane(&mut self, pane_id: u32) {
         // Kill PTY first (if any)
