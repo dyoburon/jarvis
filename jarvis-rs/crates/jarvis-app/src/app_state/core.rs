@@ -69,6 +69,10 @@ pub struct JarvisApp {
     // Dirty flag -- set when content changes and a redraw is needed
     pub(super) needs_redraw: bool,
     pub(super) last_poll: Instant,
+
+    // Mouse cursor position and drag resize state
+    pub(super) cursor_pos: (f64, f64),
+    pub(super) drag_state: Option<super::resize_drag::DragState>,
 }
 
 impl JarvisApp {
@@ -101,6 +105,8 @@ impl JarvisApp {
             should_exit: false,
             needs_redraw: false,
             last_poll: Instant::now(),
+            cursor_pos: (0.0, 0.0),
+            drag_state: None,
         }
     }
 }

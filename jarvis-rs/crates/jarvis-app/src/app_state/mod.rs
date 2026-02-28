@@ -12,6 +12,7 @@ mod init;
 mod palette;
 mod polling;
 pub(super) mod pty_bridge;
+mod resize_drag;
 mod shutdown;
 mod social;
 mod title;

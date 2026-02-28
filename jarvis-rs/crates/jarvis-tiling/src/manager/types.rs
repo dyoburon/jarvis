@@ -84,6 +84,14 @@ impl TilingManager {
         &self.tree
     }
 
+    pub fn tree_mut(&mut self) -> &mut SplitNode {
+        &mut self.tree
+    }
+
+    pub fn gap(&self) -> u32 {
+        self.layout_engine.gap
+    }
+
     /// Get the stack at a given leaf position, if one exists.
     pub fn stack(&self, leaf_id: u32) -> Option<&PaneStack> {
         self.stacks.get(&leaf_id)

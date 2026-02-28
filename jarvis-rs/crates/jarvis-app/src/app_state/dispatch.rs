@@ -1,6 +1,6 @@
 //! Action dispatch: routes resolved actions to the appropriate subsystem.
 
-use jarvis_common::actions::Action;
+use jarvis_common::actions::{Action, ResizeDirection};
 use jarvis_common::events::Event;
 use jarvis_common::notifications::Notification;
 use jarvis_platform::input_processor::InputMode;
@@ -56,6 +56,29 @@ impl JarvisApp {
             }
             Action::ZoomPane => {
                 self.tiling.execute(TilingCommand::Zoom);
+                self.sync_webview_bounds();
+                self.needs_redraw = true;
+            }
+            Action::ResizePane { direction, delta } => {
+                let tiling_dir = match direction {
+                    ResizeDirection::Left | ResizeDirection::Right => Direction::Horizontal,
+                    ResizeDirection::Up | ResizeDirection::Down => Direction::Vertical,
+                };
+                let signed_delta = match direction {
+                    ResizeDirection::Right | ResizeDirection::Down => delta,
+                    ResizeDirection::Left | ResizeDirection::Up => -delta,
+                };
+                self.tiling
+                    .execute(TilingCommand::Resize(tiling_dir, signed_delta));
+                self.sync_webview_bounds();
+                self.needs_redraw = true;
+            }
+            Action::SwapPane(direction) => {
+                let tiling_dir = match direction {
+                    ResizeDirection::Left | ResizeDirection::Right => Direction::Horizontal,
+                    ResizeDirection::Up | ResizeDirection::Down => Direction::Vertical,
+                };
+                self.tiling.execute(TilingCommand::Swap(tiling_dir));
                 self.sync_webview_bounds();
                 self.needs_redraw = true;
             }
