@@ -37,7 +37,7 @@ impl JarvisApp {
             }
         };
 
-        let render_state = pollster::block_on(RenderState::new(window.clone()));
+        let render_state = pollster::block_on(RenderState::new(window.clone(), &self.config));
 
         match render_state {
             Ok(mut rs) => {

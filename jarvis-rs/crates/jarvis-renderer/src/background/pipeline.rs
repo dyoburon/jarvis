@@ -8,10 +8,15 @@ use crate::gpu::GpuUniforms;
 
 /// Manages the wgpu pipeline, bind group, and uniform buffer for
 /// background rendering.
+///
+/// The `shared_bind_group_layout` and `shared_bind_group` are exposed
+/// so that other pipelines (sphere, composite) can bind the same
+/// `GpuUniforms` buffer at group 0.
 pub struct BackgroundPipeline {
     pub pipeline: wgpu::RenderPipeline,
     pub uniform_buffer: wgpu::Buffer,
     pub bind_group: wgpu::BindGroup,
+    pub shared_bind_group_layout: wgpu::BindGroupLayout,
 }
 
 impl BackgroundPipeline {
@@ -96,6 +101,7 @@ impl BackgroundPipeline {
             pipeline,
             uniform_buffer,
             bind_group,
+            shared_bind_group_layout: bind_group_layout,
         }
     }
 
