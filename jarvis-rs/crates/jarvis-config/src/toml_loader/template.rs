@@ -13,11 +13,11 @@ name = "jarvis-dark"
 # primary = "#00d4ff"
 # secondary = "#ff6b00"
 # background = "#000000"
-# panel_bg = "rgba(0,0,0,0.93)"
+# panel_bg = "rgba(10,14,20,0.72)"
 # text = "#f0ece4"
 # text_muted = "#888888"
-# border = "rgba(0,212,255,0.12)"
-# border_focused = "rgba(0,212,255,0.5)"
+# border = "rgba(0,212,255,0.06)"
+# border_focused = "rgba(0,212,255,0.20)"
 # success = "#00ff88"
 # warning = "#ff6b00"
 # error = "#ff4444"
@@ -25,8 +25,10 @@ name = "jarvis-dark"
 [font]
 # family = "Menlo"
 # size = 13              # 8-32
-# title_size = 15        # 8-48
+# title_size = 14        # 8-48
 # line_height = 1.6      # 1.0-3.0
+# ui_family = "-apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif"
+# ui_size = 13           # 10-24
 
 [layout]
 # panel_gap = 8          # 0-20
@@ -35,10 +37,12 @@ name = "jarvis-dark"
 # max_panels = 5         # 1-10
 # default_panel_width = 0.72  # 0.3-1.0
 # scrollbar_width = 3    # 1-10
+# border_width = 0.5     # 0.0-3.0
+# outer_padding = 10     # 0-40
 
 [opacity]
 # background = 1.0       # 0.0-1.0
-# panel = 0.93
+# panel = 0.72
 # orb = 1.0
 # hex_grid = 0.8
 # hud = 1.0
@@ -51,6 +55,18 @@ name = "jarvis-dark"
 # opacity = 0.08
 # animation_speed = 1.0
 # glow_intensity = 0.5
+
+[effects]
+# enabled = true
+# blur_radius = 20        # 0-40 (backdrop blur for glass panels)
+# saturate = 1.2          # 0.0-2.0 (backdrop saturate)
+# transition_speed = 150   # 0-500 ms
+
+[effects.glow]
+# enabled = true
+# color = "#00d4ff"
+# width = 2.0             # 0.0-10.0
+# intensity = 0.15         # 0.0-1.0 (focus glow)
 
 [visualizer]
 # enabled = true

@@ -19,17 +19,27 @@ html { background: transparent !important; }
 
 :root {
   --color-primary: #00d4ff;
-  --color-background: rgba(0, 0, 0, 0.85);
-  --color-panel-bg: rgba(13, 17, 23, 0.90);
+  --color-background: #000000;
+  --color-panel-bg: rgba(10, 14, 20, 0.72);
   --color-text: #f0ece4;
-  --color-border: rgba(0, 212, 255, 0.12);
-  --color-border-focused: rgba(0, 212, 255, 0.5);
+  --color-text-muted: #888888;
+  --color-border: rgba(0, 212, 255, 0.06);
+  --color-border-focused: rgba(0, 212, 255, 0.20);
   --color-success: #00ff88;
   --color-warning: #ff6b00;
   --color-error: #ff4444;
   --font-family: 'Menlo', monospace;
+  --font-ui: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
   --font-size: 13px;
+  --font-ui-size: 13px;
   --border-radius: 8px;
+  --border-width: 0.5px;
+  --blur-radius: 20px;
+  --saturate: 1.2;
+  --transition-speed: 150ms;
+  --glow-intensity: 0.15;
+  --panel-opacity: 0.72;
+  --scrollbar-width: 3px;
 }
 
 html {
@@ -45,12 +55,14 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid var(--color-border);
+  border: var(--border-width) solid var(--color-border);
   border-radius: var(--border-radius);
-  transition: border-color 0.2s ease;
+  transition: border-color var(--transition-speed) ease,
+              box-shadow var(--transition-speed) ease;
 }
 body.focused {
   border-color: var(--color-border-focused);
+  box-shadow: 0 0 0 1px rgba(0, 212, 255, calc(var(--glow-intensity) * 0.5));
 }
 
 #terminal-container {
@@ -59,29 +71,43 @@ body.focused {
   overflow: hidden;
 }
 
+/* Scrollbar — Zed-level subtle */
+::-webkit-scrollbar { width: var(--scrollbar-width); }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(200, 204, 212, 0.3);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(200, 204, 212, 0.5);
+}
+
 #status-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 2px 8px;
+  font-family: var(--font-ui);
   font-size: 10px;
-  color: var(--color-primary);
-  opacity: 0.4;
-  border-top: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  opacity: 0.6;
+  border-top: var(--border-width) solid var(--color-border);
   flex-shrink: 0;
   min-height: 18px;
+  transition: opacity var(--transition-speed) ease;
 }
 
 #close-btn {
   background: none;
   border: none;
-  color: var(--color-primary);
+  color: var(--color-text-muted);
   font-size: 14px;
   cursor: pointer;
   padding: 0 4px;
   line-height: 1;
-  opacity: 0.4;
-  transition: opacity 0.15s, color 0.15s;
+  opacity: 0.5;
+  transition: opacity var(--transition-speed) ease,
+              color var(--transition-speed) ease;
 }
 #close-btn:hover {
   opacity: 1;
@@ -95,36 +121,36 @@ body.focused {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.75);
+  background: rgba(0, 0, 0, 0.6);
   justify-content: center;
   align-items: center;
   flex-direction: column;
   gap: 12px;
-  font-family: var(--font-family);
+  font-family: var(--font-ui);
   z-index: 10;
 }
 #exit-overlay.visible {
   display: flex;
 }
 #exit-overlay .exit-msg {
-  color: var(--color-primary);
-  opacity: 0.6;
-  font-size: 13px;
+  color: var(--color-text-muted);
+  font-size: var(--font-ui-size);
 }
 #exit-overlay .restart-btn {
-  background: none;
-  border: 1px solid var(--color-primary);
-  color: var(--color-primary);
-  font-family: var(--font-family);
+  background: transparent;
+  border: var(--border-width) solid var(--color-border-focused);
+  color: var(--color-text);
+  font-family: var(--font-ui);
   font-size: 12px;
   padding: 6px 16px;
-  border-radius: 3px;
+  border-radius: var(--border-radius);
   cursor: pointer;
-  opacity: 0.7;
-  transition: opacity 0.15s;
+  transition: background var(--transition-speed) ease,
+              border-color var(--transition-speed) ease;
 }
 #exit-overlay .restart-btn:hover {
-  opacity: 1;
+  background: rgba(0, 212, 255, 0.08);
+  border-color: var(--color-primary);
 }
 </style>
 </head>

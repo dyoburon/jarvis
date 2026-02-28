@@ -8,51 +8,52 @@
 html { background: transparent !important; border-radius: var(--border-radius); overflow: hidden; }
 
 :root {
-  /* Defaults — overridden by theme bridge --color-* injections */
   --color-primary: #00d4ff;
   --color-secondary: #ff6b00;
   --color-text: #f0ece4;
-  --color-text-muted: #6a7a8a;
-  --color-background: rgba(0, 0, 0, 0.85);
-  --color-panel-bg: rgba(13, 17, 23, 0.90);
-  --color-border: rgba(0, 212, 255, 0.12);
-  --color-border-focused: rgba(0, 212, 255, 0.5);
+  --color-text-muted: #888888;
+  --color-background: #000000;
+  --color-panel-bg: rgba(10, 14, 20, 0.72);
+  --color-border: rgba(0, 212, 255, 0.06);
+  --color-border-focused: rgba(0, 212, 255, 0.20);
   --color-success: #00ff88;
   --color-error: #ff4444;
-  --font-family: 'Menlo', 'Courier New', monospace;
+  --font-family: 'Menlo', monospace;
+  --font-ui: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif;
+  --font-ui-size: 13px;
   --border-radius: 8px;
+  --border-width: 0.5px;
+  --transition-speed: 150ms;
+  --glow-intensity: 0.15;
+  --scrollbar-width: 3px;
 
-  /* Short aliases used throughout this file */
   --primary: var(--color-primary);
   --accent: var(--color-secondary);
   --text: var(--color-text);
   --text-muted: var(--color-text-muted);
-  --bg: var(--color-panel-bg);
   --panel-bg: var(--color-panel-bg);
-  --input-bg: rgba(10, 14, 20, 0.95);
+  --input-bg: rgba(0, 0, 0, 0.3);
   --border: var(--color-border);
   --border-focus: var(--color-border-focused);
-  --glow-cyan: rgba(0, 229, 255, 0.3);
-  --glow-orange: rgba(255, 107, 0, 0.3);
   --success: var(--color-success);
   --error: var(--color-error);
-  --user-bubble: rgba(0, 229, 255, 0.08);
-  --assistant-bubble: rgba(13, 17, 23, 0.6);
-  --font: var(--font-family);
+  --user-bubble: rgba(0, 212, 255, 0.06);
+  --assistant-bubble: rgba(255, 255, 255, 0.03);
 }
 
 body {
-  background: var(--bg);
-  font-family: var(--font);
+  background: var(--panel-bg);
+  font-family: var(--font-ui);
   color: var(--text);
   height: 100vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  font-size: 13px;
+  font-size: var(--font-ui-size);
   line-height: 1.5;
-  border: 1px solid var(--border);
+  border: var(--border-width) solid var(--border);
   border-radius: var(--border-radius);
+  transition: border-color var(--transition-speed) ease;
 }
 
 /* ================================================================ */
@@ -63,19 +64,17 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 16px;
-  border-bottom: 1px solid var(--border);
-  background: var(--panel-bg);
-  min-height: 36px;
+  padding: 6px 12px;
+  border-bottom: var(--border-width) solid var(--border);
+  min-height: 32px;
   flex-shrink: 0;
 }
 
 #header-title {
-  font-size: 13px;
-  font-weight: bold;
-  color: var(--primary);
-  text-shadow: 0 0 10px var(--glow-cyan);
-  letter-spacing: 0.5px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
 }
 
 #header-status {
@@ -87,24 +86,24 @@ body {
 }
 
 .status-dot {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
   background: var(--success);
-  box-shadow: 0 0 6px var(--success);
-  animation: pulse-dot 2s ease-in-out infinite;
+  animation: pulse-dot 2.5s ease-in-out infinite;
 }
 
 #close-btn {
   background: none;
   border: none;
   color: var(--text-muted);
-  font-size: 18px;
+  font-size: 16px;
   cursor: pointer;
   padding: 0 4px;
   line-height: 1;
-  opacity: 0.5;
-  transition: opacity 0.15s, color 0.15s;
+  opacity: 0.4;
+  transition: opacity var(--transition-speed) ease,
+              color var(--transition-speed) ease;
 }
 #close-btn:hover {
   opacity: 1;
@@ -113,7 +112,21 @@ body {
 
 @keyframes pulse-dot {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.4; }
+  50% { opacity: 0.3; }
+}
+
+/* ================================================================ */
+/* SCROLLBAR                                                        */
+/* ================================================================ */
+
+::-webkit-scrollbar { width: var(--scrollbar-width); }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(200, 204, 212, 0.3);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(200, 204, 212, 0.5);
 }
 
 /* ================================================================ */
@@ -123,47 +136,40 @@ body {
 #messages {
   flex: 1;
   overflow-y: auto;
-  padding: 16px;
+  padding: 12px 14px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
   scrollbar-width: thin;
-  scrollbar-color: rgba(0, 229, 255, 0.2) transparent;
-}
-
-#messages::-webkit-scrollbar { width: 4px; }
-#messages::-webkit-scrollbar-track { background: transparent; }
-#messages::-webkit-scrollbar-thumb {
-  background: rgba(0, 229, 255, 0.2);
-  border-radius: 2px;
+  scrollbar-color: rgba(200, 204, 212, 0.3) transparent;
 }
 
 .message {
   max-width: 90%;
-  padding: 10px 14px;
-  border-radius: 8px;
-  font-size: 13px;
-  line-height: 1.6;
-  animation: msg-in 0.2s ease-out;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: var(--font-ui-size);
+  line-height: 1.5;
+  animation: msg-in 0.15s ease-out;
 }
 
 @keyframes msg-in {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 .message.assistant {
   align-self: flex-start;
   background: var(--assistant-bubble);
-  border: 1px solid var(--border);
+  border: var(--border-width) solid var(--border);
   color: var(--text);
 }
 
 .message.user {
   align-self: flex-end;
   background: var(--user-bubble);
-  border: 1px solid rgba(0, 229, 255, 0.15);
-  color: var(--primary);
+  border: var(--border-width) solid rgba(0, 212, 255, 0.10);
+  color: var(--text);
 }
 
 .message.system {
@@ -171,37 +177,38 @@ body {
   background: transparent;
   color: var(--text-muted);
   font-size: 11px;
-  font-style: italic;
   padding: 4px 0;
 }
 
 .message.error {
   align-self: center;
-  background: rgba(255, 68, 68, 0.1);
-  border: 1px solid rgba(255, 68, 68, 0.2);
+  background: rgba(255, 68, 68, 0.06);
+  border: var(--border-width) solid rgba(255, 68, 68, 0.15);
   color: var(--error);
   font-size: 12px;
 }
 
 .message pre {
-  background: rgba(0, 0, 0, 0.4);
-  border: 1px solid var(--border);
+  background: rgba(0, 0, 0, 0.3);
+  border: var(--border-width) solid var(--border);
   border-radius: 4px;
   padding: 8px 12px;
   margin: 8px 0 4px;
   overflow-x: auto;
+  font-family: var(--font-family);
   font-size: 12px;
   line-height: 1.4;
 }
 
 .message code {
-  background: rgba(0, 229, 255, 0.08);
+  background: rgba(0, 212, 255, 0.06);
   padding: 1px 5px;
   border-radius: 3px;
+  font-family: var(--font-family);
   font-size: 12px;
 }
 
-/* Welcome message */
+/* Welcome */
 #welcome {
   text-align: center;
   padding: 40px 20px;
@@ -209,12 +216,10 @@ body {
 }
 
 #welcome h2 {
-  color: var(--primary);
+  color: var(--text);
   font-size: 14px;
-  font-weight: bold;
+  font-weight: 500;
   margin-bottom: 8px;
-  text-shadow: 0 0 12px var(--glow-cyan);
-  letter-spacing: 1px;
 }
 
 #welcome p {
@@ -226,27 +231,27 @@ body {
   margin-top: 16px;
   font-size: 11px;
   color: var(--text-muted);
-  opacity: 0.7;
+  opacity: 0.6;
 }
 
 #welcome .hint span {
   color: var(--accent);
-  font-weight: bold;
+  font-weight: 500;
 }
 
 /* Typing indicator */
 .typing-indicator {
   display: flex;
   gap: 4px;
-  padding: 10px 14px;
+  padding: 8px 12px;
   align-self: flex-start;
 }
 
 .typing-indicator span {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
-  background: var(--primary);
+  background: var(--text-muted);
   opacity: 0.4;
   animation: typing 1.2s ease-in-out infinite;
 }
@@ -256,7 +261,7 @@ body {
 
 @keyframes typing {
   0%, 100% { opacity: 0.2; transform: translateY(0); }
-  50% { opacity: 1; transform: translateY(-4px); }
+  50% { opacity: 0.8; transform: translateY(-3px); }
 }
 
 /* ================================================================ */
@@ -264,9 +269,8 @@ body {
 /* ================================================================ */
 
 #input-area {
-  padding: 12px 16px;
-  border-top: 1px solid var(--border);
-  background: var(--panel-bg);
+  padding: 10px 12px;
+  border-top: var(--border-width) solid var(--border);
   flex-shrink: 0;
 }
 
@@ -279,51 +283,50 @@ body {
 #input {
   flex: 1;
   background: var(--input-bg);
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  border: var(--border-width) solid var(--border);
+  border-radius: 6px;
   color: var(--text);
-  font-family: var(--font);
-  font-size: 13px;
-  padding: 10px 14px;
+  font-family: var(--font-ui);
+  font-size: var(--font-ui-size);
+  padding: 8px 12px;
   outline: none;
   resize: none;
-  min-height: 40px;
+  min-height: 36px;
   max-height: 120px;
   line-height: 1.5;
-  transition: border-color 0.2s;
+  transition: border-color var(--transition-speed) ease;
 }
 
 #input:focus {
   border-color: var(--border-focus);
-  box-shadow: 0 0 0 1px var(--glow-cyan), 0 0 12px var(--glow-cyan);
 }
 
 #input::placeholder {
   color: var(--text-muted);
-  opacity: 0.6;
+  opacity: 0.5;
 }
 
 #send-btn {
   background: transparent;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  color: var(--primary);
-  font-family: var(--font);
+  border: var(--border-width) solid var(--border);
+  border-radius: 6px;
+  color: var(--text-muted);
+  font-family: var(--font-ui);
   font-size: 12px;
-  padding: 10px 16px;
+  padding: 8px 14px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: color var(--transition-speed) ease,
+              border-color var(--transition-speed) ease;
   white-space: nowrap;
 }
 
 #send-btn:hover {
-  background: rgba(0, 229, 255, 0.1);
-  border-color: var(--primary);
-  box-shadow: 0 0 8px var(--glow-cyan);
+  color: var(--text);
+  border-color: var(--border-focus);
 }
 
 #send-btn:active {
-  transform: scale(0.96);
+  transform: scale(0.97);
 }
 
 /* ================================================================ */
@@ -333,34 +336,35 @@ body {
 #cmd-hint {
   display: none;
   position: absolute;
-  bottom: 70px;
-  left: 16px;
-  right: 16px;
-  background: var(--input-bg);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 8px 0;
-  box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.4);
+  bottom: 60px;
+  left: 12px;
+  right: 12px;
+  background: rgba(10, 14, 20, 0.95);
+  border: var(--border-width) solid var(--border);
+  border-radius: 6px;
+  padding: 4px 0;
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.3);
   z-index: 10;
 }
 
 #cmd-hint.visible { display: block; }
 
 .cmd-option {
-  padding: 6px 14px;
+  padding: 6px 12px;
   font-size: 12px;
   cursor: pointer;
   display: flex;
   justify-content: space-between;
+  transition: background var(--transition-speed) ease;
 }
 
 .cmd-option:hover {
-  background: rgba(0, 229, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 .cmd-option .cmd-name {
   color: var(--accent);
-  font-weight: bold;
+  font-weight: 500;
 }
 
 .cmd-option .cmd-desc {
@@ -372,7 +376,7 @@ body {
 <body>
 
 <div id="header">
-  <span id="header-title">[ Assistant ]</span>
+  <span id="header-title">Assistant</span>
   <div id="header-status">
     <div class="status-dot"></div>
     <span id="status-text">ready</span>
@@ -382,7 +386,7 @@ body {
 
 <div id="messages">
   <div id="welcome">
-    <h2>[ JARVIS ASSISTANT ]</h2>
+    <h2>Jarvis Assistant</h2>
     <p>Ready. Type or speak your request.</p>
     <div class="hint">
       Type <span>/help</span> for commands
@@ -623,7 +627,7 @@ window.__jarvis_dispatch = function(kind, payload) {
 
     case 'assistant_config':
       if (payload.model_name) {
-        headerTitle.textContent = '[ ' + escapeHtml(payload.model_name) + ' ]';
+        headerTitle.textContent = escapeHtml(payload.model_name);
       }
       break;
 

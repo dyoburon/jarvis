@@ -20,8 +20,8 @@ use crate::app_state::core::JarvisApp;
 pub fn config_to_css_variables(config: &JarvisConfig) -> Vec<(String, String, CssValueKind)> {
     let c = &config.colors;
     let f = &config.font;
-
     let l = &config.layout;
+    let e = &config.effects;
 
     vec![
         // Colors
@@ -37,16 +37,28 @@ pub fn config_to_css_variables(config: &JarvisConfig) -> Vec<(String, String, Cs
         css_color("--color-success", &c.success),
         css_color("--color-warning", &c.warning),
         css_color("--color-error", &c.error),
-        // Font
+        // Font (monospace for code/terminal)
         css_font("--font-family", &f.family),
         css_numeric("--font-size", &format!("{}px", f.size)),
         css_numeric("--font-title-size", &format!("{}px", f.title_size)),
         css_numeric("--line-height", &format!("{}", f.line_height)),
+        // Font (sans-serif for UI text)
+        css_font("--font-ui", &f.ui_family),
+        css_numeric("--font-ui-size", &format!("{}px", f.ui_size)),
         // Layout
         css_numeric("--border-radius", &format!("{}px", l.border_radius)),
         css_numeric("--panel-padding", &format!("{}px", l.padding)),
         css_numeric("--panel-gap", &format!("{}px", l.panel_gap)),
         css_numeric("--scrollbar-width", &format!("{}px", l.scrollbar_width)),
+        css_numeric("--border-width", &format!("{}px", l.border_width)),
+        css_numeric("--outer-padding", &format!("{}px", l.outer_padding)),
+        // Effects (glassmorphic)
+        css_numeric("--blur-radius", &format!("{}px", e.blur_radius)),
+        css_numeric("--saturate", &format!("{}", e.saturate)),
+        css_numeric("--transition-speed", &format!("{}ms", e.transition_speed)),
+        css_numeric("--glow-intensity", &format!("{}", e.glow.intensity)),
+        // Opacity
+        css_numeric("--panel-opacity", &format!("{}", config.opacity.panel)),
     ]
 }
 
@@ -258,6 +270,16 @@ mod tests {
         assert!(names.contains(&"--panel-padding"));
         assert!(names.contains(&"--panel-gap"));
         assert!(names.contains(&"--scrollbar-width"));
+        // New glassmorphic + UI font variables
+        assert!(names.contains(&"--font-ui"));
+        assert!(names.contains(&"--font-ui-size"));
+        assert!(names.contains(&"--border-width"));
+        assert!(names.contains(&"--outer-padding"));
+        assert!(names.contains(&"--blur-radius"));
+        assert!(names.contains(&"--saturate"));
+        assert!(names.contains(&"--transition-speed"));
+        assert!(names.contains(&"--glow-intensity"));
+        assert!(names.contains(&"--panel-opacity"));
     }
 
     #[test]
@@ -280,7 +302,7 @@ mod tests {
     fn config_to_css_variables_count() {
         let config = JarvisConfig::default();
         let vars = config_to_css_variables(&config);
-        assert_eq!(vars.len(), 20);
+        assert_eq!(vars.len(), 29);
     }
 
     #[test]

@@ -72,6 +72,8 @@ pub struct GlowConfig {
     pub color: String,
     /// Glow width in pixels (valid range: 0.0-10.0).
     pub width: f32,
+    /// Focus glow intensity for CSS box-shadow (valid range: 0.0-1.0).
+    pub intensity: f64,
 }
 
 impl Default for GlowConfig {
@@ -80,6 +82,7 @@ impl Default for GlowConfig {
             enabled: true,
             color: "#00d4ff".into(),
             width: 2.0,
+            intensity: 0.15,
         }
     }
 }
@@ -122,6 +125,12 @@ pub struct EffectsSchemaConfig {
     pub flicker: FlickerConfig,
     /// CRT barrel distortion (future — currently no-op).
     pub crt_curvature: bool,
+    /// Backdrop blur radius in pixels for glassmorphic panels (valid range: 0-40).
+    pub blur_radius: u32,
+    /// Backdrop saturate multiplier for glassmorphic panels (valid range: 0.0-2.0).
+    pub saturate: f64,
+    /// CSS transition speed in milliseconds (valid range: 0-500).
+    pub transition_speed: u32,
 }
 
 impl Default for EffectsSchemaConfig {
@@ -136,6 +145,9 @@ impl Default for EffectsSchemaConfig {
             glow: GlowConfig::default(),
             flicker: FlickerConfig::default(),
             crt_curvature: false,
+            blur_radius: 20,
+            saturate: 1.2,
+            transition_speed: 150,
         }
     }
 }
@@ -164,9 +176,13 @@ mod tests {
         assert!(config.glow.enabled);
         assert_eq!(config.glow.color, "#00d4ff");
         assert!((config.glow.width - 2.0).abs() < f32::EPSILON);
+        assert!((config.glow.intensity - 0.15).abs() < f64::EPSILON);
         assert!(config.flicker.enabled);
         assert!((config.flicker.amplitude - 0.004).abs() < f32::EPSILON);
         assert!(!config.crt_curvature);
+        assert_eq!(config.blur_radius, 20);
+        assert!((config.saturate - 1.2).abs() < f64::EPSILON);
+        assert_eq!(config.transition_speed, 150);
     }
 
     #[test]
@@ -197,10 +213,12 @@ passes = 4
         let toml_str = r##"
 color = "#ff6b00"
 width = 4.0
+intensity = 0.3
 "##;
         let config: GlowConfig = toml::from_str(toml_str).unwrap();
         assert_eq!(config.color, "#ff6b00");
         assert!((config.width - 4.0).abs() < f32::EPSILON);
+        assert!((config.intensity - 0.3).abs() < f64::EPSILON);
         assert!(config.enabled); // default preserved
     }
 
@@ -252,6 +270,22 @@ enabled = false
     }
 
     #[test]
+    fn effects_glassmorphic_fields_in_toml() {
+        let toml_str = r#"
+blur_radius = 30
+saturate = 1.5
+transition_speed = 200
+"#;
+        let config: EffectsSchemaConfig = toml::from_str(toml_str).unwrap();
+        assert_eq!(config.blur_radius, 30);
+        assert!((config.saturate - 1.5).abs() < f64::EPSILON);
+        assert_eq!(config.transition_speed, 200);
+        // Defaults preserved
+        assert!(config.enabled);
+        assert!(config.bloom.enabled);
+    }
+
+    #[test]
     fn effects_serialization_roundtrip() {
         let config = EffectsSchemaConfig::default();
         let json = serde_json::to_string(&config).unwrap();
@@ -259,5 +293,7 @@ enabled = false
         assert_eq!(deserialized.enabled, config.enabled);
         assert_eq!(deserialized.bloom.passes, config.bloom.passes);
         assert_eq!(deserialized.glow.color, config.glow.color);
+        assert_eq!(deserialized.blur_radius, config.blur_radius);
+        assert_eq!(deserialized.transition_speed, config.transition_speed);
     }
 }

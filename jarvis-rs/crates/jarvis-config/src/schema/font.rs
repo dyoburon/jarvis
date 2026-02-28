@@ -27,14 +27,22 @@ pub struct FontConfig {
     pub font_weight: u32,
     /// Font weight for bold text (valid range: 100-900).
     pub bold_weight: u32,
+    /// UI font family for headers, labels, buttons (not code/terminal).
+    pub ui_family: String,
+    /// UI font size in points (valid range: 10-24).
+    pub ui_size: u32,
 }
+
+/// Default UI font stack: system sans-serif for clean, modern UI text.
+const DEFAULT_UI_FAMILY: &str =
+    "-apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', sans-serif";
 
 impl Default for FontConfig {
     fn default() -> Self {
         Self {
             family: "Menlo".into(),
             size: 13,
-            title_size: 15,
+            title_size: 14,
             line_height: 1.6,
             bold_family: None,
             italic_family: None,
@@ -43,6 +51,8 @@ impl Default for FontConfig {
             fallback_families: Vec::new(),
             font_weight: 400,
             bold_weight: 700,
+            ui_family: DEFAULT_UI_FAMILY.into(),
+            ui_size: 13,
         }
     }
 }
@@ -60,7 +70,7 @@ mod tests {
         let config = FontConfig::default();
         assert_eq!(config.family, "Menlo");
         assert_eq!(config.size, 13);
-        assert_eq!(config.title_size, 15);
+        assert_eq!(config.title_size, 14);
         assert!((config.line_height - 1.6).abs() < f64::EPSILON);
         assert!(config.bold_family.is_none());
         assert!(config.italic_family.is_none());
@@ -69,6 +79,8 @@ mod tests {
         assert!(config.fallback_families.is_empty());
         assert_eq!(config.font_weight, 400);
         assert_eq!(config.bold_weight, 700);
+        assert!(config.ui_family.contains("sans-serif"));
+        assert_eq!(config.ui_size, 13);
     }
 
     #[test]
@@ -87,9 +99,11 @@ ligatures = true
         assert_eq!(config.font_weight, 400);
         assert_eq!(config.bold_weight, 700);
         assert!(config.bold_family.is_none());
+        assert!(config.ui_family.contains("sans-serif"));
+        assert_eq!(config.ui_size, 13);
         // Old defaults preserved
         assert!((config.line_height - 1.6).abs() < f64::EPSILON);
-        assert_eq!(config.title_size, 15);
+        assert_eq!(config.title_size, 14);
     }
 
     #[test]

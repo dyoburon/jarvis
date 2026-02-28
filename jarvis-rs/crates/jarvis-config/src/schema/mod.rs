@@ -101,11 +101,11 @@ mod tests {
         assert_eq!(config.colors.primary, "#00d4ff");
         assert_eq!(config.colors.secondary, "#ff6b00");
         assert_eq!(config.colors.background, "#000000");
-        assert_eq!(config.colors.panel_bg, "rgba(0,0,0,0.93)");
+        assert_eq!(config.colors.panel_bg, "rgba(10,14,20,0.72)");
         assert_eq!(config.colors.text, "#f0ece4");
         assert_eq!(config.colors.text_muted, "#888888");
-        assert_eq!(config.colors.border, "rgba(0,212,255,0.12)");
-        assert_eq!(config.colors.border_focused, "rgba(0,212,255,0.5)");
+        assert_eq!(config.colors.border, "rgba(0,212,255,0.06)");
+        assert_eq!(config.colors.border_focused, "rgba(0,212,255,0.20)");
         assert_eq!(config.colors.user_text, "rgba(140,190,220,0.65)");
         assert_eq!(config.colors.tool_read, "rgba(100,180,255,0.9)");
         assert_eq!(config.colors.tool_edit, "rgba(255,180,80,0.9)");
@@ -122,8 +122,10 @@ mod tests {
         let config = JarvisConfig::default();
         assert_eq!(config.font.family, "Menlo");
         assert_eq!(config.font.size, 13);
-        assert_eq!(config.font.title_size, 15);
+        assert_eq!(config.font.title_size, 14);
         assert!((config.font.line_height - 1.6).abs() < f64::EPSILON);
+        assert!(config.font.ui_family.contains("sans-serif"));
+        assert_eq!(config.font.ui_size, 13);
     }
 
     #[test]
@@ -135,13 +137,15 @@ mod tests {
         assert_eq!(config.layout.max_panels, 5);
         assert!((config.layout.default_panel_width - 0.72).abs() < f64::EPSILON);
         assert_eq!(config.layout.scrollbar_width, 3);
+        assert!((config.layout.border_width - 0.5).abs() < f64::EPSILON);
+        assert_eq!(config.layout.outer_padding, 10);
     }
 
     #[test]
     fn default_config_has_correct_opacity() {
         let config = JarvisConfig::default();
         assert!((config.opacity.background - 1.0).abs() < f64::EPSILON);
-        assert!((config.opacity.panel - 0.93).abs() < f64::EPSILON);
+        assert!((config.opacity.panel - 0.72).abs() < f64::EPSILON);
         assert!((config.opacity.orb - 1.0).abs() < f64::EPSILON);
         assert!((config.opacity.hex_grid - 0.8).abs() < f64::EPSILON);
         assert!((config.opacity.hud - 1.0).abs() < f64::EPSILON);
@@ -311,7 +315,7 @@ primary = "#ff0000"
         assert_eq!(config.colors.primary, "#ff0000");
         // Defaults preserved
         assert!((config.font.line_height - 1.6).abs() < f64::EPSILON);
-        assert_eq!(config.font.title_size, 15);
+        assert_eq!(config.font.title_size, 14);
         assert_eq!(config.colors.background, "#000000");
         assert_eq!(config.colors.text, "#f0ece4");
         assert_eq!(config.theme.name, "jarvis-dark");
@@ -597,8 +601,12 @@ font_weight = 300
         assert_eq!(config.effects.bloom.passes, 2);
         assert!(config.effects.glow.enabled);
         assert_eq!(config.effects.glow.color, "#00d4ff");
+        assert!((config.effects.glow.intensity - 0.15).abs() < f64::EPSILON);
         assert!(config.effects.flicker.enabled);
         assert!(!config.effects.crt_curvature);
+        assert_eq!(config.effects.blur_radius, 20);
+        assert!((config.effects.saturate - 1.2).abs() < f64::EPSILON);
+        assert_eq!(config.effects.transition_speed, 150);
     }
 
     #[test]

@@ -136,6 +136,8 @@ const VALID_PATHS: &[&str] = &[
     "font.size",
     "font.title_size",
     "font.line_height",
+    "font.ui_family",
+    "font.ui_size",
     // Opacity
     "opacity.background",
     "opacity.panel",
@@ -149,6 +151,8 @@ const VALID_PATHS: &[&str] = &[
     "layout.max_panels",
     "layout.default_panel_width",
     "layout.scrollbar_width",
+    "layout.border_width",
+    "layout.outer_padding",
     // Background
     "background.mode",
     "background.solid_color",
@@ -156,6 +160,11 @@ const VALID_PATHS: &[&str] = &[
     "background.hex_grid.opacity",
     "background.hex_grid.animation_speed",
     "background.hex_grid.glow_intensity",
+    // Effects (glassmorphic)
+    "effects.blur_radius",
+    "effects.saturate",
+    "effects.transition_speed",
+    "effects.glow.intensity",
     // Visualizer
     "visualizer.enabled",
     "visualizer.visualizer_type",
@@ -250,6 +259,8 @@ fn apply_setting(
         "font.size" => set_u32(&mut config.font.size, value),
         "font.title_size" => set_u32(&mut config.font.title_size, value),
         "font.line_height" => set_f64(&mut config.font.line_height, value),
+        "font.ui_family" => set_str(&mut config.font.ui_family, value),
+        "font.ui_size" => set_u32(&mut config.font.ui_size, value),
         // -- Opacity --
         "opacity.background" => set_f64(&mut config.opacity.background, value),
         "opacity.panel" => set_f64(&mut config.opacity.panel, value),
@@ -269,6 +280,11 @@ fn apply_setting(
         "layout.max_panels" => set_u32(&mut config.layout.max_panels, value),
         "layout.default_panel_width" => set_f64(&mut config.layout.default_panel_width, value),
         "layout.scrollbar_width" => set_u32(&mut config.layout.scrollbar_width, value),
+        "layout.border_width" => set_f64(&mut config.layout.border_width, value),
+        "layout.outer_padding" => {
+            set_u32(&mut config.layout.outer_padding, value);
+            layout_changed = true;
+        }
         // -- Background --
         "background.mode" => set_str_enum(&mut config.background.mode, value),
         "background.solid_color" => set_str(&mut config.background.solid_color, value),
@@ -280,6 +296,11 @@ fn apply_setting(
         "background.hex_grid.glow_intensity" => {
             set_f64(&mut config.background.hex_grid.glow_intensity, value);
         }
+        // -- Effects (glassmorphic) --
+        "effects.blur_radius" => set_u32(&mut config.effects.blur_radius, value),
+        "effects.saturate" => set_f64(&mut config.effects.saturate, value),
+        "effects.transition_speed" => set_u32(&mut config.effects.transition_speed, value),
+        "effects.glow.intensity" => set_f64(&mut config.effects.glow.intensity, value),
         // -- Visualizer --
         "visualizer.enabled" => set_bool(&mut config.visualizer.enabled, value),
         "visualizer.visualizer_type" => {
@@ -388,6 +409,7 @@ fn reset_section(config: &mut jarvis_config::schema::JarvisConfig, section: &str
         "font" => config.font = Default::default(),
         "opacity" => config.opacity = Default::default(),
         "layout" => config.layout = Default::default(),
+        "effects" => config.effects = Default::default(),
         "background" => config.background = Default::default(),
         "visualizer" => config.visualizer = Default::default(),
         "startup" => config.startup = Default::default(),
@@ -509,8 +531,16 @@ mod tests {
     fn valid_settings_paths_accepted() {
         assert!(is_valid_settings_path("colors.primary"));
         assert!(is_valid_settings_path("font.size"));
+        assert!(is_valid_settings_path("font.ui_family"));
+        assert!(is_valid_settings_path("font.ui_size"));
         assert!(is_valid_settings_path("opacity.panel"));
         assert!(is_valid_settings_path("layout.panel_gap"));
+        assert!(is_valid_settings_path("layout.border_width"));
+        assert!(is_valid_settings_path("layout.outer_padding"));
+        assert!(is_valid_settings_path("effects.blur_radius"));
+        assert!(is_valid_settings_path("effects.saturate"));
+        assert!(is_valid_settings_path("effects.transition_speed"));
+        assert!(is_valid_settings_path("effects.glow.intensity"));
         assert!(is_valid_settings_path("visualizer.enabled"));
         assert!(is_valid_settings_path("keybinds.push_to_talk"));
         assert!(is_valid_settings_path("games.enabled.wordle"));
@@ -605,6 +635,56 @@ mod tests {
             config.auto_open.panels[1].command.as_deref(),
             Some("claude")
         );
+    }
+
+    #[test]
+    fn apply_setting_effects_blur_radius() {
+        let mut config = jarvis_config::schema::JarvisConfig::default();
+        let val = serde_json::json!(30);
+        apply_setting(&mut config, "effects.blur_radius", &val);
+        assert_eq!(config.effects.blur_radius, 30);
+    }
+
+    #[test]
+    fn apply_setting_effects_saturate() {
+        let mut config = jarvis_config::schema::JarvisConfig::default();
+        let val = serde_json::json!(1.5);
+        apply_setting(&mut config, "effects.saturate", &val);
+        assert!((config.effects.saturate - 1.5).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn apply_setting_effects_glow_intensity() {
+        let mut config = jarvis_config::schema::JarvisConfig::default();
+        let val = serde_json::json!(0.3);
+        apply_setting(&mut config, "effects.glow.intensity", &val);
+        assert!((config.effects.glow.intensity - 0.3).abs() < f64::EPSILON);
+    }
+
+    #[test]
+    fn apply_setting_font_ui_family() {
+        let mut config = jarvis_config::schema::JarvisConfig::default();
+        let val = serde_json::json!("Inter, sans-serif");
+        apply_setting(&mut config, "font.ui_family", &val);
+        assert_eq!(config.font.ui_family, "Inter, sans-serif");
+    }
+
+    #[test]
+    fn apply_setting_layout_border_width() {
+        let mut config = jarvis_config::schema::JarvisConfig::default();
+        let val = serde_json::json!(1.0);
+        let changed = apply_setting(&mut config, "layout.border_width", &val);
+        assert!((config.layout.border_width - 1.0).abs() < f64::EPSILON);
+        assert!(!changed); // border_width is not a layout-affecting change
+    }
+
+    #[test]
+    fn apply_setting_layout_outer_padding_triggers_layout() {
+        let mut config = jarvis_config::schema::JarvisConfig::default();
+        let val = serde_json::json!(20);
+        let changed = apply_setting(&mut config, "layout.outer_padding", &val);
+        assert_eq!(config.layout.outer_padding, 20);
+        assert!(changed); // outer_padding affects tiling layout
     }
 
     #[test]

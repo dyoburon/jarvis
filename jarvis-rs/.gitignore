@@ -28,3 +28,4 @@ crash_*.json
 
 # Documentation (generated plans)
 /docs
+.greppy/
