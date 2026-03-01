@@ -6,6 +6,8 @@ use jarvis_social::UserStatus;
 
 /// Events received from the async AI task.
 pub(super) enum AssistantEvent {
+    /// The assistant runtime has initialized with the given model.
+    Initialized { model_name: String },
     /// A streaming text chunk arrived.
     StreamChunk(String),
     /// The full response is complete.

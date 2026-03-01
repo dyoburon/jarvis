@@ -2,7 +2,7 @@
 
 use std::collections::HashMap;
 
-use jarvis_common::types::PaneId;
+use jarvis_common::types::{PaneId, PaneKind};
 
 use crate::layout::LayoutEngine;
 use crate::pane::Pane;
@@ -110,6 +110,15 @@ impl TilingManager {
     /// Get the stack at a given leaf position, if one exists.
     pub fn stack(&self, leaf_id: u32) -> Option<&PaneStack> {
         self.stacks.get(&leaf_id)
+    }
+
+    /// Return all pane IDs that match the given `PaneKind`.
+    pub fn panes_by_kind(&self, kind: PaneKind) -> Vec<u32> {
+        self.panes
+            .iter()
+            .filter(|(_, p)| p.kind == kind)
+            .map(|(id, _)| *id)
+            .collect()
     }
 }
 

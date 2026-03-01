@@ -77,6 +77,14 @@ impl JarvisApp {
         }
     }
 
+    /// Handle `assistant_ready` — the assistant webview has loaded and registered IPC handlers.
+    ///
+    /// Starts the async Claude AI runtime so it can send back config and accept messages.
+    pub(in crate::app_state) fn handle_assistant_ready(&mut self, pane_id: u32) {
+        tracing::debug!(pane_id, "Assistant panel ready");
+        self.ensure_assistant_runtime();
+    }
+
     /// Handle `launch_game` — launch a fullscreen game in the requesting panel.
     ///
     /// The payload must contain `{ "game": "tetris" | "asteroids" | ... }`.
