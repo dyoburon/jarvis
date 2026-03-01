@@ -112,13 +112,14 @@ impl JarvisApp {
 
         let url = format!("jarvis://localhost/games/{}.html", game_name);
 
-        if let Some(ref registry) = self.webviews {
-            if let Some(handle) = registry.get(pane_id) {
-                let js = format!("window.showFullscreenGame('{}')", url);
-                if let Err(e) = handle.evaluate_script(&js) {
+        if let Some(ref mut registry) = self.webviews {
+            if let Some(handle) = registry.get_mut(pane_id) {
+                let original_url = handle.current_url().to_string();
+                if let Err(e) = handle.load_url(&url) {
                     tracing::warn!(pane_id, error = %e, "Failed to launch game");
                 } else {
                     tracing::info!(pane_id, game = %game_name, "Game launched");
+                    self.game_active = Some((pane_id, original_url));
                 }
             }
         }

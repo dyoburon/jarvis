@@ -9,7 +9,8 @@ use jarvis_config::schema::JarvisConfig;
 
 use crate::background::BackgroundPipeline;
 use crate::gpu::{GpuContext, GpuUniforms, RendererError};
-use crate::quad::QuadRenderer;
+use crate::quad::{QuadInstance, QuadRenderer};
+use crate::ui::UiChrome;
 
 /// Core rendering state holding GPU context, all shader pipelines,
 /// and UI chrome quad renderer.
@@ -78,6 +79,55 @@ impl RenderState {
     /// Set the background clear color with alpha for transparency.
     pub fn set_clear_color_alpha(&mut self, r: f64, g: f64, b: f64, a: f64) {
         self.clear_color = wgpu::Color { r, g, b, a };
+    }
+
+    /// Generate QuadInstance data from UI chrome and upload to GPU.
+    pub fn prepare_chrome_quads(&mut self, chrome: &UiChrome, vw: f32, vh: f32) {
+        let mut quads = Vec::new();
+
+        // Tab bar background + active tab highlight
+        if let Some(ref tab_bar) = chrome.tab_bar {
+            if let Some(bar_rect) = chrome.tab_bar_rect(vw) {
+                // Full-width dark background
+                quads.push(QuadInstance {
+                    rect: [
+                        bar_rect.x as f32,
+                        bar_rect.y as f32,
+                        bar_rect.width as f32,
+                        bar_rect.height as f32,
+                    ],
+                    color: [0.12, 0.12, 0.14, 1.0],
+                });
+                // Highlight the active tab
+                let tab_count = tab_bar.tabs.len().max(1);
+                let tab_w = vw / tab_count as f32;
+                for (i, tab) in tab_bar.tabs.iter().enumerate() {
+                    if tab.is_active {
+                        quads.push(QuadInstance {
+                            rect: [tab_w * i as f32, 0.0, tab_w, tab_bar.height],
+                            color: [0.22, 0.22, 0.26, 1.0],
+                        });
+                    }
+                }
+            }
+        }
+
+        // Status bar background
+        if let Some(ref sb) = chrome.status_bar {
+            if let Some(bar_rect) = chrome.status_bar_rect(vw, vh) {
+                quads.push(QuadInstance {
+                    rect: [
+                        bar_rect.x as f32,
+                        bar_rect.y as f32,
+                        bar_rect.width as f32,
+                        bar_rect.height as f32,
+                    ],
+                    color: sb.bg_color,
+                });
+            }
+        }
+
+        self.quad.prepare(&self.gpu.queue, &quads, vw, vh);
     }
 
     /// Render a frame: hex grid background + UI quads.

@@ -228,12 +228,19 @@ impl JarvisApp {
 
         self.tiling.focus_pane(pane1);
         self.notify_focus_changed();
+        self.update_chrome(); // Populate tab bar before syncing bounds
         self.sync_webview_bounds();
     }
 
-    /// Render a single frame (background only — panels are webviews).
+    /// Render a single frame (background + chrome quads — panels are webviews).
     fn render_frame(&mut self) {
+        let vp = self.viewport();
         if let Some(ref mut rs) = self.render_state {
+            rs.prepare_chrome_quads(
+                &self.chrome,
+                vp.width as f32,
+                vp.height as f32,
+            );
             if let Err(e) = rs.render_background() {
                 tracing::error!("Render error: {e}");
             }
@@ -241,7 +248,7 @@ impl JarvisApp {
     }
 
     /// Compute the current viewport rect from the window.
-    fn viewport(&self) -> Rect {
+    pub(super) fn viewport(&self) -> Rect {
         match &self.window {
             Some(w) => {
                 let size = w.inner_size();
@@ -314,6 +321,35 @@ impl JarvisApp {
             ElementState::Pressed => {
                 let (x, y) = self.cursor_pos;
                 let viewport = self.viewport();
+
+                // When an overlay (command palette / assistant) is open,
+                // forward clicks into the focused pane's webview so the
+                // DOM overlay can handle them (e.g. clicking palette items).
+                if self.command_palette_open || self.assistant_open {
+                    let focused = self.tiling.focused_id();
+                    let layout = self.tiling.compute_layout(viewport);
+                    if let Some((_, rect)) = layout.iter().find(|(pid, _)| *pid == focused) {
+                        if x >= rect.x
+                            && x < rect.x + rect.width
+                            && y >= rect.y
+                            && y < rect.y + rect.height
+                        {
+                            let local_x = x - rect.x;
+                            let local_y = y - rect.y;
+                            if let Some(ref registry) = self.webviews {
+                                if let Some(handle) = registry.get(focused) {
+                                    let js = format!(
+                                        "var _el=document.elementFromPoint({},{});if(_el)_el.click();",
+                                        local_x, local_y
+                                    );
+                                    let _ = handle.evaluate_script(&js);
+                                }
+                            }
+                        }
+                    }
+                    return;
+                }
+
                 let gap = self.tiling.gap() as f64;
                 let borders = compute_borders(self.tiling.tree(), viewport, gap);
 
@@ -342,6 +378,19 @@ impl JarvisApp {
                         // chrome gaps between/around panels are drag zones
                         let titlebar_h = self.config.window.titlebar_height as f64;
                         if y < titlebar_h {
+                            // Check if click lands on a tab before dragging
+                            if let Some(ref tab_bar) = self.chrome.tab_bar {
+                                let tab_count = tab_bar.tabs.len().max(1);
+                                let tab_w = viewport.width / tab_count as f64;
+                                let idx = (x / tab_w) as usize;
+                                if idx < tab_bar.tabs.len() {
+                                    let target_id = tab_bar.tabs[idx].pane_id;
+                                    self.tiling.focus_pane(target_id);
+                                    self.notify_focus_changed();
+                                    self.needs_redraw = true;
+                                    return;
+                                }
+                            }
                             true
                         } else {
                             let layout = self.tiling.compute_layout(viewport);

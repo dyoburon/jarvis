@@ -28,7 +28,7 @@ export default function SessionTokenInput({
   }, [inputValue, onConnect]);
 
   if (status === 'connected' || status === 'connecting') {
-    const truncated = currentToken ? currentToken.substring(0, 16) + '...' : '';
+    const truncated = currentToken ? '••••••••' : '';
     const statusColor = status === 'connected' ? '#7ee87e' : theme.colors.primarySolid;
     const statusLabel = status === 'connected' ? 'connected' : 'connecting...';
 
@@ -81,6 +81,7 @@ export default function SessionTokenInput({
         placeholderTextColor="rgba(0, 212, 255, 0.2)"
         autoCapitalize="none"
         autoCorrect={false}
+        secureTextEntry
         returnKeyType="go"
         onSubmitEditing={handleConnect}
         style={{

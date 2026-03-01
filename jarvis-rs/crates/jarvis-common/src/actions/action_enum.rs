@@ -30,6 +30,7 @@ pub enum Action {
     // -- UI --
     OpenCommandPalette,
     OpenSettings,
+    OpenChat,
     CloseOverlay,
 
     // -- Games --
@@ -60,6 +61,7 @@ pub enum Action {
 
     // -- Mobile --
     PairMobile,
+    RevokeMobilePairing,
 
     // -- Config --
     ReloadConfig,

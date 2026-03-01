@@ -33,7 +33,6 @@ const ALLOWED_IPC_KINDS: &[&str] = &[
     "open_settings",
     "status_bar_init",
     "launch_game",
-    "game_exit",
     "ping",
     "boot_complete",
     "crypto",
@@ -44,6 +43,7 @@ const ALLOWED_IPC_KINDS: &[&str] = &[
     "open_url",
     "palette_click",
     "palette_hover",
+    "palette_dismiss",
     "debug_event",
 ];
 
@@ -156,9 +156,6 @@ impl JarvisApp {
             "launch_game" => {
                 self.handle_launch_game(pane_id, &msg.payload);
             }
-            "game_exit" => {
-                tracing::debug!(pane_id, "Game exited");
-            }
             "status_bar_init" => {
                 self.handle_status_bar_init(pane_id);
             }
@@ -214,6 +211,9 @@ impl JarvisApp {
                         }
                     }
                 }
+            }
+            "palette_dismiss" => {
+                self.dispatch(jarvis_common::actions::Action::CloseOverlay);
             }
             "debug_event" => {
                 if let IpcPayload::Json(ref v) = msg.payload {
@@ -283,6 +283,21 @@ impl JarvisApp {
         if self.assistant_open {
             if self.handle_assistant_key(&key, true) {
                 self.needs_redraw = true;
+                return;
+            }
+        }
+
+        // When a game/URL is active, Escape navigates back to the original page
+        if key == "Escape" {
+            if let Some((game_pane_id, ref original_url)) = self.game_active {
+                let url = original_url.clone();
+                tracing::info!(game_pane_id, "Exiting game, navigating back");
+                if let Some(ref mut registry) = self.webviews {
+                    if let Some(handle) = registry.get_mut(game_pane_id) {
+                        let _ = handle.load_url(&url);
+                    }
+                }
+                self.game_active = None;
                 return;
             }
         }

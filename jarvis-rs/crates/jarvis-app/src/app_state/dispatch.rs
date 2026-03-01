@@ -15,7 +15,18 @@ impl JarvisApp {
     pub(super) fn dispatch(&mut self, action: Action) {
         match action {
             Action::NewPane => {
-                self.tiling.split(Direction::Horizontal);
+                let max = self.config.layout.max_panels as usize;
+                if self.tiling.pane_count() >= max {
+                    tracing::warn!(max, "NewPane rejected: at panel limit");
+                    return;
+                }
+                let viewport = self.viewport();
+                let content = self.chrome.content_rect(
+                    viewport.width as f32,
+                    viewport.height as f32,
+                );
+                let dir = self.tiling.auto_split_direction(content);
+                self.tiling.split(dir);
                 let new_id = self.tiling.focused_id();
                 self.create_webview_for_pane(new_id);
                 self.sync_webview_bounds();
@@ -23,10 +34,11 @@ impl JarvisApp {
             }
             Action::ClosePane => {
                 let closing_id = self.tiling.focused_id();
-                self.tiling.close_focused();
-                self.destroy_webview_for_pane(closing_id);
-                self.sync_webview_bounds();
-                self.needs_redraw = true;
+                if self.tiling.close_focused() {
+                    self.destroy_webview_for_pane(closing_id);
+                    self.sync_webview_bounds();
+                    self.needs_redraw = true;
+                }
             }
             Action::SplitHorizontal => {
                 self.tiling.execute(TilingCommand::SplitHorizontal);
@@ -146,6 +158,21 @@ impl JarvisApp {
                     self.needs_redraw = true;
                 }
             }
+            Action::OpenChat => {
+                let kind = jarvis_common::types::PaneKind::Chat;
+                if let Some(new_id) = self.tiling.split_with(
+                    jarvis_tiling::tree::Direction::Horizontal,
+                    kind,
+                    "Chat",
+                ) {
+                    self.create_webview_for_pane_with_url(
+                        new_id,
+                        "jarvis://localhost/chat/index.html",
+                    );
+                    self.sync_webview_bounds();
+                    self.needs_redraw = true;
+                }
+            }
             Action::Copy => {
                 let focused = self.tiling.focused_id();
                 if let Some(ref registry) = self.webviews {
@@ -194,31 +221,40 @@ impl JarvisApp {
                 }
             }
             Action::LaunchGame(ref game) => {
-                let focused = self.tiling.focused_id();
-                let url = format!("jarvis://localhost/games/{}.html", game);
-                if let Some(ref registry) = self.webviews {
-                    if let Some(handle) = registry.get(focused) {
-                        let js = format!("window.showFullscreenGame('{}')", url);
-                        if let Err(e) = handle.evaluate_script(&js) {
+                let pane_id = self.tiling.focused_id();
+                let game_url = format!("jarvis://localhost/games/{}.html", game);
+                if let Some(ref mut registry) = self.webviews {
+                    if let Some(handle) = registry.get_mut(pane_id) {
+                        let original_url = handle.current_url().to_string();
+                        if let Err(e) = handle.load_url(&game_url) {
                             tracing::warn!(error = %e, "Failed to launch game");
+                        } else {
+                            tracing::info!(pane_id, game = %game, "Game launched");
+                            self.game_active = Some((pane_id, original_url));
                         }
                     }
                 }
             }
             Action::OpenURL(ref url) => {
-                let focused = self.tiling.focused_id();
-                if let Some(ref registry) = self.webviews {
-                    if let Some(handle) = registry.get(focused) {
-                        let escaped = url.replace('\'', "\\'");
-                        let js = format!("window.showFullscreenGame('{}')", escaped);
-                        if let Err(e) = handle.evaluate_script(&js) {
+                let pane_id = self.tiling.focused_id();
+                if let Some(ref mut registry) = self.webviews {
+                    if let Some(handle) = registry.get_mut(pane_id) {
+                        let original_url = handle.current_url().to_string();
+                        if let Err(e) = handle.load_url(url) {
                             tracing::warn!(error = %e, url = %url, "Failed to open URL");
+                        } else {
+                            tracing::info!(pane_id, url = %url, "URL opened");
+                            self.game_active = Some((pane_id, original_url));
                         }
                     }
                 }
             }
             Action::PairMobile => {
                 self.show_pair_code();
+            }
+            Action::RevokeMobilePairing => {
+                self.revoke_mobile_pairing();
+                tracing::info!("Mobile pairing revoked — new session ID generated");
             }
             Action::ReloadConfig => match jarvis_config::load_config() {
                 Ok(c) => {

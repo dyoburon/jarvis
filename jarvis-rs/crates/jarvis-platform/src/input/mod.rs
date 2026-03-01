@@ -59,7 +59,7 @@ mod tests {
     fn registry_from_default_config() {
         let config = KeybindConfig::default();
         let registry = KeybindRegistry::from_config(&config);
-        assert_eq!(registry.len(), 18);
+        assert_eq!(registry.len(), 19);
     }
 
     #[test]

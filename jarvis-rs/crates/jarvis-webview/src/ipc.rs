@@ -164,6 +164,14 @@ pub const IPC_INIT_SCRIPT: &str = r#"
             });
             return;
         }
+        // Always forward Escape to Rust (for game exit, future overlays, etc.)
+        // Don't preventDefault — terminals still need ESC via xterm.js
+        if (e.key === 'Escape' && !e.repeat) {
+            window.jarvis.ipc.send('keybind', {
+                key: 'Escape', ctrl: false, alt: false, shift: false, meta: false
+            });
+            return;
+        }
         if (e.metaKey && !e.repeat) {
             var key = e.key.toUpperCase();
             // Skip shortcuts that should be handled natively by the webview
@@ -179,99 +187,6 @@ pub const IPC_INIT_SCRIPT: &str = r#"
             });
         }
     }, true);
-
-    // =========================================================================
-    // Fullscreen game overlay system
-    // =========================================================================
-    var _gameKeyForwarder = null;
-    var _gameActive = false;
-
-    window.showFullscreenGame = function(url) {
-        if (_gameActive) return;
-        _gameActive = true;
-
-        // Create fullscreen container
-        var container = document.createElement('div');
-        container.id = 'fullscreen-game';
-        container.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;z-index:99999;background:#0a0a0a;';
-
-        // Create iframe loading the game/website
-        var isExternal = url.indexOf('http') === 0;
-        var iframe = document.createElement('iframe');
-        iframe.src = url;
-        iframe.style.cssText = 'width:100%;height:100%;border:none;';
-        if (isExternal) {
-            iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-popups allow-forms');
-        } else {
-            iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin');
-        }
-        container.appendChild(iframe);
-
-        // Forward keyboard events to iframe (Escape exits)
-        _gameKeyForwarder = function(e) {
-            if (e.key === 'Escape') {
-                e.preventDefault();
-                e.stopPropagation();
-                window.hideFullscreenGame();
-                return;
-            }
-            if (iframe.contentDocument) {
-                try {
-                    iframe.contentDocument.dispatchEvent(new KeyboardEvent(e.type, {
-                        key: e.key, code: e.code,
-                        keyCode: e.keyCode, which: e.which,
-                        bubbles: true, cancelable: true
-                    }));
-                } catch(err) {}
-                e.preventDefault();
-            }
-        };
-        document.addEventListener('keydown', _gameKeyForwarder, true);
-        document.addEventListener('keyup', _gameKeyForwarder, true);
-
-        // Also listen inside the iframe — once it has focus (click or programmatic),
-        // keyboard events fire there, not on the parent document.
-        iframe.addEventListener('load', function() {
-            try {
-                iframe.contentDocument.addEventListener('keydown', function(e) {
-                    if (e.key === 'Escape') {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        window.hideFullscreenGame();
-                    }
-                }, true);
-            } catch(err) {}
-        });
-
-        document.body.appendChild(container);
-        setTimeout(function() { iframe.focus(); }, 150);
-    };
-
-    window.hideFullscreenGame = function() {
-        if (!_gameActive) return;
-        _gameActive = false;
-
-        if (_gameKeyForwarder) {
-            document.removeEventListener('keydown', _gameKeyForwarder, true);
-            document.removeEventListener('keyup', _gameKeyForwarder, true);
-            _gameKeyForwarder = null;
-        }
-
-        var container = document.getElementById('fullscreen-game');
-        if (container) container.remove();
-
-        // Notify Rust
-        if (window.jarvis && window.jarvis.ipc) {
-            window.jarvis.ipc.send('game_exit', {});
-        }
-    };
-
-    // Listen for game_launch IPC from Rust
-    window.jarvis.ipc.on('game_launch', function(payload) {
-        if (payload && payload.url) {
-            window.showFullscreenGame(payload.url);
-        }
-    });
 
     // =========================================================================
     // Command palette overlay system
@@ -318,7 +233,9 @@ pub const IPC_INIT_SCRIPT: &str = r#"
                 var row = document.createElement('div');
                 row.className = '_cp_item' + (i === selectedIndex ? ' selected' : '');
                 row.dataset.index = i;
-                row.addEventListener('click', function() {
+                row.addEventListener('mousedown', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
                     var idx = parseInt(this.dataset.index, 10);
                     window.jarvis.ipc.send('palette_click', { index: idx });
                 });
@@ -375,6 +292,13 @@ pub const IPC_INIT_SCRIPT: &str = r#"
 
             var overlay = document.createElement('div');
             overlay.id = '_cp_overlay';
+            overlay.addEventListener('mousedown', function(e) {
+                if (e.target === overlay) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    window.jarvis.ipc.send('palette_dismiss', {});
+                }
+            });
 
             var panel = document.createElement('div');
             panel.id = '_cp_panel';

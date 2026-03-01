@@ -36,4 +36,5 @@ dirs = { workspace = true }
 rand = { workspace = true }
 aes-gcm = { workspace = true }
 qrcode = { workspace = true }
+urlencoding = "2"
 png = "0.17"

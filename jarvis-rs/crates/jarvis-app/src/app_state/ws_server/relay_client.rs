@@ -23,6 +23,7 @@ pub enum RelayEvent {
     Connected { session_id: String },
     PeerConnected,
     PeerDisconnected,
+    KeyExchange { dh_pubkey: String },
     Encrypted,
     Disconnected,
     Error(String),
@@ -34,9 +35,8 @@ pub struct RelayClientConfig {
     pub session_id: String,
     /// Desktop's DH public key (SPKI DER, base64). Sent to mobile for ECDH.
     pub dh_pubkey_base64: Option<String>,
-    /// Pre-exported AES key bytes from CryptoService (set after key exchange on main thread).
-    /// If None, messages are sent in plaintext.
-    pub shared_key: Option<[u8; 32]>,
+    /// Watch channel receiver for the derived AES key bytes (set by main thread after key exchange).
+    pub key_rx: tokio::sync::watch::Receiver<Option<[u8; 32]>>,
 }
 
 /// Run the relay client with auto-reconnect.
@@ -136,13 +136,25 @@ async fn relay_session(
         }
     }
 
-    // The cipher gets set after key exchange completes.
-    let mut cipher: Option<RelayCipher> = config.shared_key.map(RelayCipher::new);
+    // The cipher gets set after key exchange completes via the watch channel.
+    let mut cipher: Option<RelayCipher> = None;
+    let mut key_rx = config.key_rx.clone();
 
     // 3. Forwarding loop
     loop {
         tokio::select! {
-            // PTY output → encrypt (or plaintext) → send to relay
+            // Watch for derived key from main thread
+            result = key_rx.changed() => {
+                if result.is_ok() {
+                    if let Some(key_bytes) = *key_rx.borrow() {
+                        tracing::info!("Received derived key, encryption enabled");
+                        cipher = Some(RelayCipher::new(key_bytes));
+                        let _ = event_tx.send(RelayEvent::Encrypted);
+                    }
+                }
+            }
+
+            // PTY output → encrypt → send to relay (drop if no cipher)
             msg = broadcast_rx.recv() => {
                 match msg {
                     Ok(server_msg) => {
@@ -150,14 +162,15 @@ async fn relay_session(
                             match c.encrypt_server_message(&server_msg) {
                                 Ok(env) => env,
                                 Err(e) => {
-                                    tracing::warn!(error = %e, "Encryption failed, sending plaintext");
-                                    let payload = serde_json::to_string(&server_msg).unwrap();
-                                    RelayEnvelope::Plaintext { payload }
+                                    tracing::warn!(error = %e, "Encryption failed, dropping message");
+                                    continue;
                                 }
                             }
                         } else {
-                            let payload = serde_json::to_string(&server_msg).unwrap();
-                            RelayEnvelope::Plaintext { payload }
+                            // No cipher yet — drop the message.
+                            // Key exchange should complete within milliseconds.
+                            tracing::trace!("No cipher yet, dropping outbound message");
+                            continue;
                         };
                         let json = serde_json::to_string(&envelope).unwrap();
                         if sink.send(Message::Text(json.into())).await.is_err() {
@@ -215,15 +228,10 @@ async fn relay_session(
                                     handle_client_message(&payload, cmd_tx);
                                 }
                                 RelayEnvelope::KeyExchange { dh_pubkey } => {
-                                    tracing::info!("Received mobile DH pubkey, deriving shared key");
-                                    // Derive shared key using ECDH
-                                    // This is sent back to main thread which calls CryptoService
-                                    let _ = event_tx.send(RelayEvent::Error(
-                                        format!("key_exchange:{dh_pubkey}")
-                                    ));
-                                    // For now, the main thread handles key derivation
-                                    // and sends back the key via a separate channel.
-                                    // TODO: In a future refactor, pass CryptoService handle.
+                                    tracing::info!("Received mobile DH pubkey");
+                                    let _ = event_tx.send(RelayEvent::KeyExchange {
+                                        dh_pubkey,
+                                    });
                                 }
                                 RelayEnvelope::Encrypted { iv, ct } => {
                                     if let Some(ref c) = cipher {

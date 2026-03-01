@@ -22,6 +22,7 @@ mod tests {
         let mut chrome = UiChrome::new();
         chrome.set_tabs(
             vec![Tab {
+                pane_id: 1,
                 title: "Tab 1".into(),
                 is_active: true,
             }],
@@ -100,14 +101,17 @@ mod tests {
         chrome.set_tabs(
             vec![
                 Tab {
+                    pane_id: 1,
                     title: "A".into(),
                     is_active: false,
                 },
                 Tab {
+                    pane_id: 2,
                     title: "B".into(),
                     is_active: false,
                 },
                 Tab {
+                    pane_id: 3,
                     title: "C".into(),
                     is_active: false,
                 },
@@ -126,6 +130,7 @@ mod tests {
         let mut chrome = UiChrome::new();
         chrome.set_tabs(
             vec![Tab {
+                pane_id: 1,
                 title: "Only".into(),
                 is_active: false,
             }],
@@ -169,6 +174,7 @@ mod tests {
         let mut chrome = UiChrome::new();
         chrome.set_tabs(
             vec![Tab {
+                pane_id: 1,
                 title: "T".into(),
                 is_active: true,
             }],

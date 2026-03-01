@@ -28,7 +28,9 @@ impl JarvisApp {
 
         let pairing_url = format!(
             "jarvis://pair?relay={}&session={}&dhpub={}",
-            relay_url, session_id, dh_pubkey,
+            relay_url,
+            session_id,
+            urlencoding::encode(&dh_pubkey),
         );
 
         // Generate QR code as Unicode half-block characters.
@@ -58,6 +60,9 @@ impl JarvisApp {
                 let _ = handle.send_ipc("pty_output", &payload);
             }
         }
+
+        // Remember which pane showed the QR so we can clear it on pairing success.
+        self.pairing_pane_id = Some(pane_id);
 
         tracing::info!(
             session_id = %session_id,

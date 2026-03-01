@@ -27,8 +27,21 @@ fn panel_url(kind: PaneKind) -> &'static str {
 // =============================================================================
 
 /// Compute the tiling viewport from window dimensions, accounting for
-/// the custom titlebar height (macOS) at the top and status bar at the bottom.
-fn tiling_viewport(config: &jarvis_config::schema::JarvisConfig, width: f64, height: f64) -> Rect {
+/// the custom titlebar height (macOS) at the top, the tab bar, and the
+/// status bar at the bottom.
+fn tiling_viewport(
+    config: &jarvis_config::schema::JarvisConfig,
+    chrome: &jarvis_renderer::UiChrome,
+    width: f64,
+    height: f64,
+) -> Rect {
+    // Use content_rect when chrome has tab/status bar info, otherwise
+    // fall back to config-based offsets.
+    let has_chrome = chrome.tab_bar.is_some() || chrome.status_bar.is_some();
+    if has_chrome {
+        return chrome.content_rect(width as f32, height as f32);
+    }
+
     let top_offset = if cfg!(target_os = "macos") {
         config.window.titlebar_height as f64
     } else {
@@ -83,6 +96,7 @@ impl JarvisApp {
         let window_size = window.inner_size();
         let viewport = tiling_viewport(
             &self.config,
+            &self.chrome,
             window_size.width as f64 / scale_factor,
             window_size.height as f64 / scale_factor,
         );
@@ -130,6 +144,7 @@ impl JarvisApp {
         let window_size = window.inner_size();
         let viewport = tiling_viewport(
             &self.config,
+            &self.chrome,
             window_size.width as f64 / scale_factor,
             window_size.height as f64 / scale_factor,
         );
@@ -270,6 +285,7 @@ impl JarvisApp {
         let logical_height = physical_size.height as f64 / scale_factor;
         let viewport = tiling_viewport(
             &self.config,
+            &self.chrome,
             logical_width,
             logical_height,
         );

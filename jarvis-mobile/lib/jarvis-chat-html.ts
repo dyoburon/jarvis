@@ -490,6 +490,9 @@ var CONFIG = {
   CHANNELS: [
     { id: 'jarvis-livechat', name: 'general', type: 'channel' },
     { id: 'jarvis-livechat-discord', name: 'discord', type: 'channel' },
+    { id: 'jarvis-livechat-showoff', name: 'showoff', type: 'channel' },
+    { id: 'jarvis-livechat-help', name: 'help', type: 'channel' },
+    { id: 'jarvis-livechat-random', name: 'random', type: 'channel' },
   ],
   DEFAULT_CHANNEL: 'jarvis-livechat',
   MAX_MSG_LEN: 500,
@@ -1050,7 +1053,9 @@ var Chat = {
 
   start: async function(nickname) {
     if (typeof supabase === 'undefined' || !supabase.createClient) {
-      UI.addSystemMessage('Error: Supabase library failed to load. Check your connection.', 'leave');
+      var errEl = _$('#nick-panel p');
+      errEl.textContent = 'Supabase library failed to load. Check connection & retry.';
+      errEl.style.color = 'var(--color-error)';
       return;
     }
 
@@ -1119,6 +1124,7 @@ var Chat = {
     var self = this;
 
     sub.on('broadcast', { event: 'message' }, function(payload) {
+      console.log('[chat-debug] broadcast received on', channelId, 'payload keys:', payload ? Object.keys(payload) : 'null');
       self._onChannelMessage(channelId, payload.payload);
     });
 
@@ -1160,6 +1166,7 @@ var Chat = {
     }, 10000);
 
     sub.subscribe(async function(status) {
+      console.log('[chat-debug] channel', channelId, 'subscribe status:', status);
       if (status === 'SUBSCRIBED') {
         connected = true;
         clearTimeout(connectTimeout);
@@ -1205,8 +1212,9 @@ var Chat = {
   },
 
   _onChannelMessage: async function(channelId, payload) {
-    if (!payload || !payload.iv || !payload.ct) return;
-    if (payload.userId === this.userId) return;
+    console.log('[chat-debug] _onChannelMessage called, channel:', channelId, 'has payload:', !!payload, 'has iv:', !!(payload && payload.iv), 'has ct:', !!(payload && payload.ct));
+    if (!payload || !payload.iv || !payload.ct) { console.warn('[chat-debug] DROP: missing payload/iv/ct'); return; }
+    if (payload.userId === this.userId) { console.log('[chat-debug] DROP: self-message'); return; }
 
     var plaintext;
     try {
@@ -1216,7 +1224,8 @@ var Chat = {
         var key = await this._deriveKeyForChannel(channelId);
         plaintext = await Crypto.decrypt(payload.iv, payload.ct, key);
       }
-    } catch (err) { return; }
+      console.log('[chat-debug] decrypt OK, plaintext length:', plaintext.length);
+    } catch (err) { console.error('[chat-debug] DROP: decrypt failed:', err.message || err); return; }
 
     var isImage = isImageDataUrl(plaintext);
     if (!isImage) {
@@ -1372,7 +1381,15 @@ var Chat = {
     var activeSub = this._channels.get(this._activeChannelId);
     if (!activeSub || !activeSub.sub) { UI.addSystemMessage('Not connected to channel.', 'leave'); return; }
 
-    await activeSub.sub.send({ type: 'broadcast', event: 'message', payload: payload });
+    console.log('[chat-debug] sending broadcast on', this._activeChannelId);
+    try {
+      var sendResult = await activeSub.sub.send({ type: 'broadcast', event: 'message', payload: payload });
+      console.log('[chat-debug] send result:', sendResult);
+    } catch (sendErr) {
+      console.error('[chat-debug] send FAILED:', sendErr.message || sendErr);
+      UI.addSystemMessage('Send failed: ' + (sendErr.message || 'unknown error'), 'leave');
+      return;
+    }
 
     var msgType = isImage ? 'image' : 'msg';
     var msgObj = { nick: this.nick, text: text, time: formatTime(ts), color: nickColor(this.nick), verifyStatus: 'self', type: msgType };
@@ -1662,8 +1679,15 @@ document.addEventListener('DOMContentLoaded', function() {
       UI.addSystemMessage('Nickname can only contain letters, numbers, spaces, dashes, and underscores.', 'leave');
       return;
     }
-    if (Chat._primaryChannel) Chat.changeNick(nick);
-    else Chat.start(nick);
+    var p = Chat._primaryChannel ? Chat.changeNick(nick) : Chat.start(nick);
+    if (p && typeof p.catch === 'function') {
+      p.catch(function(err) {
+        var errEl = _$('#nick-panel p');
+        errEl.textContent = 'Error: ' + (err && err.message || 'Failed to connect');
+        errEl.style.color = 'var(--color-error)';
+        UI.showNickOverlay();
+      });
+    }
   };
 
   _$('#nick-join-btn').addEventListener('click', joinChat);

@@ -25,6 +25,7 @@ impl Action {
             Action::OpenSettings => "Open Settings",
             Action::CloseOverlay => "Close Overlay",
             Action::OpenAssistant => "Open Assistant",
+            Action::OpenChat => "Open Chat",
             Action::PushToTalk => "Push to Talk",
             Action::ReleasePushToTalk => "Release Push to Talk",
             Action::ScrollUp(_) => "Scroll Up",
@@ -59,6 +60,7 @@ impl Action {
                 }
             }
             Action::PairMobile => "Pair Mobile Device",
+            Action::RevokeMobilePairing => "Revoke Mobile Pairing",
             Action::ReloadConfig => "Reload Config",
             Action::None => "None",
         }
@@ -77,6 +79,7 @@ impl Action {
             Action::ToggleFullscreen,
             Action::OpenSettings,
             Action::OpenAssistant,
+            Action::OpenChat,
             Action::Copy,
             Action::Paste,
             Action::SelectAll,
@@ -94,6 +97,7 @@ impl Action {
             Action::LaunchGame("subway".into()),
             Action::OpenURL("https://kartbros.io".into()),
             Action::PairMobile,
+            Action::RevokeMobilePairing,
             Action::ReloadConfig,
             Action::Quit,
         ]

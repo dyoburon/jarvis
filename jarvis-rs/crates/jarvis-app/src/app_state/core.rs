@@ -73,6 +73,8 @@ pub struct JarvisApp {
     pub(super) relay_session_id: Option<String>,
     pub(super) relay_peer_connected: bool,
     pub(super) relay_shutdown_tx: Option<tokio::sync::mpsc::Sender<()>>,
+    pub(super) relay_key_tx: Option<tokio::sync::watch::Sender<Option<[u8; 32]>>>,
+    pub(super) pairing_pane_id: Option<u32>,
 
     // Crypto service (identity + encryption)
     pub(super) crypto: Option<jarvis_platform::CryptoService>,
@@ -91,6 +93,9 @@ pub struct JarvisApp {
     // Mouse cursor position and drag resize state
     pub(super) cursor_pos: (f64, f64),
     pub(super) drag_state: Option<super::resize_drag::DragState>,
+
+    // Active game: (pane_id, original_url_before_game)
+    pub(super) game_active: Option<(u32, String)>,
 }
 
 impl JarvisApp {
@@ -131,6 +136,8 @@ impl JarvisApp {
             relay_session_id: None,
             relay_peer_connected: false,
             relay_shutdown_tx: None,
+            relay_key_tx: None,
+            pairing_pane_id: None,
             crypto: None,
             boot: None,
             boot_webview_active: false,
@@ -139,6 +146,7 @@ impl JarvisApp {
             last_poll: Instant::now(),
             cursor_pos: (0.0, 0.0),
             drag_state: None,
+            game_active: None,
         }
     }
 }

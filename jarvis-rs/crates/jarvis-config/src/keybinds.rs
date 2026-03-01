@@ -13,6 +13,7 @@ pub fn all_keybinds(config: &KeybindConfig) -> Vec<(&str, &str)> {
         ("close_panel", &config.close_panel),
         ("toggle_fullscreen", &config.toggle_fullscreen),
         ("open_settings", &config.open_settings),
+        ("open_chat", &config.open_chat),
         ("focus_panel_1", &config.focus_panel_1),
         ("focus_panel_2", &config.focus_panel_2),
         ("focus_panel_3", &config.focus_panel_3),
@@ -55,10 +56,10 @@ mod tests {
     }
 
     #[test]
-    fn all_keybinds_returns_17_entries() {
+    fn all_keybinds_returns_18_entries() {
         let config = KeybindConfig::default();
         let binds = all_keybinds(&config);
-        assert_eq!(binds.len(), 17);
+        assert_eq!(binds.len(), 18);
     }
 
     #[test]

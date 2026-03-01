@@ -22,6 +22,8 @@ pub struct PaneBorder {
 /// A single tab in the tab bar.
 #[derive(Debug, Clone)]
 pub struct Tab {
+    /// The pane ID this tab represents (used for click-to-focus).
+    pub pane_id: u32,
     /// Display title for the tab.
     pub title: String,
     /// Whether this tab is the currently active one.

@@ -120,6 +120,11 @@ impl TilingManager {
             .map(|(id, _)| *id)
             .collect()
     }
+
+    /// Return pane IDs in depth-first left-to-right order (matches visual layout).
+    pub fn ordered_pane_ids(&self) -> Vec<u32> {
+        self.tree.collect_pane_ids()
+    }
 }
 
 impl Default for TilingManager {

@@ -1,3 +1,5 @@
+import { createRelayCipher, type RelayCipher } from './crypto';
+
 export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'error';
 
 export interface RelayConnectionCallbacks {
@@ -52,12 +54,20 @@ export class RelayConnection implements IRelayConnection {
   private relayUrl = '';
   private sessionId = '';
   private peerConnected = false;
+  private desktopDhPubkey: string | undefined;
+  private cipher: RelayCipher | null = null;
+  private pendingMessages: object[] = [];
+  private backoff = 1000;
+  private static readonly MAX_BACKOFF = 30000;
 
   connect(pairingData: string, callbacks: RelayConnectionCallbacks): void {
     const parsed = parsePairingData(pairingData);
     this.relayUrl = parsed.relayUrl;
     this.sessionId = parsed.sessionId;
+    this.desktopDhPubkey = parsed.dhPubkey;
     this.callbacks = callbacks;
+    this.cipher = null;
+    this.pendingMessages = [];
     this.status = 'connecting';
     this.peerConnected = false;
     callbacks.onStatusChange('connecting', 'connecting to relay...');
@@ -73,6 +83,7 @@ export class RelayConnection implements IRelayConnection {
     }
 
     this.ws.onopen = () => {
+      this.backoff = 1000; // Reset backoff on successful connection
       // Send mobile_hello to join the session
       this.ws!.send(JSON.stringify({
         type: 'mobile_hello',
@@ -90,22 +101,24 @@ export class RelayConnection implements IRelayConnection {
     };
 
     this.ws.onerror = () => {
-      if (this.status === 'connecting') {
-        this.handleError('connection to relay failed');
-      }
+      // onerror is always followed by onclose — let onclose handle retry logic
     };
 
     this.ws.onclose = () => {
       this.stopPing();
+      this.cipher = null;
+      this.pendingMessages = [];
+      if (this.status === 'disconnected') return;
+
       if (this.status === 'connected' || this.peerConnected) {
-        this.status = 'connecting';
-        this.peerConnected = false;
-        this.callbacks?.onStatusChange('connecting', 'reconnecting to relay...');
         this.callbacks?.onOutput('\r\n\x1b[33m[connection lost, reconnecting...]\x1b[0m\r\n');
-        this.scheduleReconnect();
-      } else if (this.status !== 'disconnected') {
-        this.handleError('relay connection closed');
+      } else {
+        this.callbacks?.onOutput('\x1b[33m[relay unavailable, retrying...]\x1b[0m\r\n');
       }
+      this.status = 'connecting';
+      this.peerConnected = false;
+      this.callbacks?.onStatusChange('connecting', 'reconnecting to relay...');
+      this.scheduleReconnect();
     };
   }
 
@@ -119,33 +132,80 @@ export class RelayConnection implements IRelayConnection {
 
       case 'peer_connected':
         this.peerConnected = true;
-        this.status = 'connected';
-        this.callbacks?.onStatusChange('connected', 'connected to desktop');
-        this.callbacks?.onOutput('\x1b[32m  desktop connected!\x1b[0m\r\n\r\n');
+        this.callbacks?.onOutput('\x1b[36m  desktop connected, establishing encryption...\x1b[0m\r\n');
+        this.initiateKeyExchange();
         break;
 
       case 'peer_disconnected':
         this.peerConnected = false;
+        this.cipher = null;
+        this.pendingMessages = [];
         this.callbacks?.onOutput('\r\n\x1b[33m[desktop disconnected]\x1b[0m\r\n');
         this.callbacks?.onStatusChange('connecting', 'waiting for desktop...');
         break;
 
       case 'error':
-        this.handleError(msg.message || 'relay error');
+        // "mobile already connected" means the relay hasn't cleaned up our old
+        // session yet — it will close the socket and we'll retry via onclose.
+        this.callbacks?.onOutput(`\x1b[31m[relay error: ${msg.message}]\x1b[0m\r\n`);
         break;
 
       // Forwarded messages from desktop (inside relay envelope)
       case 'plaintext':
-        this.handleDesktopMessage(msg.payload);
+        // Reject plaintext if encryption is established (no downgrade)
+        if (!this.cipher) {
+          this.handleDesktopMessage(msg.payload);
+        }
         break;
 
       case 'encrypted':
-        // Phase 3: decrypt msg.iv + msg.ct, then handle inner message
+        if (this.cipher) {
+          this.cipher.decrypt(msg.iv, msg.ct).then((plaintext) => {
+            this.handleDesktopMessage(plaintext);
+          }).catch((e) => {
+            console.warn('Decryption failed:', e);
+          });
+        }
         break;
 
       case 'key_exchange':
-        // Phase 3: handle key exchange
+        // Desktop sends its DH pubkey (redundant if we got it from QR,
+        // but handles the case where pairing data didn't include it)
+        if (msg.dh_pubkey && !this.desktopDhPubkey) {
+          this.desktopDhPubkey = msg.dh_pubkey;
+          this.initiateKeyExchange();
+        }
         break;
+    }
+  }
+
+  private async initiateKeyExchange(): Promise<void> {
+    if (!this.desktopDhPubkey) return;
+    if (this.cipher) return; // Already established
+
+    try {
+      const cipher = await createRelayCipher(this.desktopDhPubkey);
+      this.cipher = cipher;
+
+      // Send our ephemeral pubkey to desktop
+      this.ws?.send(JSON.stringify({
+        type: 'key_exchange',
+        dh_pubkey: cipher.myPubkeyBase64,
+      }));
+
+      // Mark as fully connected
+      this.status = 'connected';
+      this.callbacks?.onStatusChange('connected', 'encrypted connection established');
+      this.callbacks?.onOutput('\x1b[32m  encryption established!\x1b[0m\r\n\r\n');
+
+      // Flush queued messages
+      for (const msg of this.pendingMessages) {
+        await this.sendEnvelope(msg);
+      }
+      this.pendingMessages = [];
+    } catch (e) {
+      console.error('Key exchange failed:', e);
+      this.handleError(`encryption setup failed: ${e}`);
     }
   }
 
@@ -174,11 +234,13 @@ export class RelayConnection implements IRelayConnection {
   }
 
   private scheduleReconnect(): void {
+    const delay = this.backoff;
+    this.backoff = Math.min(this.backoff * 2, RelayConnection.MAX_BACKOFF);
     this.reconnectTimer = setTimeout(() => {
       if (this.status === 'connecting') {
         this.openSocket();
       }
-    }, 2000);
+    }, delay);
   }
 
   private startPing(): void {
@@ -196,17 +258,30 @@ export class RelayConnection implements IRelayConnection {
     }
   }
 
-  /** Wrap a PTY message in a relay envelope and send. */
-  private sendEnvelope(innerMsg: object): void {
+  /** Wrap a PTY message in a relay envelope and send (encrypted). */
+  private async sendEnvelope(innerMsg: object): Promise<void> {
     if (this.ws?.readyState !== WebSocket.OPEN || !this.peerConnected) return;
+
+    if (!this.cipher) {
+      // Key exchange in progress — queue the message
+      this.pendingMessages.push(innerMsg);
+      return;
+    }
+
     const payload = JSON.stringify(innerMsg);
-    // For now, send plaintext. Phase 3 will encrypt.
-    this.ws.send(JSON.stringify({ type: 'plaintext', payload }));
+    try {
+      const { iv, ct } = await this.cipher.encrypt(payload);
+      this.ws.send(JSON.stringify({ type: 'encrypted', iv, ct }));
+    } catch (e) {
+      console.error('Encryption failed:', e);
+    }
   }
 
   disconnect(): void {
     this.status = 'disconnected';
     this.peerConnected = false;
+    this.cipher = null;
+    this.pendingMessages = [];
     this.stopPing();
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);

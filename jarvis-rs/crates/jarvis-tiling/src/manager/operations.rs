@@ -1,6 +1,6 @@
 //! Split, close, resize, and swap operations on the TilingManager.
 
-use jarvis_common::types::{PaneId, PaneKind};
+use jarvis_common::types::{PaneId, PaneKind, Rect};
 
 use crate::pane::Pane;
 use crate::tree::Direction;
@@ -8,6 +8,21 @@ use crate::tree::Direction;
 use super::TilingManager;
 
 impl TilingManager {
+    /// Choose the optimal split direction based on the focused pane's aspect ratio.
+    /// Wide panes split horizontally (side-by-side), tall panes split vertically.
+    pub fn auto_split_direction(&self, viewport: Rect) -> Direction {
+        let layout = self.compute_layout(viewport);
+        let focused_rect = layout
+            .iter()
+            .find(|(id, _)| *id == self.focused)
+            .map(|(_, r)| r);
+        match focused_rect {
+            Some(r) if r.width >= r.height => Direction::Horizontal,
+            Some(_) => Direction::Vertical,
+            None => Direction::Horizontal,
+        }
+    }
+
     /// Split the focused pane, creating a new terminal pane.
     pub fn split(&mut self, direction: Direction) -> bool {
         // Unzoom first

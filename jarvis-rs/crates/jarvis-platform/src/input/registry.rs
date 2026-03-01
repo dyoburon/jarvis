@@ -29,6 +29,7 @@ impl KeybindRegistry {
             (&config.close_panel, Action::ClosePane),
             (&config.toggle_fullscreen, Action::ToggleFullscreen),
             (&config.open_settings, Action::OpenSettings),
+            (&config.open_chat, Action::OpenChat),
             (&config.focus_panel_1, Action::FocusPane(1)),
             (&config.focus_panel_2, Action::FocusPane(2)),
             (&config.focus_panel_3, Action::FocusPane(3)),

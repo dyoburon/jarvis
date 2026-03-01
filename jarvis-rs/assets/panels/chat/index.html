@@ -1642,6 +1642,7 @@ const Chat = {
 
     // Broadcast listener
     sub.on('broadcast', { event: 'message' }, function(payload) {
+      console.log('[chat-debug] broadcast received on', channelId, 'payload keys:', payload ? Object.keys(payload) : 'null');
       self._onChannelMessage(channelId, payload.payload);
     });
 
@@ -1689,6 +1690,7 @@ const Chat = {
     }, 10000);
 
     sub.subscribe(async function(status) {
+      console.log('[chat-debug] channel', channelId, 'subscribe status:', status);
       if (status === 'SUBSCRIBED') {
         connected = true;
         clearTimeout(connectTimeout);
@@ -1740,8 +1742,9 @@ const Chat = {
 
   /** Unified message handler for all channels. */
   async _onChannelMessage(channelId, payload) {
-    if (!payload || !payload.iv || !payload.ct) return;
-    if (payload.userId === this.userId) return;
+    console.log('[chat-debug] _onChannelMessage called, channel:', channelId, 'has payload:', !!payload, 'has iv:', !!(payload && payload.iv), 'has ct:', !!(payload && payload.ct));
+    if (!payload || !payload.iv || !payload.ct) { console.warn('[chat-debug] DROP: missing payload/iv/ct'); return; }
+    if (payload.userId === this.userId) { console.log('[chat-debug] DROP: self-message'); return; }
 
     // Decrypt with the correct key for this channel
     var plaintext;
@@ -1752,7 +1755,9 @@ const Chat = {
         var key = await this._deriveKeyForChannel(channelId);
         plaintext = await Crypto.decrypt(payload.iv, payload.ct, key);
       }
+      console.log('[chat-debug] decrypt OK, plaintext length:', plaintext.length);
     } catch (err) {
+      console.error('[chat-debug] DROP: decrypt failed:', err.message || err);
       return;
     }
 
@@ -1993,11 +1998,19 @@ const Chat = {
       return;
     }
 
-    await activeSub.sub.send({
-      type: 'broadcast',
-      event: 'message',
-      payload: payload,
-    });
+    console.log('[chat-debug] sending broadcast on', this._activeChannelId, 'payload keys:', Object.keys(payload));
+    try {
+      var sendResult = await activeSub.sub.send({
+        type: 'broadcast',
+        event: 'message',
+        payload: payload,
+      });
+      console.log('[chat-debug] send result:', sendResult);
+    } catch (sendErr) {
+      console.error('[chat-debug] send FAILED:', sendErr.message || sendErr);
+      UI.addSystemMessage('Send failed: ' + (sendErr.message || 'unknown error'), 'leave');
+      return;
+    }
 
     // Store in local history
     var msgType = isImage ? 'image' : 'msg';
