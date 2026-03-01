@@ -5,6 +5,14 @@
 
 use serde::{Deserialize, Serialize};
 
+/// Pane metadata sent to mobile clients.
+#[derive(Debug, Clone, Serialize)]
+pub struct PaneInfo {
+    pub id: u32,
+    pub kind: String,
+    pub title: String,
+}
+
 /// Messages sent from desktop to mobile.
 #[derive(Debug, Clone, Serialize)]
 #[serde(tag = "type")]
@@ -14,6 +22,9 @@ pub enum ServerMessage {
 
     #[serde(rename = "pty_exit")]
     PtyExit { pane_id: u32, code: u32 },
+
+    #[serde(rename = "pane_list")]
+    PaneList { panes: Vec<PaneInfo>, focused_id: u32 },
 }
 
 /// Messages received from mobile.

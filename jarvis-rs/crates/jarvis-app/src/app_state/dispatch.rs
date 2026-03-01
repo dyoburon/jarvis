@@ -237,6 +237,7 @@ impl JarvisApp {
             }
             Action::OpenURL(ref url) => {
                 let pane_id = self.tiling.focused_id();
+                let is_kartbros = url.contains("kartbros");
                 if let Some(ref mut registry) = self.webviews {
                     if let Some(handle) = registry.get_mut(pane_id) {
                         let original_url = handle.current_url().to_string();
@@ -245,6 +246,25 @@ impl JarvisApp {
                         } else {
                             tracing::info!(pane_id, url = %url, "URL opened");
                             self.game_active = Some((pane_id, original_url));
+                            // KartBros: crop viewport to center game content,
+                            // pushing side ad columns out of view (matches metal version).
+                            if is_kartbros {
+                                let _ = handle.evaluate_script(concat!(
+                                    "(function(){",
+                                      "function crop(){",
+                                        "var s=document.createElement('style');",
+                                        "s.id='_jv_kb_crop';",
+                                        "s.textContent='html{overflow:hidden!important}",
+                                        "body{transform:scale(1.4)!important;",
+                                        "transform-origin:top center!important;",
+                                        "overflow:hidden!important}';",
+                                        "(document.head||document.documentElement).appendChild(s);",
+                                      "}",
+                                      "if(document.head)crop();",
+                                      "else document.addEventListener(\"DOMContentLoaded\",crop);",
+                                    "})();"
+                                ));
+                            }
                         }
                     }
                 }

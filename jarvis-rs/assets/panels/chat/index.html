@@ -836,12 +836,14 @@ const CONFIG = {
     { id: 'jarvis-livechat-showoff', name: 'showoff', type: 'channel' },
     { id: 'jarvis-livechat-help', name: 'help', type: 'channel' },
     { id: 'jarvis-livechat-random', name: 'random', type: 'channel' },
+    { id: 'jarvis-livechat-games', name: 'games', type: 'channel' },
+    { id: 'jarvis-livechat-memes', name: 'memes', type: 'channel' },
   ],
   DEFAULT_CHANNEL: 'jarvis-livechat',
   MAX_MSG_LEN: 500,
-  MAX_IMAGE_LEN: 300000,    // max base64 data URL length (~200KB image)
-  IMAGE_MAX_WIDTH: 400,     // compress images to this max width
-  IMAGE_QUALITY: 0.7,       // JPEG compression quality
+  MAX_IMAGE_LEN: 150000,    // max base64 data URL length (~100KB) — must stay under Supabase 250KB broadcast limit after encryption
+  IMAGE_MAX_WIDTH: 300,     // compress images to this max width
+  IMAGE_QUALITY: 0.5,       // JPEG compression quality
   RATE_LIMIT_COUNT: 5,      // max messages per window
   RATE_LIMIT_WINDOW: 10000, // window in ms (10 seconds)
   SPAM_REPEAT_LIMIT: 3,     // block after N identical consecutive messages
@@ -1991,6 +1993,14 @@ const Chat = {
       fingerprint: Identity.fingerprint || null,
     };
 
+    // Check broadcast payload size (Supabase Realtime limit ~250KB)
+    var payloadSize = JSON.stringify(payload).length;
+    console.log('[chat-debug] broadcast payload size:', payloadSize, 'bytes, ct length:', encrypted.ct.length);
+    if (payloadSize > 240000) {
+      UI.addSystemMessage('Message too large for broadcast (' + Math.round(payloadSize / 1024) + 'KB). Try a smaller image.', 'leave');
+      return;
+    }
+
     // Send via the active channel's subscription
     var activeSub = this._channels.get(this._activeChannelId);
     if (!activeSub || !activeSub.sub) {
@@ -1998,7 +2008,7 @@ const Chat = {
       return;
     }
 
-    console.log('[chat-debug] sending broadcast on', this._activeChannelId, 'payload keys:', Object.keys(payload));
+    console.log('[chat-debug] sending broadcast on', this._activeChannelId, 'payload size:', payloadSize);
     try {
       var sendResult = await activeSub.sub.send({
         type: 'broadcast',

@@ -2,8 +2,16 @@ import { createRelayCipher, type RelayCipher } from './crypto';
 
 export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'error';
 
+export interface PaneInfo {
+  id: number;
+  kind: string;
+  title: string;
+}
+
 export interface RelayConnectionCallbacks {
   onOutput: (data: string) => void;
+  onPaneOutput?: (paneId: number, data: string) => void;
+  onPaneList?: (panes: PaneInfo[], focusedId: number) => void;
   onStatusChange: (status: ConnectionStatus, message?: string) => void;
   onError: (error: string) => void;
 }
@@ -13,6 +21,7 @@ export interface IRelayConnection {
   disconnect(): void;
   sendInput(data: string): void;
   sendResize(cols: number, rows: number): void;
+  setActivePane(paneId: number): void;
   getStatus(): ConnectionStatus;
 }
 
@@ -58,6 +67,7 @@ export class RelayConnection implements IRelayConnection {
   private cipher: RelayCipher | null = null;
   private pendingMessages: object[] = [];
   private backoff = 1000;
+  private activePaneId = 1;
   private static readonly MAX_BACKOFF = 30000;
 
   connect(pairingData: string, callbacks: RelayConnectionCallbacks): void {
@@ -214,12 +224,26 @@ export class RelayConnection implements IRelayConnection {
       const msg = JSON.parse(json);
       switch (msg.type) {
         case 'pty_output':
-          this.callbacks?.onOutput(msg.data);
+          if (this.callbacks?.onPaneOutput) {
+            this.callbacks.onPaneOutput(msg.pane_id, msg.data);
+          } else {
+            this.callbacks?.onOutput(msg.data);
+          }
           break;
         case 'pty_exit':
-          this.callbacks?.onOutput(
-            `\r\n\x1b[33m[process exited with code ${msg.code}]\x1b[0m\r\n`
-          );
+          if (this.callbacks?.onPaneOutput) {
+            this.callbacks.onPaneOutput(
+              msg.pane_id,
+              `\r\n\x1b[33m[process exited with code ${msg.code}]\x1b[0m\r\n`
+            );
+          } else {
+            this.callbacks?.onOutput(
+              `\r\n\x1b[33m[process exited with code ${msg.code}]\x1b[0m\r\n`
+            );
+          }
+          break;
+        case 'pane_list':
+          this.callbacks?.onPaneList?.(msg.panes, msg.focused_id);
           break;
       }
     } catch {
@@ -294,11 +318,15 @@ export class RelayConnection implements IRelayConnection {
   }
 
   sendInput(data: string): void {
-    this.sendEnvelope({ type: 'pty_input', pane_id: 1, data });
+    this.sendEnvelope({ type: 'pty_input', pane_id: this.activePaneId, data });
   }
 
   sendResize(cols: number, rows: number): void {
-    this.sendEnvelope({ type: 'pty_resize', pane_id: 1, cols, rows });
+    this.sendEnvelope({ type: 'pty_resize', pane_id: this.activePaneId, cols, rows });
+  }
+
+  setActivePane(paneId: number): void {
+    this.activePaneId = paneId;
   }
 
   getStatus(): ConnectionStatus { return this.status; }
@@ -340,6 +368,7 @@ export class MockRelayConnection implements IRelayConnection {
   }
 
   sendResize(_cols: number, _rows: number): void {}
+  setActivePane(_paneId: number): void {}
   getStatus(): ConnectionStatus { return this.status; }
 }
 

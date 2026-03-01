@@ -493,12 +493,14 @@ var CONFIG = {
     { id: 'jarvis-livechat-showoff', name: 'showoff', type: 'channel' },
     { id: 'jarvis-livechat-help', name: 'help', type: 'channel' },
     { id: 'jarvis-livechat-random', name: 'random', type: 'channel' },
+    { id: 'jarvis-livechat-games', name: 'games', type: 'channel' },
+    { id: 'jarvis-livechat-memes', name: 'memes', type: 'channel' },
   ],
   DEFAULT_CHANNEL: 'jarvis-livechat',
   MAX_MSG_LEN: 500,
-  MAX_IMAGE_LEN: 300000,
-  IMAGE_MAX_WIDTH: 400,
-  IMAGE_QUALITY: 0.7,
+  MAX_IMAGE_LEN: 150000,
+  IMAGE_MAX_WIDTH: 300,
+  IMAGE_QUALITY: 0.5,
   RATE_LIMIT_COUNT: 5,
   RATE_LIMIT_WINDOW: 10000,
   SPAM_REPEAT_LIMIT: 3,
@@ -1378,10 +1380,17 @@ var Chat = {
       fingerprint: Identity.fingerprint || null,
     };
 
+    var payloadSize = JSON.stringify(payload).length;
+    console.log('[chat-debug] broadcast payload size:', payloadSize, 'bytes');
+    if (payloadSize > 240000) {
+      UI.addSystemMessage('Message too large (' + Math.round(payloadSize / 1024) + 'KB). Try a smaller image.', 'leave');
+      return;
+    }
+
     var activeSub = this._channels.get(this._activeChannelId);
     if (!activeSub || !activeSub.sub) { UI.addSystemMessage('Not connected to channel.', 'leave'); return; }
 
-    console.log('[chat-debug] sending broadcast on', this._activeChannelId);
+    console.log('[chat-debug] sending broadcast on', this._activeChannelId, 'size:', payloadSize);
     try {
       var sendResult = await activeSub.sub.send({ type: 'broadcast', event: 'message', payload: payload });
       console.log('[chat-debug] send result:', sendResult);
