@@ -5,7 +5,8 @@ use crate::{AiError, AiResponse, Message, Role, TokenUsage, ToolCall, ToolDefini
 
 use super::config::ClaudeConfig;
 
-pub(crate) const CLAUDE_API_URL: &str = "https://api.anthropic.com/v1/messages";
+pub(crate) const ANTHROPIC_API_URL: &str = "https://api.anthropic.com/v1/messages";
+pub(crate) const CLAUDE_OAUTH_API_URL: &str = "https://api.claude.ai/v1/messages";
 pub(crate) const ANTHROPIC_VERSION: &str = "2023-06-01";
 
 /// Claude API client.
@@ -24,6 +25,40 @@ impl ClaudeClient {
                 .build()
                 .expect("failed to build HTTP client"),
         }
+    }
+
+    /// Return the API URL for the configured auth method.
+    pub(crate) fn api_url(&self) -> &'static str {
+        match self.config.auth_method {
+            super::config::AuthMethod::ApiKey => ANTHROPIC_API_URL,
+            super::config::AuthMethod::OAuth => CLAUDE_OAUTH_API_URL,
+        }
+    }
+
+    /// Build auth headers for the configured auth method.
+    pub(crate) fn auth_headers(&self) -> reqwest::header::HeaderMap {
+        let mut headers = reqwest::header::HeaderMap::new();
+        match self.config.auth_method {
+            super::config::AuthMethod::ApiKey => {
+                headers.insert(
+                    "x-api-key",
+                    self.config.token.parse().expect("invalid API key header"),
+                );
+            }
+            super::config::AuthMethod::OAuth => {
+                headers.insert(
+                    "Authorization",
+                    format!("Bearer {}", self.config.token)
+                        .parse()
+                        .expect("invalid OAuth header"),
+                );
+            }
+        }
+        headers.insert(
+            "anthropic-version",
+            ANTHROPIC_VERSION.parse().expect("invalid version header"),
+        );
+        headers
     }
 
     /// Build the JSON request body for the Messages API.
