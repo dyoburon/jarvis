@@ -148,6 +148,32 @@ window.ReactNativeWebView.postMessage(JSON.stringify({
   rows: term.rows
 }));
 
+// Swipe detection for pane switching
+var touchStartX = 0;
+var touchStartY = 0;
+var swiping = false;
+
+document.addEventListener('touchstart', function(e) {
+  if (e.touches.length === 1) {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    swiping = false;
+  }
+}, { passive: true });
+
+document.addEventListener('touchmove', function(e) {
+  if (e.touches.length !== 1 || swiping) return;
+  var dx = e.touches[0].clientX - touchStartX;
+  var dy = e.touches[0].clientY - touchStartY;
+  if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 2) {
+    swiping = true;
+    window.ReactNativeWebView.postMessage(JSON.stringify({
+      type: 'pane_swipe',
+      direction: dx > 0 ? 'prev' : 'next'
+    }));
+  }
+}, { passive: true });
+
 setTimeout(function() { term.focus(); }, 120);
 </script>
 </body>

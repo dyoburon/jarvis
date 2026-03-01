@@ -14,10 +14,11 @@ interface TerminalWebViewProps {
   onReady?: (cols: number, rows: number) => void;
   onInput?: (data: string) => void;
   onResize?: (cols: number, rows: number) => void;
+  onSwipe?: (direction: 'prev' | 'next') => void;
 }
 
 const TerminalWebView = forwardRef<TerminalWebViewHandle, TerminalWebViewProps>(
-  ({ onReady, onInput, onResize }, ref) => {
+  ({ onReady, onInput, onResize, onSwipe }, ref) => {
     const webViewRef = useRef<WebView>(null);
     const htmlRef = useRef(buildTerminalHTML());
 
@@ -54,11 +55,14 @@ const TerminalWebView = forwardRef<TerminalWebViewHandle, TerminalWebViewProps>(
           case 'terminal_resize':
             onResize?.(data.cols, data.rows);
             break;
+          case 'pane_swipe':
+            onSwipe?.(data.direction);
+            break;
         }
       } catch {
         // ignore parse errors
       }
-    }, [onReady, onInput, onResize]);
+    }, [onReady, onInput, onResize, onSwipe]);
 
     return (
       <View style={{ flex: 1, backgroundColor: theme.colors.bg }}>
