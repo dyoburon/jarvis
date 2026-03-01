@@ -20,6 +20,8 @@ use super::WebViewManager;
 /// - CDN origins — xterm.js, other panel dependencies
 pub const ALLOWED_NAV_PREFIXES: &[&str] = &[
     "jarvis://",
+    // On Windows, WebView2 rewrites custom protocols: jarvis://localhost/… → http://jarvis.localhost/…
+    "http://jarvis.localhost",
     "about:blank",
     "https://ojmqzagktzkualzgpcbq.supabase.co",
     "https://cdn.jsdelivr.net/",
@@ -184,6 +186,17 @@ mod tests {
     }
 
     #[test]
+    fn allows_webview2_rewritten_custom_protocol() {
+        // WebView2 on Windows rewrites jarvis://localhost/… → http://jarvis.localhost/…
+        assert!(is_navigation_allowed(
+            "http://jarvis.localhost/boot/index.html"
+        ));
+        assert!(is_navigation_allowed(
+            "http://jarvis.localhost/terminal/index.html"
+        ));
+    }
+
+    #[test]
     fn blocks_http_unencrypted() {
         assert!(!is_navigation_allowed("http://evil.com"));
         assert!(!is_navigation_allowed("http://localhost:8080"));
@@ -223,7 +236,7 @@ mod tests {
 
     #[test]
     fn allowlist_has_expected_entries() {
-        assert_eq!(ALLOWED_NAV_PREFIXES.len(), 5);
+        assert_eq!(ALLOWED_NAV_PREFIXES.len(), 6);
         assert!(ALLOWED_NAV_PREFIXES.contains(&"jarvis://"));
         assert!(ALLOWED_NAV_PREFIXES.contains(&"about:blank"));
     }
