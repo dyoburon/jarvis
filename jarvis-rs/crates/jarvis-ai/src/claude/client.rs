@@ -6,7 +6,6 @@ use crate::{AiError, AiResponse, Message, Role, TokenUsage, ToolCall, ToolDefini
 use super::config::ClaudeConfig;
 
 pub(crate) const ANTHROPIC_API_URL: &str = "https://api.anthropic.com/v1/messages";
-pub(crate) const CLAUDE_OAUTH_API_URL: &str = "https://api.claude.ai/v1/messages";
 pub(crate) const ANTHROPIC_VERSION: &str = "2023-06-01";
 
 /// Claude API client.
@@ -27,12 +26,9 @@ impl ClaudeClient {
         }
     }
 
-    /// Return the API URL for the configured auth method.
+    /// Return the API URL (both auth methods use api.anthropic.com).
     pub(crate) fn api_url(&self) -> &'static str {
-        match self.config.auth_method {
-            super::config::AuthMethod::ApiKey => ANTHROPIC_API_URL,
-            super::config::AuthMethod::OAuth => CLAUDE_OAUTH_API_URL,
-        }
+        ANTHROPIC_API_URL
     }
 
     /// Build auth headers for the configured auth method.

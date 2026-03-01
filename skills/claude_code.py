@@ -5,9 +5,9 @@ import logging
 import os
 import time
 
-from claude_agent_sdk import (
+from claude_code_sdk import (
     ClaudeSDKClient,
-    ClaudeAgentOptions,
+    ClaudeCodeOptions,
     AssistantMessage,
     UserMessage,
     SystemMessage,
@@ -16,13 +16,13 @@ from claude_agent_sdk import (
     ToolUseBlock,
     ToolResultBlock,
 )
-from claude_agent_sdk.types import StreamEvent
+from claude_code_sdk.types import StreamEvent
 
 import config
 
 _log = logging.getLogger("jarvis.claude_code")
 _log.setLevel(logging.DEBUG)
-_fh = logging.FileHandler("/tmp/jarvis_claude_code.log")
+_fh = logging.FileHandler(os.path.join(os.path.dirname(os.path.dirname(__file__)), "jarvis_claude_code.log"))
 _fh.setFormatter(logging.Formatter("[%(asctime)s] %(message)s", datefmt="%H:%M:%S"))
 _log.addHandler(_fh)
 
@@ -139,7 +139,7 @@ class ClaudeCodeSession:
         if oauth:
             env["CLAUDE_CODE_OAUTH_TOKEN"] = oauth
 
-        options = ClaudeAgentOptions(
+        options = ClaudeCodeOptions(
             model=self.model,
             system_prompt={"type": "preset", "preset": "claude_code", "append": JARVIS_SYSTEM_PROMPT},
             allowed_tools=["Read", "Write", "Edit", "Bash", "Glob", "Grep",
