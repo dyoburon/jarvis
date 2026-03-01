@@ -2,6 +2,7 @@
 
 use crate::app_state::core::JarvisApp;
 
+use super::protocol::{PaneInfo, ServerMessage};
 use super::relay_client::RelayEvent;
 
 impl JarvisApp {
@@ -70,12 +71,34 @@ impl JarvisApp {
                                 }
                             }
                         }
+                        // Send initial pane list to mobile
+                        self.broadcast_pane_list();
                     }
                     RelayEvent::Error(msg) => {
                         tracing::warn!(error = %msg, "Relay error");
                     }
                 }
             }
+        }
+    }
+
+    /// Broadcast the current pane list to connected mobile clients.
+    pub(in crate::app_state) fn broadcast_pane_list(&self) {
+        if let Some(ref broadcaster) = self.mobile_broadcaster {
+            let panes: Vec<PaneInfo> = self
+                .tiling
+                .ordered_pane_ids()
+                .iter()
+                .filter_map(|id| {
+                    self.tiling.pane(*id).map(|p| PaneInfo {
+                        id: *id,
+                        kind: format!("{:?}", p.kind),
+                        title: p.title.clone(),
+                    })
+                })
+                .collect();
+            let focused_id = self.tiling.focused_id();
+            broadcaster.send(ServerMessage::PaneList { panes, focused_id });
         }
     }
 }
