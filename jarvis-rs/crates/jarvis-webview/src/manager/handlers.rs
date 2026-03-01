@@ -26,6 +26,7 @@ pub const ALLOWED_NAV_PREFIXES: &[&str] = &[
     "https://ojmqzagktzkualzgpcbq.supabase.co",
     "https://cdn.jsdelivr.net/",
     "https://unpkg.com/",
+    "https://kartbros.io",
 ];
 
 /// Check whether a URL is allowed by the navigation allowlist.
@@ -239,5 +240,6 @@ mod tests {
         assert_eq!(ALLOWED_NAV_PREFIXES.len(), 6);
         assert!(ALLOWED_NAV_PREFIXES.contains(&"jarvis://"));
         assert!(ALLOWED_NAV_PREFIXES.contains(&"about:blank"));
+        assert!(ALLOWED_NAV_PREFIXES.contains(&"https://kartbros.io"));
     }
 }

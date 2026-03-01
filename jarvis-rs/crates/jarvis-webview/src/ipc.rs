@@ -355,6 +355,7 @@ pub const IPC_INIT_SCRIPT: &str = r#"
             window._hideCommandPalette();
         });
     })();
+
 })();
 "#;
 
