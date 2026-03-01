@@ -379,16 +379,12 @@ body {
 // IPC BRIDGE
 // ================================================================
 
-const ipc = window.__JARVIS_IPC__ || {
-  postMessage: function(msg) {
-    if (window.ipc && window.ipc.postMessage) {
-      window.ipc.postMessage(msg);
-    }
-  }
-};
-
 function sendIpc(kind, payload) {
-  ipc.postMessage(JSON.stringify({ kind: kind, payload: payload || {} }));
+  if (window.jarvis && window.jarvis.ipc && window.jarvis.ipc.send) {
+    window.jarvis.ipc.send(kind, payload || {});
+  } else if (window.ipc && window.ipc.postMessage) {
+    window.ipc.postMessage(JSON.stringify({ kind: kind, payload: payload || {} }));
+  }
 }
 
 // ================================================================

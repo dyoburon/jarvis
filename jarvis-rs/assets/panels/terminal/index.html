@@ -136,13 +136,18 @@ term.onResize(function(size) {
   }
 });
 
-// Notify Rust terminal is ready
-if (window.jarvis && window.jarvis.ipc) {
-  window.jarvis.ipc.send('terminal_ready', { cols: term.cols, rows: term.rows });
-}
+// Deferred IPC init — wait for window.jarvis.ipc to be available
+// (IPC_INIT_SCRIPT may run after inline scripts on WebView2)
+function initTerminalIpc() {
+  if (!window.jarvis || !window.jarvis.ipc || !window.jarvis.ipc.send) {
+    setTimeout(initTerminalIpc, 50);
+    return;
+  }
 
-// Theme IPC — update xterm when config arrives/changes
-if (window.jarvis && window.jarvis.ipc) {
+  // Notify Rust terminal is ready
+  window.jarvis.ipc.send('terminal_ready', { cols: term.cols, rows: term.rows });
+
+  // Theme IPC — update xterm when config arrives/changes
   window.jarvis.ipc.on('theme', function(payload) {
     if (!payload) return;
     if (payload.xterm) term.options.theme = payload.xterm;
@@ -171,7 +176,13 @@ if (window.jarvis && window.jarvis.ipc) {
       overlay.classList.add('visible');
     }
   });
+
+  window.jarvis.ipc.on('focus_changed', function(payload) {
+    setFocused(payload && payload.focused);
+  });
 }
+
+initTerminalIpc();
 
 // Also check for globally stored theme (set by evaluate_script before page loaded)
 if (window.__jarvis_theme) {
@@ -192,12 +203,7 @@ function setFocused(isFocused) {
   if (isFocused) { term.focus(); }
 }
 
-// Listen for focus_changed IPC from Rust
-if (window.jarvis && window.jarvis.ipc) {
-  window.jarvis.ipc.on('focus_changed', function(payload) {
-    setFocused(payload && payload.focused);
-  });
-}
+// focus_changed is registered inside initTerminalIpc() above
 
 // Re-focus xterm on any click within the terminal
 document.addEventListener('click', function() { term.focus(); });
