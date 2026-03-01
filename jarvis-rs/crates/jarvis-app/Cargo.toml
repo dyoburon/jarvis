@@ -38,3 +38,6 @@ aes-gcm = { workspace = true }
 qrcode = { workspace = true }
 urlencoding = "2"
 png = "0.17"
+
+[build-dependencies]
+winres = "0.1"

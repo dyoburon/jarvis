@@ -21,3 +21,6 @@ jarvis-rs/target/
 # Config (user-specific)
 # Note: ~/.config/jarvis/ is outside repo, but local config testing
 .config/
+
+# Claude Code local settings
+.claude/settings.local.json
