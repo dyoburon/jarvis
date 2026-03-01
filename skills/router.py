@@ -12,11 +12,13 @@ from rich.live import Live
 from rich.markdown import Markdown
 from rich.panel import Panel
 
+import os
+
 import config
 
 _log = logging.getLogger("jarvis.router")
 _log.setLevel(logging.DEBUG)
-_fh = logging.FileHandler("/tmp/jarvis_router.log")
+_fh = logging.FileHandler(os.path.join(os.path.dirname(os.path.dirname(__file__)), "jarvis_router.log"))
 _fh.setFormatter(logging.Formatter("[%(asctime)s] %(message)s", datefmt="%H:%M:%S"))
 _log.addHandler(_fh)
 from connectors.token_tracker import TokenTracker
