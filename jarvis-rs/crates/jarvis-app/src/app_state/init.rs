@@ -3,7 +3,7 @@
 use std::sync::Arc;
 
 use winit::event_loop::ActiveEventLoop;
-use winit::window::WindowAttributes;
+use winit::window::{Icon, WindowAttributes};
 
 use jarvis_renderer::RenderState;
 use jarvis_webview::{ContentProvider, WebViewManager, WebViewRegistry};
@@ -27,10 +27,15 @@ impl JarvisApp {
     /// Create the window and initialize the GPU renderer.
     /// Returns `false` if initialization failed and the event loop should exit.
     pub(super) fn initialize_window(&mut self, event_loop: &ActiveEventLoop) -> bool {
-        let attrs = WindowAttributes::default()
+        let mut attrs = WindowAttributes::default()
             .with_title("Jarvis")
             .with_transparent(true)
             .with_inner_size(winit::dpi::LogicalSize::new(1280.0, 800.0));
+
+        // Load window icon from embedded PNG
+        if let Some(icon) = load_window_icon() {
+            attrs = attrs.with_window_icon(Some(icon));
+        }
 
         // macOS: transparent titlebar with content extending behind traffic lights
         #[cfg(target_os = "macos")]
@@ -123,6 +128,30 @@ impl JarvisApp {
             "WebView registry initialized"
         );
     }
+}
+
+/// Load the application icon from the bundled PNG asset.
+fn load_window_icon() -> Option<Icon> {
+    let icon_bytes = include_bytes!("../../../../assets/jarvis-icon.png");
+    let decoder = png::Decoder::new(icon_bytes.as_slice());
+    let mut reader = decoder.read_info().ok()?;
+    let mut buf = vec![0u8; reader.output_buffer_size()];
+    let info = reader.next_frame(&mut buf).ok()?;
+    buf.truncate(info.buffer_size());
+
+    // Convert RGB to RGBA if needed
+    let rgba = if info.color_type == png::ColorType::Rgb {
+        let mut rgba = Vec::with_capacity(buf.len() / 3 * 4);
+        for chunk in buf.chunks(3) {
+            rgba.extend_from_slice(chunk);
+            rgba.push(255);
+        }
+        rgba
+    } else {
+        buf
+    };
+
+    Icon::from_rgba(rgba, info.width, info.height).ok()
 }
 
 /// sRGB → linear conversion for wgpu clear color on sRGB surfaces.
