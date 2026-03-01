@@ -6,7 +6,7 @@ use tracing::{debug, warn};
 use crate::streaming::{parse_sse_stream, SseEvent};
 use crate::{AiClient, AiError, AiResponse, Message, TokenUsage, ToolCall, ToolDefinition};
 
-use super::client::{ClaudeClient, ANTHROPIC_VERSION, CLAUDE_API_URL};
+use super::client::ClaudeClient;
 
 #[async_trait]
 impl AiClient for ClaudeClient {
@@ -21,12 +21,8 @@ impl AiClient for ClaudeClient {
 
         let response = self
             .http
-            .post(CLAUDE_API_URL)
-            .header(
-                "Authorization",
-                format!("Bearer {}", self.config.oauth_token),
-            )
-            .header("anthropic-version", ANTHROPIC_VERSION)
+            .post(self.api_url())
+            .headers(self.auth_headers())
             .header("content-type", "application/json")
             .json(&body)
             .send()
@@ -63,12 +59,8 @@ impl AiClient for ClaudeClient {
 
         let response = self
             .http
-            .post(CLAUDE_API_URL)
-            .header(
-                "Authorization",
-                format!("Bearer {}", self.config.oauth_token),
-            )
-            .header("anthropic-version", ANTHROPIC_VERSION)
+            .post(self.api_url())
+            .headers(self.auth_headers())
             .header("content-type", "application/json")
             .json(&body)
             .send()
