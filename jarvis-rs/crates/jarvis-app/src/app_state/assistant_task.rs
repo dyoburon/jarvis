@@ -20,6 +20,10 @@ pub(super) async fn assistant_task(
         }
     };
 
+    let _ = event_tx.send(AssistantEvent::Initialized {
+        model_name: config.model.clone(),
+    });
+
     let client = jarvis_ai::ClaudeClient::new(config);
     let mut session = jarvis_ai::Session::new("claude").with_system_prompt(
         "You are Jarvis, an AI assistant embedded in a terminal emulator. \

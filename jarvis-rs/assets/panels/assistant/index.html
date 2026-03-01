@@ -571,38 +571,76 @@ function updateCmdHint() {
 }
 
 // ================================================================
-// IPC INCOMING (from Rust)
+// IPC INCOMING (from Rust via window.jarvis.ipc._dispatch)
 // ================================================================
 
-window.__jarvis_dispatch = function(kind, payload) {
-  switch (kind) {
-    case 'assistant_output':
-      hideTyping();
-      isWaiting = false;
-      statusText.textContent = 'ready';
-      if (payload && payload.text) {
-        addMessage('assistant', payload.text);
-      }
-      break;
+// In-progress streaming element
+var streamingEl = null;
+var streamingText = '';
 
-    case 'assistant_error':
-      hideTyping();
-      isWaiting = false;
-      statusText.textContent = 'ready';
-      addMessage('error', payload.message || 'An error occurred.');
-      break;
-
-    case 'assistant_config':
-      if (payload.model_name) {
-        headerTitle.textContent = escapeHtml(payload.model_name);
-      }
-      break;
-
-    case 'theme_update':
-      applyTheme(payload);
-      break;
+function registerIpcHandlers() {
+  var ipcBridge = window.jarvis && window.jarvis.ipc;
+  if (!ipcBridge || !ipcBridge.on) {
+    // IPC init script hasn't run yet — retry shortly
+    setTimeout(registerIpcHandlers, 50);
+    return;
   }
-};
+
+  ipcBridge.on('assistant_chunk', function(payload) {
+    if (!streamingEl) {
+      hideTyping();
+      if (welcomeEl && welcomeEl.parentNode) welcomeEl.remove();
+      streamingEl = document.createElement('div');
+      streamingEl.className = 'message assistant';
+      messagesEl.appendChild(streamingEl);
+      streamingText = '';
+    }
+    streamingText += (payload.text || '');
+    streamingEl.textContent = streamingText;
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  });
+
+  ipcBridge.on('assistant_output', function(payload) {
+    hideTyping();
+    isWaiting = false;
+    statusText.textContent = 'ready';
+    if (streamingEl) {
+      // Finalize streaming message with the full text
+      if (payload && payload.text) {
+        streamingEl.textContent = payload.text;
+      }
+      streamingEl = null;
+      streamingText = '';
+    } else if (payload && payload.text) {
+      addMessage('assistant', payload.text);
+    }
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  });
+
+  ipcBridge.on('assistant_error', function(payload) {
+    hideTyping();
+    isWaiting = false;
+    statusText.textContent = 'ready';
+    streamingEl = null;
+    streamingText = '';
+    addMessage('error', payload.message || 'An error occurred.');
+  });
+
+  ipcBridge.on('assistant_config', function(payload) {
+    if (payload && payload.model_name) {
+      headerTitle.textContent = escapeHtml(payload.model_name);
+    }
+  });
+
+  ipcBridge.on('theme_update', function(payload) {
+    applyTheme(payload);
+  });
+
+  // Signal readiness so Rust starts the assistant runtime
+  sendIpc('assistant_ready', {});
+}
+
+registerIpcHandlers();
 
 // ================================================================
 // THEME

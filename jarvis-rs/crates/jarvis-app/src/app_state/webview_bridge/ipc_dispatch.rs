@@ -26,6 +26,7 @@ const ALLOWED_IPC_KINDS: &[&str] = &[
     "settings_reset_section",
     "settings_get_config",
     "assistant_input",
+    "assistant_ready",
     "open_panel",
     "panel_close",
     "panel_toggle",
@@ -136,6 +137,9 @@ impl JarvisApp {
             }
             "assistant_input" => {
                 self.handle_assistant_input(pane_id, &msg.payload);
+            }
+            "assistant_ready" => {
+                self.handle_assistant_ready(pane_id);
             }
             "open_panel" => {
                 self.handle_open_panel(pane_id, &msg.payload);
