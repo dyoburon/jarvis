@@ -84,4 +84,6 @@ const TerminalWebView = forwardRef<TerminalWebViewHandle, TerminalWebViewProps>(
   }
 );
 
+TerminalWebView.displayName = 'TerminalWebView';
+
 export default TerminalWebView;

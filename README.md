@@ -4,123 +4,145 @@ A multiplayer vibe coding experience — games, chats, and vibes.
 
 ![Jarvis](screenshot.png)
 
-Jarvis is a shared desktop environment where multiple AI assistants, retro arcade games, live chat, and a 3D Metal-rendered orb all coexist on one screen. Connect with friends, play Asteroids or Kart Bros, talk to Opus 4.6 assistants, and vibe — all at once.
+Jarvis is a shared desktop environment where multiple AI assistants, retro arcade games, live chat, and a reactive visual shell coexist on one screen. This repository is organized so **one codebase is obviously “the product”** and everything else is supporting or historical.
 
-## Features
+---
 
-- **Multiplayer AI Assistants** — Up to 4 Claude Opus 4.6 chat panels running simultaneously
-- **Arcade Games** — Jarvis Asteroids, Kart Bros, and more embedded directly in the HUD
-- **Live Chat** — Real-time online chat with room codes and invite links
-- **3D Metal Orb** — A reactive, animated orb rendered with Apple's Metal framework
-- **Voice Input** — Push-to-talk with local Whisper transcription
-- **Vibe Coding** — Ask the AI assistants to help you build, debug, and ship code live on stream
+## TL;DR: what to open first
 
-## Architecture
+| If you want to… | Go here |
+|-----------------|--------|
+| **Build the app most people should run** | [`jarvis-rs/`](jarvis-rs/) — cross-platform Rust desktop (Windows, macOS, Linux). |
+| **Understand the folder layout** | [`ARCHITECTURE.md`](ARCHITECTURE.md) |
+| **Contribute code or run tests** | [`CONTRIBUTING.md`](CONTRIBUTING.md) |
+| **Run the old macOS Python + Metal prototype** | [`legacy/`](legacy/) + [`scripts/start.sh`](scripts/start.sh) |
+| **Work on the mobile companion** | [`jarvis-mobile/`](jarvis-mobile/) |
 
-```
-main.py                  Python entry point — mic capture, Metal bridge, event loop
-metal-app/               Swift/Metal frontend — 3D orb, hex grid, chat panels
-skills/                  Modular AI skill system
-  router.py              Gemini conversation + tool routing
-  claude_code.py         Claude Agent SDK integration (code assistant)
-  code_assistant.py      Gemini function declarations for code tools
-  code_tools.py          Tool dispatch (file ops, bash, search)
-  domains.py             Domain drop hunting dashboard
-  papers.py              arXiv paper matching dashboard
-  firewall.py            Stream chat moderation (Great Firewall)
-  vibetotext.py          Voice transcription stats
-voice/                   Audio capture and transcription
-  audio.py               Push-to-talk mic capture (Left Control)
-  whisper_client.py      Local Whisper transcription
-  realtime_client.py     Real-time API client
-connectors/              External service integrations
-  claude_proxy.py        OpenAI-compatible proxy for Claude (CLIProxyAPI)
-  token_tracker.py       Token usage tracking across models
-  sqlite_reader.py       Database reading utilities
-  http_client.py         Async HTTP client wrapper
+**Developed app:** the **`jarvis-rs`** workspace (wgpu + embedded WebViews) is where active feature work belongs. The tree under **`legacy/`** is **maintenance-only** macOS stack (Python + Swift/Metal).
+
+---
+
+## Primary application — `jarvis-rs/` (Rust)
+
+This is the **default** development target: one binary, embedded panel assets, relay/mobile pairing, terminal, chat, games, and assistants.
+
+```bash
+cd jarvis-rs
+cargo build --release
+# Output: jarvis-rs/target/release/jarvis   (or jarvis.exe on Windows)
+cargo test --workspace
 ```
 
-## Setup
+Panel HTML/CSS/JS is canonical under **`jarvis-rs/assets/panels/`** (bundled via `include_dir` at compile time). Do not add parallel copies at the repository root.
+
+**Relay server** (optional, for mobile / pairing):
+
+```bash
+cd jarvis-rs
+cargo build --release --bin jarvis-relay
+```
+
+Further detail: **[docs/manual/README.md](docs/manual/README.md)** (full technical manual).
+
+---
+
+## Repository layout (high level)
+
+```
+jarvis/
+  jarvis-rs/           # PRIMARY: Rust desktop app (develop here)
+    testdata/          # Shared wire-protocol JSON fixtures (relay ↔ desktop tests)
+  legacy/              # Legacy macOS stack: Python + Swift/Metal (maintenance only)
+    main.py            # Legacy entrypoint
+    metal-app/         # Swift/Metal frontend
+    jarvis/            # Python package (config, commands, …)
+    tests/             # Python tests for legacy (pytest; see repo pytest.ini)
+    skills/, voice/, connectors/, presence/
+    requirements.txt   # Legacy Python deps
+    requirements.lock  # Pinned lockfile (pip-tools)
+  jarvis-mobile/       # React Native companion (thin client)
+  scripts/             # login, start, setup, packaging helpers (mostly legacy flow)
+  docs/                # Website + published manual (and plugins doc); built HTML is gitignored
+  dev/                 # Development docs only (pathforward analysis, etc.)
+    pathforward/       # Strategic / model-sourced codebase write-ups
+    _archive/          # Dated internal plans (kept for history; not the live manual)
+  relay/               # Deployment helpers (separate from app crates)
+  resources/           # Packaging / DMG resources (legacy macOS release)
+```
+
+See **[ARCHITECTURE.md](ARCHITECTURE.md)** for intent, boundaries, and “where does this feature live?”
+
+---
+
+## Legacy macOS stack — `legacy/` (maintenance)
+
+The original **Python orchestration + Swift/Metal UI** lives entirely under **`legacy/`**. It is **macOS-only** and **not** where new product features should land.
 
 ### Prerequisites
 
 - macOS 13+
 - Python 3.10+
-- Swift 5.9+
-- Claude Max subscription (for Claude Code / Agent SDK features)
-- Google Gemini API key (optional — enables Gemini-powered voice routing and skills)
+- Swift / Xcode (for `legacy/metal-app`)
+- Claude Max (for Claude Code / Agent SDK) if you use those skills
+- Optional: Google Gemini API key for voice routing
 
-### Install
+### Run
+
+From the **repository root**:
 
 ```bash
-# Python dependencies
-cd jarvis
 python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
+pip install -r legacy/requirements.txt
+# Reproducible: pip install -r legacy/requirements.lock
 
-# Build the Metal app
-cd metal-app
-swift build
+./scripts/start.sh
 ```
+
+This installs dependencies, builds `legacy/metal-app` when needed, and runs **`python legacy/main.py`**.
 
 ### Environment
 
-Create a `.env` file in the project root:
+Put **`.env` at the repository root** (one level above `legacy/`). [`legacy/config.py`](legacy/config.py) loads `../.env` first.
 
-```
+```env
 CLAUDE_CODE_OAUTH_TOKEN=your-oauth-token
-GOOGLE_API_KEY=your-gemini-api-key        # optional
+GOOGLE_API_KEY=your-gemini-api-key   # optional
 ```
 
-### Claude OAuth Token Setup
+OAuth refresh:
 
-The code assistant skill uses the Claude Agent SDK, which authenticates via an OAuth token from your Claude Max subscription. Run the login script to set this up:
+- macOS: `./scripts/login.sh`
+- Windows (shared token file): `./scripts/login.ps1`
 
-```bash
-./login.sh
-```
+### Legacy controls (Metal UI)
 
-This does the following:
+- **Left Control** (hold) — push-to-talk  
+- **Option + Period** — push-to-talk  
+- **Cmd + G** — toggle hotkey overlay  
+- **Escape** — quit  
 
-1. Runs `claude auth login` to open the browser-based OAuth flow
-2. After you authenticate, it extracts the access token from the macOS Keychain (`Claude Code-credentials`)
-3. Writes the token to `.env` as `CLAUDE_CODE_OAUTH_TOKEN`
-
-The token expires periodically — re-run `./login.sh` whenever the code assistant stops authenticating.
-
-## Run
-
-```bash
-./start.sh
-```
-
-This activates the virtualenv and runs `main.py`, which launches the Metal frontend and starts listening for voice input.
-
-### Controls
-
-- **Left Control** (hold) — push-to-talk
-- **Option + Period** — push-to-talk (Metal app hotkey)
-- **Cmd + G** — toggle hotkey overlay
-- **Escape** — quit
+---
 
 ## Documentation
 
-| Guide | Description |
-|-------|-------------|
-| **[Plugin System](docs/plugins/plugins.md)** | Build custom panels, tools, and web apps that run inside Jarvis — bookmark plugins, local HTML/JS/CSS plugins with full IPC bridge access |
-| **[Manual](docs/manual/README.md)** | Complete technical reference — architecture, config, terminal, tiling, webview/IPC, input, plugins, networking, renderer |
+| Doc | Purpose |
+|-----|---------|
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Repo map, primary vs legacy, mobile |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Builds, tests, dependency lock, PR hints |
+| [docs/manual/README.md](docs/manual/README.md) | Full Jarvis technical manual (lives under **`docs/`** with the site) |
+| [docs/plugins/plugins.md](docs/plugins/plugins.md) | Plugin system (Rust app) |
+| [dev/pathforward/finalfindings.md](dev/pathforward/finalfindings.md) | Strategic codebase analysis (under **`dev/`**; see also **`dev/_archive/`** for older plans) |
+| [CHANGELOG.md](CHANGELOG.md) | High-level history from git (themes over time) |
 
-## Skills
+---
 
-Jarvis routes voice input through Gemini, which can invoke tools to activate different skills:
+## Skills (legacy voice routing)
 
-| Skill | Trigger | What it does |
-|-------|---------|--------------|
-| Code Assistant | "help me with code", "look at this project" | Launches a Claude Agent SDK session with full file/bash/search tools |
-| Domains | "check domains", "any good drops?" | Queries the domain drop hunter for today's matched domains |
-| Papers | "any new papers?", "check arXiv" | Shows today's arXiv paper matches by interest area |
-| Firewall | "how's chat?", "any bans?" | Stream chat moderation stats from Great Firewall |
-| VibeToText | "transcription stats" | Voice-to-text session statistics |
+On the **legacy** stack, voice can be routed through Gemini into skills (code assistant, domains, papers, firewall, VibeToText). The **Rust** app has its own assistant and panel architecture; see the manual for current behavior.
 
+---
 
+## License
+
+See repository license file (if present) or package metadata in `jarvis-rs/Cargo.toml`.

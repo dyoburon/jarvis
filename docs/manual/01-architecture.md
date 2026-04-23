@@ -23,21 +23,26 @@ The application supports:
 
 ## 2. Repository Structure
 
-The repository root (`jarvis/`) contains both the legacy Python/Swift stack and the Rust rewrite:
+The repository root groups the **primary Rust app**, the **legacy macOS stack**, docs, tests, and tooling:
 
 ```
 jarvis/
-  README.md              # Project overview (documents the Python stack)
-  main.py                # Legacy Python entry point
-  metal-app/             # Legacy Swift/Metal frontend
-  skills/                # Legacy Python AI skill system
-  voice/                 # Legacy Python audio capture
-  connectors/            # Legacy Python service integrations
-  jarvis-rs/             # Rust workspace (the rewrite)
-    Cargo.toml           # Workspace manifest
-    crates/              # All workspace crates
-    assets/              # Bundled HTML/JS/CSS panel assets
-  docs/                  # Documentation
+  README.md              # Rust-first overview + legacy pointers
+  ARCHITECTURE.md        # This chapter's "where things live" summary
+  jarvis-rs/             # PRIMARY: Rust workspace (develop here)
+    Cargo.toml
+    crates/
+    assets/panels/       # Canonical bundled web UI
+  legacy/                # Legacy macOS Python + Swift/Metal (maintenance only)
+    main.py
+    metal-app/
+    jarvis/              # Python package
+    skills/, voice/, connectors/, presence/
+    requirements.txt
+  jarvis-mobile/         # React Native companion (thin client)
+  scripts/               # start/login/setup/package helpers
+  legacy/tests/          # Python tests for legacy stack (pytest; pythonpath = legacy)
+  docs/                  # Manual, plugins, plans
 ```
 
 ---

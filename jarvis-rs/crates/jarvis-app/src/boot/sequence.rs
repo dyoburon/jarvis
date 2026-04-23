@@ -42,6 +42,8 @@ impl BootSequence {
     }
 
     /// Advance the boot sequence based on elapsed time.
+    /// Not yet called each frame from the winit loop; keep for when splash timing is fully wired.
+    #[allow(dead_code)]
     pub fn update(&mut self) {
         if self.phase == BootPhase::Splash
             && !self.skip_requested

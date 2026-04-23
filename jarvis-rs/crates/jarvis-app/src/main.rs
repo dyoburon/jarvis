@@ -1,8 +1,7 @@
 mod app_state;
-#[allow(dead_code)]
 mod boot;
 mod cli;
-#[allow(dead_code)]
+#[cfg(feature = "updater")]
 mod updater;
 
 use tracing_subscriber::EnvFilter;

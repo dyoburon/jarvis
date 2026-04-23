@@ -1,4 +1,5 @@
 import { createRelayCipher, type RelayCipher } from './crypto';
+import { parsePairingString } from './parse-pairing';
 
 export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'error';
 
@@ -14,6 +15,8 @@ export interface RelayConnectionCallbacks {
   onPaneList?: (panes: PaneInfo[], focusedId: number) => void;
   onStatusChange: (status: ConnectionStatus, message?: string) => void;
   onError: (error: string) => void;
+  /** Dev-only: last relay envelope type (EXPO_PUBLIC_RELAY_DEBUG). */
+  onRelayProtocolEvent?: (eventType: string) => void;
 }
 
 export interface IRelayConnection {
@@ -23,34 +26,6 @@ export interface IRelayConnection {
   sendResize(cols: number, rows: number): void;
   setActivePane(paneId: number): void;
   getStatus(): ConnectionStatus;
-}
-
-/**
- * Parse a pairing string into relay URL + session ID.
- *
- * Accepts:
- *   - "jarvis://pair?relay=wss://host/ws&session=abc123&dhpub=..."
- *   - "wss://host/ws|abc123"  (compact format)
- *   - "wss://host/ws"         (session generated server-side — not used yet)
- */
-function parsePairingData(input: string): { relayUrl: string; sessionId: string; dhPubkey?: string } {
-  // URL format: jarvis://pair?relay=...&session=...&dhpub=...
-  if (input.startsWith('jarvis://')) {
-    const url = new URL(input);
-    const relay = url.searchParams.get('relay') || '';
-    const session = url.searchParams.get('session') || '';
-    const dhpub = url.searchParams.get('dhpub') || undefined;
-    return { relayUrl: relay, sessionId: session, dhPubkey: dhpub };
-  }
-
-  // Pipe-delimited: "wss://host/ws|session_id"
-  if (input.includes('|')) {
-    const [relayUrl, sessionId] = input.split('|', 2);
-    return { relayUrl, sessionId };
-  }
-
-  // Bare URL (for testing)
-  return { relayUrl: input, sessionId: '' };
 }
 
 // WebSocket connection through the relay server.
@@ -72,7 +47,7 @@ export class RelayConnection implements IRelayConnection {
   private static readonly MAX_BACKOFF = 30000;
 
   connect(pairingData: string, callbacks: RelayConnectionCallbacks): void {
-    const parsed = parsePairingData(pairingData);
+    const parsed = parsePairingString(pairingData);
     this.relayUrl = parsed.relayUrl;
     this.sessionId = parsed.sessionId;
     this.desktopDhPubkey = parsed.dhPubkey;
@@ -136,6 +111,7 @@ export class RelayConnection implements IRelayConnection {
   }
 
   private handleRelayMessage(msg: any): void {
+    this.callbacks?.onRelayProtocolEvent?.(typeof msg?.type === 'string' ? msg.type : 'unknown');
     switch (msg.type) {
       // Relay control messages
       case 'session_ready':
@@ -339,46 +315,6 @@ export class RelayConnection implements IRelayConnection {
   getStatus(): ConnectionStatus { return this.status; }
 }
 
-// Mock implementation — echoes input back for testing.
-export class MockRelayConnection implements IRelayConnection {
-  private status: ConnectionStatus = 'disconnected';
-  private callbacks: RelayConnectionCallbacks | null = null;
-
-  connect(_address: string, callbacks: RelayConnectionCallbacks): void {
-    this.callbacks = callbacks;
-    this.status = 'connecting';
-    callbacks.onStatusChange('connecting', 'connecting...');
-
-    setTimeout(() => {
-      this.status = 'connected';
-      callbacks.onStatusChange('connected', 'connected (mock)');
-      callbacks.onOutput('\r\n\x1b[36m  mock relay connected.\x1b[0m\r\n');
-      callbacks.onOutput('\x1b[36m  type anything — input will echo back.\x1b[0m\r\n\r\n$ ');
-    }, 600);
-  }
-
-  disconnect(): void {
-    this.status = 'disconnected';
-    this.callbacks?.onStatusChange('disconnected');
-    this.callbacks = null;
-  }
-
-  sendInput(data: string): void {
-    if (!this.callbacks || this.status !== 'connected') return;
-    if (data === '\r') {
-      this.callbacks.onOutput('\r\n$ ');
-    } else if (data === '\x7f') {
-      this.callbacks.onOutput('\b \b');
-    } else {
-      this.callbacks.onOutput(data);
-    }
-  }
-
-  sendResize(_cols: number, _rows: number): void {}
-  setActivePane(_paneId: number): void {}
-  getStatus(): ConnectionStatus { return this.status; }
-}
-
-export function createRelayConnection(mode: 'relay' | 'mock' = 'relay'): IRelayConnection {
-  return mode === 'relay' ? new RelayConnection() : new MockRelayConnection();
+export function createRelayConnection(): IRelayConnection {
+  return new RelayConnection();
 }

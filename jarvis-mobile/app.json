@@ -17,6 +17,7 @@
       "bundleIdentifier": "com.jarvis.mobile"
     },
     "android": {
+      "package": "com.jarvis.mobile",
       "adaptiveIcon": {
         "backgroundColor": "#0a0a0a",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -26,7 +27,13 @@
     },
     "plugins": [
       "expo-router",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow Jarvis to scan relay pairing QR codes from your desktop."
+        }
+      ]
     ]
   }
 }

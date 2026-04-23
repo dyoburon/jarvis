@@ -171,15 +171,15 @@ The legacy application uses a Python backend with a Swift/Metal frontend. It onl
 
 ```bash
 cd jarvis
-./start.sh
+./scripts/start.sh
 ```
 
-The `start.sh` script:
+The `scripts/start.sh` script:
 
 1. Creates a Python virtual environment (`.venv/`) if it does not exist
-2. Installs/updates Python dependencies from `requirements.txt`
-3. Builds the Metal app (`metal-app/.build/debug/JarvisBootup`) if needed
-4. Runs `main.py`
+2. Installs/updates Python dependencies from `legacy/requirements.txt`
+3. Builds the Metal app (`legacy/metal-app/.build/debug/JarvisBootup`) if needed
+4. Runs `python legacy/main.py`
 
 ### Manual Setup
 
@@ -191,20 +191,20 @@ python3 -m venv .venv
 source .venv/bin/activate
 
 # Install Python dependencies
-pip install -r requirements.txt
+pip install -r legacy/requirements.txt
 
 # Build the Swift Metal app
-cd metal-app
+cd legacy/metal-app
 swift build
-cd ..
+cd ../..
 
 # Run
-python main.py
+python legacy/main.py
 ```
 
 ### Python Dependencies
 
-The main `requirements.txt` includes:
+The main `legacy/requirements.txt` includes:
 
 | Package | Purpose |
 |---------|---------|
@@ -384,7 +384,7 @@ Copy `.env.example` to `.env` and fill in what you need. All values are optional
 The legacy Python app uses the Claude Agent SDK and authenticates via an OAuth token. Run the login script to set this up:
 
 ```bash
-./login.sh
+./scripts/login.sh
 ```
 
 This script:
@@ -393,7 +393,9 @@ This script:
 2. Extracts the access token from the macOS Keychain (`Claude Code-credentials`)
 3. Writes the token to `.env` as `CLAUDE_CODE_OAUTH_TOKEN`
 
-The token expires periodically; re-run `./login.sh` when authentication fails.
+The token expires periodically; re-run `./scripts/login.sh` when authentication fails.
+
+On Windows, use `./scripts/login.ps1` instead (credentials are read from `%USERPROFILE%\.claude\.credentials.json`).
 
 ---
 
@@ -426,7 +428,7 @@ jarvis --config /path/to/custom-config.toml
 jarvis --log-level debug
 
 # Execute a specific command instead of the default shell
-jarvis -e "python3 main.py"
+jarvis -e "python3 legacy/main.py"
 ```
 
 ---

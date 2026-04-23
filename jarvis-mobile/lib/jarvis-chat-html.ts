@@ -6,10 +6,16 @@
  * - Crypto via Web Crypto API (not Rust IPC)
  * - Mobile-friendly CSS (touch targets, viewport, safe areas)
  * - No close button or file-path IPC
+ *
+ * When the desktop panel changes, run `npm run sync:chat-html` to refresh
+ * vendor/chat-index.from-jarvis-rs.html, then merge any HTML/JS/CSS updates into this bundle.
+ *
+ * Supabase URL/anon key are injected at runtime from EXPO_PUBLIC_* (see getEmbeddedSupabaseConfig).
  */
 
-export function buildChatHTML(): string {
-  return `<!DOCTYPE html>
+import { getEmbeddedSupabaseConfig } from './env';
+
+const CHAT_HTML_TEMPLATE = `<!DOCTYPE html>
 <html>
 <head>
 <meta charset="utf-8">
@@ -538,8 +544,8 @@ if (typeof crypto.randomUUID !== 'function') {
 // =================================================================
 
 var CONFIG = {
-  SUPABASE_URL: 'https://ojmqzagktzkualzgpcbq.supabase.co',
-  SUPABASE_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9qbXF6YWdrdHprdWFsemdwY2JxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE5ODY1ODIsImV4cCI6MjA4NzU2MjU4Mn0.WkDiksXkye-YyL1RSbAYv1iVW_Sv5zwST0RcloN_0jQ',
+  SUPABASE_URL: "__JARVIS_MOBILE_SUPABASE_URL__",
+  SUPABASE_KEY: "__JARVIS_MOBILE_SUPABASE_ANON_KEY__",
   ROOM: 'jarvis-livechat',
   CHANNELS: [
     { id: 'jarvis-livechat', name: 'general', type: 'channel' },
@@ -2165,4 +2171,11 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 </body>
 </html>`;
+
+export function buildChatHTML(): string {
+  const { supabaseUrl, supabaseAnonKey } = getEmbeddedSupabaseConfig();
+  return CHAT_HTML_TEMPLATE.replace(/__JARVIS_MOBILE_SUPABASE_URL__/g, supabaseUrl).replace(
+    /__JARVIS_MOBILE_SUPABASE_ANON_KEY__/g,
+    supabaseAnonKey
+  );
 }

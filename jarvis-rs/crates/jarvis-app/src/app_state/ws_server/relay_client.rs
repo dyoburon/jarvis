@@ -18,7 +18,6 @@ pub enum ClientCommand {
 }
 
 /// Events the relay client sends to the main thread.
-#[allow(dead_code)]
 pub enum RelayEvent {
     Connected { session_id: String },
     PeerConnected,

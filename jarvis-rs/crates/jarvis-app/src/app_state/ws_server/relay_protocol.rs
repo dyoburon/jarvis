@@ -54,3 +54,22 @@ pub enum RelayEnvelope {
     #[serde(rename = "plaintext")]
     Plaintext { payload: String },
 }
+
+#[cfg(test)]
+mod wire_conformance_tests {
+    use super::RelayResponse;
+
+    const SESSION_READY_FIXTURE: &str = include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../testdata/relay/session_ready.json"
+    ));
+
+    #[test]
+    fn session_ready_deserializes_shared_fixture() {
+        let r: RelayResponse = serde_json::from_str(SESSION_READY_FIXTURE.trim()).unwrap();
+        match r {
+            RelayResponse::SessionReady { session_id } => assert_eq!(session_id, "test-sid"),
+            _ => panic!("expected SessionReady"),
+        }
+    }
+}

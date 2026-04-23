@@ -1,3 +1,10 @@
+import { PixelRatio } from 'react-native';
+
+/** Cap font scaling so terminal layouts stay usable on huge accessibility sizes. */
+export function scaledFont(base: number, maxScale = 1.2): number {
+  return Math.round(base * Math.min(PixelRatio.getFontScale(), maxScale));
+}
+
 export const theme = {
   colors: {
     bg: '#0a0a0a',

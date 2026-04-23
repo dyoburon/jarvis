@@ -60,7 +60,7 @@ jobs:
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install -r legacy/requirements.txt
       
       - name: Get version
         id: version
@@ -78,7 +78,7 @@ jobs:
       # ---------------------------------------------------------------------
       - name: Build Swift (Release)
         run: |
-          cd metal-app
+          cd legacy/metal-app
           swift build -c release
       
       # ---------------------------------------------------------------------
@@ -86,7 +86,7 @@ jobs:
       # ---------------------------------------------------------------------
       - name: Create app bundle
         run: |
-          ./package.sh --release
+          ./scripts/package.sh --release
         env:
           JARVIS_VERSION: ${{ steps.version.outputs.version }}
       

@@ -12,15 +12,18 @@ data/
 .coverage
 htmlcov/
 
-# Swift build
-metal-app/.build/
+# Swift build (legacy macOS app)
+legacy/metal-app/.build/
 
 # Rust build
 jarvis-rs/target/
+
+# Generated from docs/manual/build_html.py (source of truth: markdown chapters)
+docs/manual/jarvis-manual.html
 
 # Config (user-specific)
 # Note: ~/.config/jarvis/ is outside repo, but local config testing
 .config/
 
 # Claude Code local settings
-.claude/settings.local.json
+.claude/

@@ -45,3 +45,25 @@ pub enum RelayResponse {
     #[serde(rename = "error")]
     Error { message: String },
 }
+
+#[cfg(test)]
+mod wire_conformance_tests {
+    use super::RelayResponse;
+
+    const SESSION_READY_FIXTURE: &str = include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../testdata/relay/session_ready.json"
+    ));
+
+    /// Shared JSON in `jarvis-rs/testdata/relay/` must match what the desktop client deserializes.
+    #[test]
+    fn session_ready_json_matches_fixture() {
+        let msg = RelayResponse::SessionReady {
+            session_id: "test-sid".to_string(),
+        };
+        let v = serde_json::to_value(&msg).unwrap();
+        let expected: serde_json::Value =
+            serde_json::from_str(SESSION_READY_FIXTURE.trim()).unwrap();
+        assert_eq!(v, expected);
+    }
+}

@@ -19,4 +19,11 @@ Complete technical documentation for the Jarvis desktop environment.
 
 ## Single-Page HTML
 
-A self-contained HTML5 version of this entire manual is available at [`jarvis-manual.html`](jarvis-manual.html) — open it in any browser.
+To build a self-contained `jarvis-manual.html` in this folder (not committed to git):
+
+```bash
+cd docs/manual
+python build_html.py
+```
+
+Open `jarvis-manual.html` in a browser after building.

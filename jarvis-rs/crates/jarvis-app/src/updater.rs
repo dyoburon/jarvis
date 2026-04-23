@@ -4,6 +4,7 @@ use semver::Version;
 use serde::Deserialize;
 
 /// A GitHub release entry.
+#[allow(dead_code)]
 #[derive(Debug, Deserialize)]
 pub struct GithubRelease {
     /// The tag name, e.g. "v0.2.0".
@@ -20,6 +21,7 @@ pub struct UpdateChecker {
     current_version: String,
 }
 
+#[allow(dead_code)]
 impl UpdateChecker {
     /// Create a checker for the given GitHub `owner/repo`.
     pub fn new(repo: &str) -> Self {

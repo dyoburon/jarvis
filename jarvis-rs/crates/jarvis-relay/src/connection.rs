@@ -198,8 +198,12 @@ pub async fn handle_connection(
                     Some(Ok(Message::Text(text))) => {
                         if role.session_kind() == SessionKind::Bridge {
                             if let Some(peer) = store.get_peer_tx(&session_id, role).await {
-                                if peer.send(text.to_string()).await.is_err() {
-                                    tracing::debug!(session = %session_id, "Peer channel closed");
+                                // Mobile sends `{"type":"ping"}` on the WebSocket for keepalive; desktop
+                                // does not consume it as a relay envelope — drop here to avoid noise.
+                                if !is_relay_keepalive_ping(&text) {
+                                    if peer.send(text.to_string()).await.is_err() {
+                                        tracing::debug!(session = %session_id, "Peer channel closed");
+                                    }
                                 }
                             }
                         } else if matches!(role, Role::Host) {
@@ -248,6 +252,13 @@ pub async fn handle_connection(
             }
         }
         notify_viewer_count(&store, &session_id).await;
+    }
+}
+
+fn is_relay_keepalive_ping(text: &str) -> bool {
+    match serde_json::from_str::<serde_json::Value>(text) {
+        Ok(v) => v.get("type").and_then(|t| t.as_str()) == Some("ping"),
+        Err(_) => false,
     }
 }
 
