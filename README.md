@@ -1,5 +1,10 @@
 # Jarvis
 
+> [!IMPORTANT]
+> **Jarvis has been shut down.** The hosted relay and all other project services
+> are offline. This repository is archived, and no further updates are planned.
+> The source and documentation remain available as a historical reference.
+
 A programmable, GPU-rendered tiling desktop shell for vibe coding — an agentic
 multi-provider AI assistant, self-hosted chat & presence, collaborative
 terminals, and a `jarvis://` plugin system, all in one cross-platform Rust binary.
@@ -47,7 +52,8 @@ cargo test --workspace       # full test suite
 ```
 
 Panel HTML/CSS/JS is canonical under **`jarvis-rs/assets/panels/`** (bundled via
-`include_dir` at compile time). The **relay server** builds separately:
+`include_dir` at compile time). For historical/self-hosting reference, the
+**relay server** builds separately:
 
 ```bash
 cargo build --release --bin jarvis-relay   # then deploy (see relay/, railway.json)
@@ -56,8 +62,9 @@ cargo build --release --bin jarvis-relay   # then deploy (see relay/, railway.js
 Configuration lives in the OS config dir (`<config>/jarvis/config.toml`). AI
 provider keys are read from the environment (`OPENAI_API_KEY`, `GEMINI_API_KEY` /
 `GOOGLE_API_KEY`, `MINIMAX_API_KEY`; Claude via `claude auth login` or
-`CLAUDE_CODE_OAUTH_TOKEN`). The relay URL defaults to the project's deployment and
-is overridable in config.
+`CLAUDE_CODE_OAUTH_TOKEN`). The former project relay is no longer running; any
+relay-dependent functionality requires a separately deployed relay and an
+overridden relay URL in config.
 
 Full detail: **[docs/manual/README.md](docs/manual/README.md)**.
 
